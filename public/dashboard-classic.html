@@ -1,0 +1,2151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maths Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#12161d;--surface:#1a1f28;--surface-2:#222833;--line:#2c333f;
+  --fg:#e7eaef;--fg-dim:#9aa4b2;--fg-faint:#6d7786;
+  --accent:#7a9bd4;--accent-soft:#2a3647;
+  --ch-master:#269873;--ch-dev:#b88c1f;--ch-beg:#d1576f;--ch-line:#4f8ad6;--ch-none:#343c49;
+  --master:#58a88a;--developing:#d19a46;--beginner:#cd6356;
+  /* process states get their own hue so they never read as a mastery level */
+  --process:#9b7fd4;
+  /* set aside by the parent — its own hue, never the muted grey "mid-topic,
+     no level yet" tone those used to share and get confused with */
+  --paused:#6f8fb3;
+  /* the topic he's actually working on right now — its own vivid green,
+     deliberately brighter than the muted --master so the two never blur */
+  --current:#3ecf7e;
+  --display:'Archivo',system-ui,sans-serif;
+  --body:'Public Sans',system-ui,-apple-system,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  color-scheme:dark;
+}
+@media(prefers-color-scheme:light){
+  :root:not([data-theme="dark"]){
+    --bg:#f6f6f3;--surface:#fff;--surface-2:#eff0ec;--line:#dcded8;
+    --fg:#1c2127;--fg-dim:#5a6372;--fg-faint:#878f9c;
+    --accent:#3f62a0;--accent-soft:#e3e9f4;
+    --master:#2f7d60;--developing:#a9741f;--beginner:#a8463c;--process:#6d51a8;--paused:#466d94;
+    --current:#1f9d57;
+    --ch-master:#1f7f5f;--ch-dev:#9c7513;--ch-beg:#ba3f5d;--ch-line:#3a6fb5;--ch-none:#d7dad2;
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#f6f6f3;--surface:#fff;--surface-2:#eff0ec;--line:#dcded8;
+  --fg:#1c2127;--fg-dim:#5a6372;--fg-faint:#878f9c;
+  --accent:#3f62a0;--accent-soft:#e3e9f4;
+  --master:#2f7d60;--developing:#a9741f;--beginner:#a8463c;--process:#6d51a8;--paused:#466d94;
+  --current:#1f9d57;
+  --ch-master:#1f7f5f;--ch-dev:#9c7513;--ch-beg:#ba3f5d;--ch-line:#3a6fb5;--ch-none:#d7dad2;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);line-height:1.5;margin:0}
+/* 900px read as a vertical strip on a real monitor — everything (stats row,
+   paired charts, topic tiles) stacked into one narrow column with the rest of
+   the screen empty. The charts/grid already flex to fill their container
+   (.charts is 1fr 1fr, .grid is auto-fill), so widening this one cap is
+   enough to let them actually spread out; nothing else needs to change. */
+.wrap{max-width:1320px;margin:0 auto;padding-inline:18px;padding-block:22px 56px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.015em}
+h1{font-size:1.5rem;font-weight:700}
+h2{font-size:1.02rem;font-weight:600}
+h3{font-size:.93rem;font-weight:600}
+.eyebrow{font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-faint);font-family:var(--display)}
+.dim{color:var(--fg-dim)}.faint{color:var(--fg-faint)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.sm{font-size:.82rem}.xs{font-size:.74rem}
+header{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.sub{font-size:.82rem;color:var(--fg-dim)}
+nav{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:24px}
+nav button{appearance:none;background:none;border:0;border-bottom:2px solid transparent;color:var(--fg-dim);
+  font-family:var(--display);font-size:.88rem;font-weight:600;padding:10px 14px;cursor:pointer;margin-bottom:-1px}
+nav button:hover{color:var(--fg)}
+nav button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+nav button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:3px}
+.count{font-family:var(--mono);font-size:.7rem;color:var(--fg-faint);margin-left:5px}
+section.view{display:flex;flex-direction:column;gap:26px}
+.block{display:flex;flex-direction:column;gap:11px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:15px 16px}
+.row{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.att{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:13px 15px;border-left:3px solid var(--fg-faint)}
+.att.high{border-left-color:var(--beginner)}.att.mid{border-left-color:var(--developing)}
+.att-body{min-width:0;flex:1}
+.att-body p{margin:4px 0 0;font-size:.84rem;color:var(--fg-dim)}
+.att-do{margin-top:7px;font-size:.82rem;color:var(--fg)}
+.allclear{text-align:center;padding:26px 16px;color:var(--fg-dim);font-size:.88rem}
+.pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--display);font-size:.68rem;font-weight:600;
+  letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:999px;white-space:nowrap;border:1px solid}
+.p-master{color:var(--master);border-color:color-mix(in srgb,var(--master) 45%,transparent);background:color-mix(in srgb,var(--master) 12%,transparent)}
+.p-developing{color:var(--developing);border-color:color-mix(in srgb,var(--developing) 45%,transparent);background:color-mix(in srgb,var(--developing) 12%,transparent)}
+.p-beginner{color:var(--beginner);border-color:color-mix(in srgb,var(--beginner) 50%,transparent);background:color-mix(in srgb,var(--beginner) 14%,transparent)}
+.p-progress{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+/* Neutral informational tag — the stage-phase chip ("Practice · level 1").
+   Deliberately colorless: not a status the parent needs to act on. */
+.p-neutral{color:var(--fg-dim);border-color:var(--line);background:var(--surface-2)}
+.p-waiting{color:var(--process);border-color:color-mix(in srgb,var(--process) 55%,transparent);background:color-mix(in srgb,var(--process) 15%,transparent)}
+.p-none{color:var(--fg-faint);border-color:var(--line)}
+/* Paused — set aside by the parent. Its own hue so it is never read as
+   "Underway" or as any mastery level. */
+.p-off{color:var(--paused);border-color:color-mix(in srgb,var(--paused) 50%,transparent);background:color-mix(in srgb,var(--paused) 14%,transparent)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:.74rem;color:var(--fg-dim);align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:9px;height:9px;border-radius:2px;flex:none}
+.legend-compact{display:flex;flex-direction:column;gap:11px}
+.legend-group{display:flex;flex-direction:column;gap:7px}
+.legend-group-chips{display:flex;flex-wrap:wrap;gap:8px 12px}
+.legend-group-label{font-size:.63rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-faint);font-family:var(--display)}
+.lg-chip{display:inline-flex;align-items:center;gap:6px;font-size:.76rem;color:var(--fg-dim);cursor:default}
+.lg-icon{display:inline-flex;flex:none}
+.lg-chip b{font-family:var(--display);font-weight:700;font-size:.76rem}
+.strand{margin-top:4px}
+.strand-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-bottom:7px;border-bottom:1px solid var(--line);margin-bottom:11px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px}
+.tile{position:relative;text-align:left;min-width:0;appearance:none;cursor:pointer;font-family:var(--body);
+  background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:9px 10px 10px;
+  display:flex;flex-direction:column;gap:7px;color:var(--fg)}
+.tile:hover{border-color:var(--fg-faint)}
+.tile:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.tile.l-master{border-left:3px solid var(--master)}
+.tile.l-developing{border-left:3px solid var(--developing)}
+.tile.l-beginner{border-left:3px solid var(--beginner);background:color-mix(in srgb,var(--beginner) 7%,var(--surface))}
+.tile.l-inProgress{background:color-mix(in srgb,var(--current) 16%,var(--surface))}
+.tile.l-awaitingGrading{border-left:3px solid var(--process);background:color-mix(in srgb,var(--process) 8%,var(--surface))}
+.tile.l-underway{border-left:3px dashed var(--fg-faint)}
+.tile.l-paused{border-left:3px dashed var(--paused);background:color-mix(in srgb,var(--paused) 7%,var(--surface))}
+.tile.l-notStarted{opacity:.62}
+.tile.selected{box-shadow:inset 0 0 0 300px color-mix(in srgb,var(--accent) 16%,transparent),0 0 0 2px var(--accent)}
+/* center, not baseline — the right slot is an icon now (no label text), and
+   an SVG has no text baseline to line up against the index number with */
+.tile-top{display:flex;gap:6px;align-items:center;justify-content:space-between}
+.tile-idx{font-family:var(--mono);font-size:.68rem;color:var(--fg-faint)}
+/* WHERE the topic stands — Paused / Underway — top-right, a small icon plus
+   bold caps text (same size as the index number), not a pill. Independent of
+   any pending action (see .tile-action below); a Developing topic awaiting
+   grading still just shows its level dot, nothing in this slot. */
+.tile-status{display:inline-flex;align-items:center;gap:4px;font-family:var(--display);
+  font-size:.68rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;flex:none}
+/* The level (Master/Developing/Beginner) as a small dot beside the title
+   instead of a pill in the footer — one glance of color says it, and the
+   footer stays free for session count / action, which is what was crowding
+   the tile. Full word is still one tap away, in the detail panel's pill. */
+.tile-name-row{display:flex;gap:6px;align-items:flex-start}
+.tile-dot{width:7px;height:7px;border-radius:50%;flex:none;margin-top:4px}
+.tile-name{font-size:.79rem;line-height:1.3;font-weight:500;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+/* Two explicit rows (session count/mode + action), not one wrapping flex
+   line — wrapping let the action text land in the wrong place before. */
+.tile-foot{display:flex;flex-direction:column;gap:4px}
+.tile-foot-row{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.tile-foot-row:last-child{justify-content:space-between}
+/* The parent's Teach-fully/Check-first choice for a topic that has not
+   started — a small icon plus text at the LEFT of the bottom row (a
+   not-started topic has no session count to show there instead), separate
+   from the top-right stage slot it used to compete with. */
+.tile-mode-text{display:inline-flex;align-items:center;gap:4px;font-family:var(--display);
+  font-size:.64rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;flex:none}
+/* An ACTION for the parent — Queued / Needs grading — sits at the right end
+   of its row (session count on the left), pushed there with margin-left:auto
+   so it still lands on the right even with nothing else in the row. */
+.tile-action{font-family:var(--display);font-size:.64rem;font-weight:700;
+  letter-spacing:.03em;text-transform:uppercase;margin-left:auto;flex:none}
+.fade{font-size:.68rem;color:var(--developing);font-family:var(--display);font-weight:600}
+.detail{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:15px 16px;display:flex;flex-direction:column;gap:12px}
+.detail table{width:100%;border-collapse:collapse;font-size:.8rem}
+.detail th{text-align:left;font-family:var(--display);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--fg-faint);font-weight:600;padding:0 10px 6px 0;border-bottom:1px solid var(--line)}
+.detail td{padding:7px 10px 7px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.detail tr:last-child td{border-bottom:0}
+.close-btn{appearance:none;background:none;border:1px solid var(--line);color:var(--fg-dim);border-radius:6px;
+  font-size:.74rem;padding:3px 9px;cursor:pointer;font-family:var(--body)}
+.close-btn:hover{color:var(--fg)}
+.scorebars{display:flex;gap:4px;align-items:flex-end;height:46px}
+.scorebar{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px}
+.scorebar i{display:block;width:100%;border-radius:3px 3px 0 0;background:var(--ch-line)}
+.scorebar em{font-family:var(--mono);font-size:.62rem;color:var(--fg-faint);font-style:normal}
+.q-list{display:flex;flex-direction:column;gap:6px}
+.q-item{display:flex;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:10px 11px}
+.q-item.is-now{border-left:3px solid var(--accent)}
+.q-item.is-paused{border-left:3px dashed var(--fg-faint);background:var(--surface-2)}
+.q-item.is-frozen{border-left:3px solid var(--developing);background:color-mix(in srgb,var(--developing) 6%,var(--surface))}
+.modes{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);
+  border-radius:9px;padding:12px 14px;margin-top:4px}
+.mode-row{display:flex;gap:10px;align-items:flex-start;font-size:.8rem;color:var(--fg-dim);line-height:1.45}
+.mode-row .pill{flex:none;margin-top:1px}
+.mode-row b{color:var(--fg);font-weight:600}
+/* the mode button shows the CURRENT setting, so it reads as a state not an action */
+.mode-btn.is-check{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent);
+  background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.mode-btn.is-teach{color:var(--developing);border-color:color-mix(in srgb,var(--developing) 50%,transparent);
+  background:color-mix(in srgb,var(--developing) 10%,transparent)}
+.mode-btn:disabled{opacity:.35}
+.toggle-seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;padding:2px;gap:2px;background:var(--surface)}
+.toggle-seg button{appearance:none;border:none;background:none;cursor:pointer;font-family:var(--body);
+  font-size:.72rem;padding:5px 10px;border-radius:5px;color:var(--fg-dim);white-space:nowrap}
+.toggle-seg button.active{background:var(--surface-2);font-weight:600}
+.toggle-seg button.active.is-teach{color:var(--developing)}
+.toggle-seg button.active.is-check{color:var(--accent)}
+/* A selected segment with no teach/check semantic (the session-length
+   picker) still needs contrast — otherwise "selected" only differs from
+   "not selected" by background+weight, easy to miss at a glance. */
+.toggle-seg button.active:not(.is-teach):not(.is-check){color:var(--fg)}
+.session-len-row{display:flex;align-items:center;gap:8px;margin:6px 0 2px;flex-wrap:wrap}
+.ic.start{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+.q-num{font-family:var(--mono);font-size:.74rem;color:var(--fg-faint);width:18px;flex:none;text-align:right}
+.q-name{flex:1;min-width:0;font-size:.85rem;font-weight:500}
+.q-name small{display:block;font-weight:400;font-size:.72rem;color:var(--fg-dim);margin-top:2px}
+/* Last-session report rows: the question is short, so its detail rides on the
+   same line instead of doubling the row height. Wraps naturally when narrow. */
+.q-list.tight .q-item{padding:7px 10px}
+.q-list.tight .q-name small{display:inline;margin:0 0 0 9px}
+.q-acts{display:flex;gap:4px;flex:none}
+.ic{appearance:none;width:27px;height:27px;border-radius:6px;border:1px solid var(--line);background:none;
+  color:var(--fg-dim);cursor:pointer;font-size:.8rem;line-height:1;display:grid;place-items:center;font-family:var(--body)}
+.ic:hover:not(:disabled){color:var(--fg);border-color:var(--fg-faint)}
+.ic:disabled{opacity:.3;cursor:default}
+.ic.w{width:auto;padding:0 9px;font-size:.72rem;white-space:nowrap}
+.ic:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch}
+@media(max-width:620px){.charts{grid-template-columns:1fr}}
+.charts .block{height:100%}
+.top-card{height:230px;overflow:hidden;position:relative}
+.top-card.allclear{display:flex;align-items:center;justify-content:center}
+.read-more-fade{position:absolute;left:0;right:0;bottom:0;height:46px;
+  background:linear-gradient(to bottom,transparent,var(--surface) 72%);
+  display:flex;align-items:flex-end;justify-content:flex-end;padding:0 14px 8px;pointer-events:none}
+.read-more-btn{appearance:none;background:none;border:none;color:var(--accent);font-family:var(--display);
+  font-weight:600;font-size:.78rem;cursor:pointer;padding:2px 4px;pointer-events:auto}
+.read-more-btn:hover{text-decoration:underline}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;
+  justify-content:center;z-index:50;padding:20px}
+.modal-box{background:var(--surface);border:1px solid var(--line);border-radius:12px;max-width:480px;
+  width:100%;max-height:80vh;overflow:auto;padding:18px 20px}
+.modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
+.modal-head h3{font-size:1.05rem}
+.modal-close{appearance:none;background:none;border:none;color:var(--fg-dim);font-size:1.4rem;
+  line-height:1;cursor:pointer;padding:0 4px}
+.modal-close:hover{color:var(--fg)}
+.modal-body{font-size:.88rem;line-height:1.5}
+.chart-tip{position:fixed;z-index:60;pointer-events:none;background:var(--surface-2);
+  color:var(--fg);font:500 .72rem/1.3 var(--body);padding:5px 9px;border-radius:6px;
+  border:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap;
+  display:none;transform:translate(-50%,-100%)}
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:14px 15px;min-width:0;display:flex;flex-direction:column;gap:9px}
+.chart h3{font-size:.86rem}
+.chart .cap{font-size:.76rem;color:var(--fg-dim)}
+.chart svg{display:block;width:100%;height:auto;max-width:100%}
+.mix{display:flex;flex-direction:column;gap:11px}
+.mix-row{display:flex;flex-direction:column;gap:5px;min-width:0}
+.mix-top{display:flex;justify-content:space-between;gap:10px;font-size:.8rem;align-items:baseline}
+.mix-bar{display:flex;gap:2px;height:16px;border-radius:4px;overflow:hidden;background:var(--surface-2)}
+.mix-seg{display:grid;place-items:center;min-width:0}
+.mix-seg:first-child{border-radius:4px 0 0 4px}.mix-seg:last-child{border-radius:0 4px 4px 0}
+.ch-legend{display:flex;flex-wrap:wrap;gap:6px 13px;font-size:.72rem;color:var(--fg-dim)}
+.ch-legend span{display:inline-flex;align-items:center;gap:5px}
+.spark-wrap{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.big-num{font-family:var(--display);font-size:1.6rem;font-weight:700;letter-spacing:-.02em}
+.callout{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.callout .huge{font-family:var(--display);font-size:2.4rem;font-weight:700;letter-spacing:-.03em;line-height:1;color:var(--ch-beg)}
+.callout p{margin:0;font-size:.86rem;max-width:42ch}
+.keys{display:flex;flex-direction:column;gap:7px;margin-top:4px}
+.key{display:flex;gap:9px;align-items:baseline;font-size:.83rem}
+.key i{width:9px;height:9px;border-radius:2px;flex:none;position:relative;top:1px}
+.key span{flex:1;min-width:0}
+.key b{font-family:var(--mono);font-size:.8rem;font-weight:500;color:var(--fg-dim)}
+.hero{border:1px solid var(--line);border-radius:12px;padding:18px 19px;
+  background:radial-gradient(120% 140% at 100% 0%,color-mix(in srgb,var(--accent) 16%,transparent) 0%,transparent 58%),var(--surface);
+  display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.hero-main{flex:1;min-width:210px}
+.hero h2{font-size:1.22rem;line-height:1.22}
+.hero-meta{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:9px}
+.ring{flex:none;display:grid;place-items:center;position:relative;width:104px;height:104px;align-self:flex-start}
+.ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.ring-in{text-align:center;line-height:1.1}
+.ring-in b{font-family:var(--display);font-size:1.5rem;font-weight:700;display:block;letter-spacing:-.02em}
+.ring-in span{font-size:.64rem;color:var(--fg-faint);font-family:var(--display);letter-spacing:.07em;text-transform:uppercase}
+.pips{display:flex;gap:5px;margin-top:13px;align-items:center;flex-wrap:wrap}
+.pip{width:26px;height:5px;border-radius:3px;background:var(--surface-2);border:1px solid var(--line)}
+.pip.on{background:var(--accent);border-color:var(--accent)}
+.pip.cur{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+.verdict{margin-top:15px;padding-top:14px;border-top:1px solid var(--line);font-size:.86rem;flex-basis:100%}
+.verdict .lead{font-weight:600}
+.verdict .means{margin-top:8px;color:var(--fg-dim)}
+.strip-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 15px;display:flex;flex-direction:column;gap:10px}
+.strip-nums{display:flex;gap:16px;flex-wrap:wrap}
+.strip-num b{font-family:var(--display);font-size:1.25rem;font-weight:700;display:block;line-height:1.1}
+.strip-num span{font-size:.7rem;color:var(--fg-faint)}
+.recall{display:flex;flex-direction:column;gap:7px}
+.recall-item{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:9px 11px;border:1px solid var(--line);border-radius:7px;background:var(--surface);font-size:.84rem}
+.recall-item.due{border-color:color-mix(in srgb,var(--accent) 55%,transparent);background:var(--accent-soft)}
+.when{font-family:var(--mono);font-size:.76rem;color:var(--fg-dim);flex:none}
+.start-block{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:14px 15px;display:flex;flex-direction:column;gap:10px}
+.start-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.start-row select{flex:1;min-width:170px;background:var(--surface-2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;font-family:var(--body);font-size:.84rem}
+.btn{appearance:none;border:1px solid var(--accent);background:var(--accent-soft);color:var(--fg);border-radius:6px;padding:7px 13px;font-family:var(--display);font-weight:600;font-size:.8rem;cursor:pointer}
+.btn:hover{border-color:var(--fg)}
+.btn.ghost{background:none;border-color:var(--line);color:var(--fg-dim);font-weight:500}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.note{font-size:.78rem;color:var(--fg-faint);font-style:italic}
+.loading{text-align:center;padding:60px 20px;color:var(--fg-dim);font-family:var(--display)}
+.err-box{border:1px solid var(--beginner);background:color-mix(in srgb,var(--beginner) 10%,var(--surface));border-radius:9px;padding:16px;font-size:.9rem}
+.err-box b{color:var(--beginner);font-family:var(--display)}
+.rule{background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:8px;padding:9px 12px;margin-top:9px;font-size:.88rem;color:var(--fg)}
+@media(max-width:420px){.grid{grid-template-columns:1fr 1fr}.tile-name{-webkit-line-clamp:4}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.help{margin-top:36px;border-top:1px solid var(--line);padding-top:16px}
+.help summary{cursor:pointer;font-family:var(--display);font-weight:600;font-size:.84rem;color:var(--fg-dim);list-style:none;display:flex;align-items:center;gap:7px;user-select:none}
+.help summary::-webkit-details-marker{display:none}
+.help summary::before{content:'▸';font-size:.65rem;color:var(--fg-faint);transition:transform .15s}
+.help[open] summary::before{transform:rotate(90deg)}
+.help summary:hover{color:var(--fg)}
+.help-body{margin-top:16px;display:flex;flex-direction:column;gap:22px}
+.help-body h3{margin-bottom:9px}
+.help-flow{margin:0;padding-left:19px;display:flex;flex-direction:column;gap:7px;font-size:.84rem;color:var(--fg-dim)}
+.help-flow b{color:var(--fg)}
+.help-cmds{display:flex;flex-direction:column;gap:9px}
+.help-cmd{display:flex;gap:11px;align-items:baseline;flex-wrap:wrap;font-size:.84rem;color:var(--fg-dim)}
+.help-cmd code{font-family:var(--mono);color:var(--accent);background:var(--accent-soft);padding:2px 7px;border-radius:5px;font-size:.78rem;white-space:nowrap;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1 id="page-title">Maths Map</h1>
+      <div class="sub" id="page-sub">Loading…</div>
+    </div>
+    <div class="xs faint mono" id="asof"></div>
+  </header>
+
+  <nav role="tablist" id="nav" style="display:none">
+    <button role="tab" aria-selected="true"  data-tab="today">Dashboard</button>
+    <button role="tab" aria-selected="false" data-tab="mastery">Topics<span class="count" id="c-mastery"></span></button>
+  </nav>
+
+  <div id="main-content"><div class="loading">Loading…</div></div>
+
+  <details class="help">
+    <summary>Help — how this works &amp; commands</summary>
+    <div class="help-body">
+      <div>
+        <h3>Process flow</h3>
+        <ol class="help-flow">
+          <li>Your child does a session on their own page — each answer saves straight to the database as they go.</li>
+          <li>Finishing marks it <b>submitted</b>, waiting to be graded.</li>
+          <li>Running <code>/grade</code> fetches that session and hands it to the <b>grader</b> — it marks every answer, diagnoses the wrong ones, and decides the verdict and what should happen next, reading his whole history on the topic, not just this one session.</li>
+          <li>That grading is saved immediately — marks, feedback, and progress are never left waiting on what gets built next.</li>
+          <li>The next session gets built: a full step-by-step <b>lesson</b> when something needs re-teaching, otherwise a <b>practice</b>, <b>check</b> or <b>retest</b> session at the right level.</li>
+          <li>It's checked two ways — an automatic answer-key check, then an independent cold re-solve — before it's queued. A clean pass queues it automatically; anything doubtful (or a backtrack to an earlier topic) is held for review first.</li>
+          <li>The new session goes to <b>pending</b>, ready for your child next time they open their page.</li>
+        </ol>
+      </div>
+      <div>
+        <h3>Commands</h3>
+        <div class="help-cmds">
+          <div class="help-cmd"><code>/grade</code> Grade whatever he's submitted and queue what's next — the everyday command.</div>
+          <div class="help-cmd"><code>/next-session</code> Build the next session when nothing is waiting to be graded (first session, or after a gap).</div>
+          <div class="help-cmd"><code>/status</code> Read-only progress check — no changes made.</div>
+          <div class="help-cmd"><code>/setup-child</code> Research the curriculum and set up a child's profile and topic list.</div>
+          <div class="help-cmd"><code>/run</code> Start the local dev server for this dashboard and his session page.</div>
+          <div class="help-cmd"><code>/reset-child</code> Dev/testing only — wipes sessions and progress for a clean re-test, keeps the approved topic list.</div>
+        </div>
+      </div>
+    </div>
+  </details>
+</div>
+
+<script src="/session-shape.js"></script>
+<script>
+(function(){
+"use strict";
+
+// "me" = the only child; the server resolves it. This file is public, so it must not
+// carry the child's name or id — the name comes from the data, after the admin key.
+var CHILD_ID = 'me';
+
+/* ── API key ──────────────────────────────────────────────────────────
+ * The dashboard holds the ADMIN key (app.js "Authentication") — it reads the
+ * full child record and can edit the curriculum and delete sessions. Stored
+ * per browser, prompted for once. Never put this key on the child's device;
+ * their page uses the separate, far more limited child key. */
+var KEY_STORE = 'tutorAdminKey';
+function tutorKey(){
+  try { return localStorage.getItem(KEY_STORE) || ''; } catch(e){ return ''; }
+}
+function askForKey(wasRejected){
+  var k = window.prompt(
+    (wasRejected ? 'That key was not accepted.\n\n' : '') +
+    'Enter the dashboard access key (TUTOR_ADMIN_KEY):');
+  if(k === null) return false;
+  try { localStorage.setItem(KEY_STORE, k.trim()); } catch(e){}
+  return true;
+}
+// Every call goes through this, so a rotated key is one prompt away rather
+// than a silent wall of failed requests.
+function apiFetch(url, opts){
+  opts = opts || {};
+  var headers = {};
+  for(var h in (opts.headers||{})) headers[h] = opts.headers[h];
+  headers['x-tutor-key'] = tutorKey();
+  opts.headers = headers;
+  return fetch(url, opts).then(function(r){
+    if(r.status === 401){
+      if(askForKey(true)) location.reload();
+      throw new Error('Unauthorized — the dashboard key was rejected.');
+    }
+    if(r.status === 503){
+      throw new Error('Server has no API keys configured — see docs/deploy.md.');
+    }
+    return r;
+  });
+}
+var DATA = null;   // { child, sessions, topics }
+function childName(){ var n = DATA && DATA.child && DATA.child.name; return n ? String(n).split(' ')[0] : 'your child'; }
+
+/* ── helpers ─────────────────────────────────────────────────────── */
+function esc(s){ return String(s||'').replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function el(html){ var d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstElementChild; }
+
+// Chart dots carry their hover text as a plain SVG <title> too (accessible,
+// degrades fine), but native title tooltips are flaky across browsers —
+// inconsistent delay, sometimes nothing at all. This is the real tooltip:
+// one shared floating element, positioned at the cursor, driven off a
+// data-tip attribute any chart's hoverable shapes can carry.
+var _chartTip=null;
+function chartTip(){
+  if(!_chartTip){ _chartTip=document.createElement('div'); _chartTip.className='chart-tip'; document.body.appendChild(_chartTip); }
+  return _chartTip;
+}
+function attachChartTips(container){
+  if(!container) return;
+  var tip=chartTip();
+  container.querySelectorAll('[data-tip]').forEach(function(node){
+    function place(e){ tip.style.left=e.clientX+'px'; tip.style.top=(e.clientY-10)+'px'; }
+    node.addEventListener('mouseenter',function(e){ tip.textContent=node.getAttribute('data-tip'); tip.style.display='block'; place(e); });
+    node.addEventListener('mousemove',place);
+    node.addEventListener('mouseleave',function(){ tip.style.display='none'; });
+  });
+}
+
+function openModal(title, html){
+  var old=document.getElementById('dash-modal');
+  if(old) old.remove();
+  var wrap=el('<div class="modal-overlay" id="dash-modal"><div class="modal-box">'+
+    '<div class="modal-head"><h3>'+esc(title)+'</h3>'+
+    '<button type="button" class="modal-close" aria-label="Close">&times;</button></div>'+
+    '<div class="modal-body">'+html+'</div></div></div>');
+  document.body.appendChild(wrap);
+  wrap.addEventListener('click',function(e){ if(e.target===wrap) wrap.remove(); });
+  wrap.querySelector('.modal-close').addEventListener('click',function(){ wrap.remove(); });
+}
+// A fixed-height card (see .top-card) can clip taller content. Once it's
+// actually laid out, check for real overflow and, only then, offer the
+// full version in a popup rather than always showing a "Read more" link.
+function addReadMoreIfNeeded(cardEl, title, fullHtml){
+  requestAnimationFrame(function(){
+    if(cardEl.scrollHeight > cardEl.clientHeight + 2){
+      var fade=el('<div class="read-more-fade"><button type="button" class="read-more-btn">Read more</button></div>');
+      fade.querySelector('.read-more-btn').addEventListener('click',function(){ openModal(title, fullHtml); });
+      cardEl.appendChild(fade);
+    }
+  });
+}
+// Dates arrive two ways: ISO timestamps from the server, and DD/MM/YYYY in the
+// `date` field shown to the child. Accept both.
+function asDate(v){
+  if(!v) return null;
+  var s=String(v);
+  var uk=s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  var d = uk ? new Date(uk[3]+'/'+uk[2]+'/'+uk[1]) : new Date(s.slice(0,10).replace(/-/g,'/'));
+  return isNaN(d) ? null : d;
+}
+function fmt(v){ var d=asDate(v); return d ? d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '—'; }
+function daysAgo(v){ var d=asDate(v); return d ? Math.round((Date.now()-d)/864e5) : 999; }
+function pct(n,d){ return d?Math.round(n/d*100):0; }
+
+/* session lifecycle: pending → submitted → graded */
+function isDone(s){ return s.status==='submitted'||s.status==='graded'; }
+function isPending(s){ return s.status==='pending'; }
+
+// Shared with the child's page and the grading scripts — see
+// public/session-shape.js. Four separate copies of this used to drift.
+function countQuestions(s){ return s ? SessionShape.countQuestions(s) : 0; }
+
+// Guided (cycle) questions measure the TEACHING; unaided ones measure
+// mastery. The split is recorded on the session as questionIndex[]. A
+// session graded before that existed has none — treat every question as
+// unaided, which reproduces exactly the numbers it was graded with.
+function guidedIds(s){
+  var out={};
+  (s&&s.questionIndex||[]).forEach(function(r){ if(r.guided) out[r.id]=true; });
+  return out;
+}
+
+// The prerequisite chain a parent actually wants ("before this, these should
+// be done") is the full transitive closure — curriculum.topics[].prereqs
+// only stores DIRECT links (CLAUDE.md "Prerequisites are the chain"). Shared
+// by the tile grid (badge) and the detail panel (the "Still needed first"
+// line), so the two can never disagree about what counts as unmet.
+function transitiveChainIds(topicId, topicsById){
+  var ids=[], seen={};
+  (function walk(id){
+    var node=topicsById[id];
+    if(!node) return;
+    (node.prereqs||[]).forEach(function(pid){
+      if(seen[pid]) return;
+      seen[pid]=true;
+      walk(pid);
+      ids.push(pid);
+    });
+  })(topicId);
+  return ids;
+}
+function unmetPrereqsFor(t, topicsById){
+  return transitiveChainIds(t.id, topicsById).map(function(id){ return topicsById[id]; })
+    .filter(function(p){ return p && p.lv!=='master'; });
+}
+
+/* ── data mapping ────────────────────────────────────────────────── */
+function buildTopics(child, sessions){
+  var curricTopics = (child.curriculum && child.curriculum.topics) || [];
+  var tsMap = (child.topicStatus && child.topicStatus.topics) || {};
+  // topicQueue starts with every topic (generated at setup) and only ever
+  // shrinks via the parent's Pause action — so "missing from the queue" and
+  // "paused" are the same fact. Used below to give a paused topic its own
+  // status instead of reusing whatever level/activity it had when set aside.
+  var queueIds = (child.curriculum && child.curriculum.topicQueue) || [];
+
+  // group sessions by topicId
+  var sessionsByTopic = {};
+  sessions.forEach(function(s){
+    if(!s.topicId) return;
+    if(!sessionsByTopic[s.topicId]) sessionsByTopic[s.topicId] = [];
+    sessionsByTopic[s.topicId].push(s);
+  });
+
+  // verdict → display level
+  var VERDICT_LEVEL = { known:'master', mastered:'master', partial:'developing', weak:'beginner' };
+
+  return curricTopics.map(function(t, idx){
+    var ts = tsMap[t.id] || {};
+    var tSessions = sessionsByTopic[t.id] || [];
+    var graded   = tSessions.filter(function(s){ return s.status==='graded'; });
+    var waiting  = tSessions.find(function(s){ return s.status==='submitted'; });
+    var pending  = tSessions.find(isPending);
+
+    var lv = VERDICT_LEVEL[ts.verdict] || null;
+    var st, last, underwaySince;
+    // Set aside by the parent — the only way off topicQueue is the Pause
+    // button, so this is a real, separate fact from level or activity, not
+    // another shade of "Underway" (mid-topic, no level yet) or "Not started".
+    var paused = queueIds.indexOf(t.id)===-1;
+
+    // Level and activity are INDEPENDENT. A topic can be Developing and have
+    // the next session already queued — that is the normal case mid-topic.
+    // `lv` is the level (or null); `st` is only what is happening right now.
+    if(waiting){
+      st='awaitingGrading';                  // he did it; it needs /grade
+      last = waiting.finishedAt || waiting.date || '';
+    } else if(pending){
+      st='inProgress';                       // queued, he has not done it yet
+      last = pending.createdAt || '';
+    } else if(paused){
+      st='paused';
+      last = ts.lastDate || (graded.length ? (graded[graded.length-1].finishedAt||graded[graded.length-1].date||'') : '');
+    } else if(lv){
+      st='idle';                             // has a level, nothing running
+      last = ts.lastDate || (graded.length ? (graded[graded.length-1].finishedAt||graded[graded.length-1].date||'') : '');
+    } else if(graded.length){
+      st='underway';                         // graded work, no verdict yet
+      underwaySince = graded[graded.length-1].finishedAt || graded[graded.length-1].date || '';
+      last = underwaySince;
+    } else {
+      st='notStarted';
+    }
+
+    return {
+      id:   t.id,
+      n:    t.name,
+      s:    t.strand,
+      g:    t.group || null,
+      order: t.order || (idx+1),
+      school: t.schoolCovered === true,
+      prereqs: t.prereqs || [],
+      description: t.description || '',
+      st:     st,
+      lv:     lv,
+      paused: paused,
+      last: last || null,
+      runs: graded.length,                   // sessions actually graded
+      waiting: waiting || null,
+      pending: pending || null,
+      underwaySince: underwaySince || null,
+      ts:   ts,
+      sessions: tSessions
+    };
+  });
+}
+
+// The topic the detail panel shows when nothing is explicitly selected —
+// whatever is actually active (waiting to be graded or queued for him), else
+// the next unmastered topic in queue order, else just the first topic.
+function findCurrentTopic(topics, sessions){
+  var waitingSess = sessions.find(function(s){ return s.status==='submitted'; });
+  var pendingSess = sessions.find(isPending);
+  var focusSess = waitingSess || pendingSess;
+  if(focusSess){
+    var ft = topics.find(function(x){ return x.id===focusSess.topicId; });
+    if(ft) return ft;
+  }
+  var queueIds=(DATA.child.curriculum&&DATA.child.curriculum.topicQueue)||[];
+  for(var i=0;i<queueIds.length;i++){
+    var qt = topics.find(function(x){ return x.id===queueIds[i]; });
+    if(qt && qt.lv!=='master') return qt;
+  }
+  return topics[0] || null;
+}
+
+// Needs-grading outranks everything (it is the actionable one), then paused
+// (set aside is more important to see at a glance than what level it was at
+// when that happened), then the level if it has one, then whatever is happening.
+function cls(t){
+  if(t.st==='awaitingGrading') return 'awaitingGrading';
+  if(t.paused) return 'paused';
+  if(t.lv) return t.lv;
+  return t.st==='idle' ? 'notStarted' : t.st;
+}
+
+var LABEL={master:'Master',developing:'Developing',beginner:'Beginner',inProgress:'In progress',
+           awaitingGrading:'Needs grading',underway:'Underway',paused:'Paused',notStarted:'Not started'};
+var PILL ={master:'p-master',developing:'p-developing',beginner:'p-beginner',inProgress:'p-progress',
+           awaitingGrading:'p-waiting',underway:'p-neutral',paused:'p-off',notStarted:'p-none'};
+
+// Small line-art icons, shared by the tile grid and the status guide — a
+// shape says "this is a stage/choice, not an action to take" the way a pill
+// (reserved for level and pending actions) would not.
+// Thicker strokes than a typical 12px icon needs — at this size a thin
+// outline on a muted color all but disappears against a dark tile, which is
+// exactly what made these hard to tell apart from the background.
+var STAGE_ICON = {
+  underway: '<svg class="lg-icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">'+
+    '<circle cx="6" cy="6" r="4.3" fill="none" stroke="currentColor" stroke-width="1.8"/>'+
+    '<path d="M6 1.7 A4.3 4.3 0 0 1 6 10.3 Z" fill="currentColor"/></svg>',
+  paused: '<svg class="lg-icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">'+
+    '<rect x="3.2" y="1.8" width="2.1" height="8.4" rx="0.6" fill="currentColor"/>'+
+    '<rect x="6.7" y="1.8" width="2.1" height="8.4" rx="0.6" fill="currentColor"/></svg>',
+  notStarted: '<svg class="lg-icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">'+
+    '<circle cx="6" cy="6" r="4.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2 2"/></svg>'
+};
+// A prerequisite that is not mastered yet — used wherever that fact needs to
+// be seen at a glance, not inferred from colour alone (the detail panel's
+// "Still needed first" line).
+var WARN_ICON = '<svg class="lg-icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" '+
+  'style="margin-right:4px;vertical-align:-1px">'+
+  '<path d="M6 1.3 L11 10.3 L1 10.3 Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>'+
+  '<rect x="5.45" y="4.2" width="1.1" height="3" rx="0.3" fill="currentColor"/>'+
+  '<circle cx="6" cy="8.6" r="0.7" fill="currentColor"/></svg>';
+
+// The parent's Teach-fully/Check-first choice — a magnifying glass (check
+// what he knows first) vs. an open book (teach it from scratch).
+var MODE_ICON = {
+  check: '<svg class="lg-icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">'+
+    '<circle cx="5" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="1.7"/>'+
+    '<line x1="7.4" y1="7.4" x2="10.4" y2="10.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+  teach: '<svg class="lg-icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">'+
+    '<rect x="1.3" y="1.8" width="4.2" height="8.4" rx="0.6" fill="none" stroke="currentColor" stroke-width="1.5"/>'+
+    '<rect x="6.5" y="1.8" width="4.2" height="8.4" rx="0.6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>'
+};
+
+/* ── error taxonomy from real attempts ───────────────────────────── */
+var SLIP_LABEL = {
+  shift_wrong_way: 'Shifted digit the wrong direction',
+  no_shift:        'Digit did not move at all',
+  over_shift:      'Moved too many places',
+  under_shift:     'Moved too few places',
+  missed_remainder:'Remainder not stated',
+  stopped_early:   'Stopped after first step',
+  calc_slip:       'Arithmetic slip',
+  misread:         'Misread the question'
+};
+/* ── hints trend from real attempts ─────────────────────────────── */
+function avgHintsPerSession(s){
+  var a = s.attempts||[];
+  if(!a.length) return null;
+  var h = a.reduce(function(sum,x){ return sum+(x.hintsUsed||0); },0);
+  return h/a.length;
+}
+
+/* ── weekly history from sessions ────────────────────────────────── */
+function buildWeekBuckets(sessions){
+  if(!sessions.length) return [];
+  // bucket by ISO week (Mon–Sun), last 8 weeks max
+  var now = new Date();
+  var buckets = [];
+  for(var w=7;w>=0;w--){
+    var d = new Date(now); d.setDate(d.getDate() - d.getDay() + 1 - w*7);
+    buckets.push({ label: d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}), m:0,d:0,b:0, weekStart: d.toISOString().slice(0,10) });
+  }
+  sessions.forEach(function(s){
+    var dt = (s.finishedAt||s.date||s.createdAt||'').slice(0,10);
+    if(!dt) return;
+    var sd = new Date(dt.replace(/-/g,'/'));
+    var dayOfWeek = sd.getDay() || 7;
+    var monDate = new Date(sd); monDate.setDate(sd.getDate()-dayOfWeek+1);
+    var monStr = monDate.toISOString().slice(0,10);
+    var b = buckets.find(function(x){ return x.weekStart===monStr; });
+    if(!b) return;
+    var lv = s.topicId ? (DATA && DATA.topics) ? (function(){
+      var t = DATA.topics.find(function(x){ return x.id===s.topicId; });
+      return t ? t.lv : null;
+    })() : null : null;
+    if(lv==='master') b.m++;
+    else if(lv==='developing') b.d++;
+    else if(lv==='beginner') b.b++;
+  });
+  return buckets.filter(function(b){ return b.m||b.d||b.b; });
+}
+
+/* ── accuracy per session (first-attempt) ────────────────────────── */
+function firstAttemptPct(s){
+  var a = s.attempts||[];
+  if(!a.length) return null;
+  var byQ = {};
+  a.forEach(function(x){
+    if(!byQ[x.questionId]) byQ[x.questionId]={tries:0,first:false};
+    byQ[x.questionId].tries++;
+    if(x.tries===1&&x.correct) byQ[x.questionId].first=true;
+  });
+  var qs = Object.keys(byQ), first=qs.filter(function(k){return byQ[k].first;}).length;
+  return pct(first,qs.length);
+}
+
+/* ── saving parent edits ─────────────────────────────────────────── */
+function saveCurriculum(patch, returnTab){
+  returnTab = returnTab || 'mastery';
+  var msg=document.getElementById('q-msg');
+  if(msg){ msg.textContent='Saving…'; msg.style.color='var(--fg-faint)'; }
+  apiFetch('/api/curriculum/'+CHILD_ID, {
+    method:'PATCH', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(patch)
+  })
+  .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
+  .then(function(j){
+    // Re-read rather than patch in place, so what is shown is what was stored.
+    return apiFetch('/api/dashboard/'+CHILD_ID).then(function(r){ return r.json(); }).then(function(data){
+      DATA = data;
+      DATA.topics = buildTopics(data.child, data.sessions);
+      renderAll();
+      document.querySelector('nav button[data-tab="'+returnTab+'"]').click();
+      var m=document.getElementById('q-msg');
+      if(m){
+        if(j.warnings && j.warnings.length){
+          m.textContent='Saved. Heads up: '+j.warnings[0]+'.';
+          m.style.color='var(--developing)';
+        } else { m.textContent='Saved.'; m.style.color='var(--master)'; }
+      }
+    });
+  })
+  .catch(function(e){
+    var m=document.getElementById('q-msg');
+    if(m){ m.textContent='Could not save: '+e.message; m.style.color='var(--beginner)'; }
+  });
+}
+
+// Discard a queued session, optionally applying a queue change in the same go.
+function discardSession(id, thenPatch, returnTab){
+  returnTab = returnTab || 'mastery';
+  var msg=document.getElementById('q-msg');
+  if(msg){ msg.textContent='Discarding…'; msg.style.color='var(--fg-faint)'; }
+  apiFetch('/api/sessions/'+encodeURIComponent(id), { method:'DELETE' })
+    .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
+    .then(function(){
+      if(thenPatch) return saveCurriculum(thenPatch, returnTab);
+      return reloadDashboard('Session discarded.', returnTab);
+    })
+    .catch(function(e){
+      var m=document.getElementById('q-msg');
+      if(m){ m.textContent='Could not discard: '+e.message; m.style.color='var(--beginner)'; }
+    });
+}
+
+function reloadDashboard(note, returnTab){
+  returnTab = returnTab || 'mastery';
+  return apiFetch('/api/dashboard/'+CHILD_ID).then(function(r){ return r.json(); }).then(function(data){
+    DATA = data;
+    DATA.topics = buildTopics(data.child, data.sessions);
+    renderAll();
+    document.querySelector('nav button[data-tab="'+returnTab+'"]').click();
+    var m=document.getElementById('q-msg');
+    if(m && note){ m.textContent=note; m.style.color='var(--master)'; }
+  });
+}
+
+/* ── render ──────────────────────────────────────────────────────── */
+function renderAll(){
+  var child = DATA.child, topics = DATA.topics, sessions = DATA.sessions;
+  var finSessions = sessions.filter(isDone);
+
+  // Header
+  document.getElementById('page-title').textContent = (child.name||'Child')+'\'s Maths Map';
+  document.getElementById('page-sub').textContent = [child.board,child.stage,(topics.length+' topics'),'parent view'].filter(Boolean).join(' · ');
+  document.getElementById('asof').textContent = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  document.getElementById('nav').style.display='';
+
+  // Build DOM
+  var mc = document.getElementById('main-content');
+  mc.innerHTML =
+    '<section class="view" id="view-today"></section>'+
+    '<section class="view" id="view-mastery" hidden></section>';
+
+  renderDashboard(topics, sessions, finSessions);
+  renderMastery(topics, sessions, finSessions);
+
+  document.getElementById('c-mastery').textContent = topics.filter(function(t){return !!t.lv;}).length+'/'+topics.length;
+
+  // tabs
+  var tabs=[].slice.call(document.querySelectorAll('nav button'));
+  tabs.forEach(function(b){
+    b.addEventListener('click',function(){
+      tabs.forEach(function(x){ x.setAttribute('aria-selected',x===b?'true':'false'); });
+      ['today','mastery'].forEach(function(k){
+        document.getElementById('view-'+k).hidden=(k!==b.dataset.tab);
+      });
+    });
+  });
+}
+
+/* ══ TODAY ══════════════════════════════════════════════════════════ */
+function renderDashboard(topics, sessions, finSessions){
+  var v = document.getElementById('view-today');
+
+  // Three states matter here, in priority order: something waiting to be
+  // graded, something queued for the child, or nothing at all.
+  var waitingSess = sessions.find(function(s){ return s.status==='submitted'; });
+  var pendingSess = sessions.find(isPending);
+  var focusSess   = waitingSess || pendingSess;
+  var focusTopic  = focusSess && topics.find(function(t){ return t.id===focusSess.topicId; });
+
+  var heroDiv = document.createElement('div');
+  heroDiv.className='block';
+  heroDiv.innerHTML='<div class="eyebrow">'+
+    (waitingSess ? 'Waiting for you' : pendingSess ? 'Queued for '+esc(childName()) : 'Working on now')+'</div>';
+
+  if(waitingSess){
+    // Done, ungraded. Score from attempts — marks[] does not exist until graded.
+    var att = waitingSess.attempts || [];
+    var byQ = {};
+    att.forEach(function(a){ byQ[a.questionId] = a; });   // last try per question
+    var ids = Object.keys(byQ);
+    var right = ids.filter(function(k){ return byQ[k].correct; }).length;
+    var asked = countQuestions(waitingSess) || ids.length;
+    var accPct = pct(right, ids.length || asked);
+    var revealed = att.filter(function(a){ return a.revealed; }).length;
+    var ringFill = Math.round(accPct/100 * 264);
+
+    var heroCard1 = el('<div class="hero top-card">'+
+      '<div class="hero-main">'+
+        '<h2>'+esc(focusTopic ? focusTopic.n : waitingSess.topicName || 'Session')+'</h2>'+
+        '<div class="hero-meta"><span class="pill p-waiting">Needs grading</span>'+
+        stagePill(waitingSess)+
+        '<span class="sm dim">'+esc(KIND_LABEL[waitingSess.kind]||waitingSess.kind||'session')+' · finished '+fmt(waitingSess.finishedAt||waitingSess.date)+'</span></div>'+
+        '<p class="sm" style="margin:11px 0 0">'+esc(childName())+' answered '+ids.length+' of '+asked+
+          ' question'+(asked===1?'':'s')+'. Nothing is scored until you grade it.</p>'+
+        (waitingSess.uiMode?'<p class="sm dim" style="margin:7px 0 0">'+esc(describeAccess(waitingSess.uiMode))+'</p>':'')+
+        '<p class="sm dim" style="margin:7px 0 0">Run <b class="mono">/grade</b> in Claude Code to mark it, '+
+          'write his feedback, and queue the next one.</p>'+
+      '</div>'+
+      '<div class="ring">'+
+        '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="var(--surface-2)" stroke-width="9"/>'+
+        '<circle cx="50" cy="50" r="42" fill="none" stroke="var(--process)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+ringFill+' 264"/></svg>'+
+        '<div class="ring-in"><b>'+right+'/'+(ids.length||asked)+'</b><span>unmarked</span></div>'+
+      '</div>'+
+      (revealed?'<div class="verdict"><div class="lead">'+revealed+' question'+(revealed===1?'':'s')+
+        ' needed the answer showing</div><div class="means">He could not get there with the hints. '+
+        'These are the ones to re-teach.</div></div>':'')+
+      '</div>');
+    heroDiv.appendChild(heroCard1);
+    addReadMoreIfNeeded(heroCard1, focusTopic ? focusTopic.n : waitingSess.topicName || 'Session', heroCard1.innerHTML);
+
+  } else if(pendingSess && focusTopic){
+    // Show how the last graded session went — that is why this one looks as it does.
+    var prevGraded=(focusTopic.sessions||[]).filter(function(s){ return s.status==='graded'; }).slice(-1)[0];
+    var prevSc=prevGraded?sessionScore(prevGraded):null;
+    var heroCard2 = el('<div class="hero top-card">'+
+      '<div class="hero-main">'+
+        '<h2>'+esc(focusTopic.n)+'</h2>'+
+        '<div class="hero-meta">'+
+          (focusTopic.lv?'<span class="pill '+PILL[focusTopic.lv]+'">'+LABEL[focusTopic.lv]+'</span>':'')+
+          '<span class="pill p-progress">Ready for him</span>'+
+          stagePill(pendingSess)+
+          '<span class="sm dim">'+esc(focusTopic.s)+' · '+esc(KIND_LABEL[pendingSess.kind]||pendingSess.kind||'session')+'</span></div>'+
+        '<p class="sm" style="margin:11px 0 0">'+countQuestions(pendingSess)+
+          ' questions waiting. Nothing to do until he has done them.</p>'+
+        (pendingSess.uiMode?'<p class="sm dim" style="margin:7px 0 0">'+esc(describeAccess(pendingSess.uiMode))+'</p>':'')+
+      '</div>'+
+      (prevSc?'<div class="ring" title="'+prevSc.right+'/'+prevSc.of+' done, '+cleanOf(prevSc)+'/'+prevSc.of+' unaided">'+
+        '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="var(--surface-2)" stroke-width="9"/>'+
+        '<circle cx="50" cy="50" r="42" fill="none" stroke="var(--ch-line)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+
+          Math.round(cleanOf(prevSc)/(prevSc.of||1)*264)+' 264"/></svg>'+
+        '<div class="ring-in"><b>'+cleanOf(prevSc)+'/'+prevSc.of+'</b><span>'+
+          (cleanOf(prevSc)===prevSc.right?'last time':'clean · '+prevSc.right+' done')+'</span></div></div>':'')+
+      '</div>');
+    heroDiv.appendChild(heroCard2);
+    addReadMoreIfNeeded(heroCard2, focusTopic.n, heroCard2.innerHTML);
+
+  } else {
+    heroDiv.appendChild(el('<div class="card allclear top-card">Nothing queued and nothing to grade.<br>'+
+      '<span class="sm">Run <b class="mono">/next-session</b> to build the next one.</span></div>'));
+  }
+
+  // TERM PROGRESS — a compact donut sits beside the hero rather than a full-
+  // width bar at the bottom. A ring reads fine at any proportion (unlike a
+  // stacked bar, which looks broken when one segment is tiny, e.g. 1 of 41).
+  var SEG_ORDER=['master','inProgress','awaitingGrading','developing','beginner','paused','underway','notStarted'];
+  var SEG_COLOR={master:'var(--master)',inProgress:'var(--accent)',awaitingGrading:'var(--process)',
+    developing:'var(--developing)',beginner:'var(--beginner)',paused:'var(--paused)',
+    underway:'var(--fg-faint)',notStarted:'var(--surface-2)'};
+  var segCounts={};
+  topics.forEach(function(t){ var c=cls(t); segCounts[c]=(segCounts[c]||0)+1; });
+  var graded=topics.filter(function(t){return !!t.lv;}).length;
+  var pctDone=pct(graded,topics.length);
+
+  var RING_R=42, RING_C=2*Math.PI*RING_R;
+  var cum=0;
+  var ringSegs=SEG_ORDER.filter(function(k){ return segCounts[k]; }).map(function(k){
+    var c=segCounts[k], len=RING_C*(c/topics.length);
+    var seg='<circle cx="50" cy="50" r="'+RING_R+'" fill="none" stroke="'+SEG_COLOR[k]+'" stroke-width="9" '+
+      'stroke-dasharray="'+len.toFixed(2)+' '+(RING_C-len).toFixed(2)+'" stroke-dashoffset="'+(-cum).toFixed(2)+'">'+
+      '<title>'+esc(c+' '+LABEL[k])+'</title></circle>';
+    cum+=len;
+    return seg;
+  }).join('');
+  var termLegendHtml=SEG_ORDER.filter(function(k){ return segCounts[k]; }).map(function(k){
+    return '<span><i class="sw" style="background:'+SEG_COLOR[k]+'"></i>'+esc(LABEL[k])+' <b class="mono">'+segCounts[k]+'</b></span>';
+  }).join('');
+
+  var termDiv=document.createElement('div');
+  termDiv.className='block';
+  termDiv.innerHTML='<div class="eyebrow">The term so far</div>';
+  var termCard=el('<div class="card top-card" style="cursor:pointer;display:flex;gap:16px;align-items:center;flex-wrap:wrap">'+
+    '<div class="ring">'+
+      '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="'+RING_R+'" fill="none" stroke="var(--surface-2)" stroke-width="9"/>'+ringSegs+'</svg>'+
+      '<div class="ring-in"><b>'+pctDone+'%</b><span>graded</span></div>'+
+    '</div>'+
+    '<div style="flex:1;min-width:140px">'+
+      '<div class="sm dim">'+graded+' of '+topics.length+' topics graded</div>'+
+      '<div class="legend" style="margin-top:8px">'+termLegendHtml+'</div>'+
+      '<div class="xs faint" style="margin-top:6px">Tap for names.</div>'+
+    '</div>'+
+  '</div>');
+  termCard.addEventListener('click',function(){
+    document.querySelector('nav button[data-tab="mastery"]').click();
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+  termDiv.appendChild(termCard);
+
+  var topRow=document.createElement('div');
+  topRow.className='charts';
+  topRow.appendChild(heroDiv);
+  topRow.appendChild(termDiv);
+  v.appendChild(topRow);
+
+  // ATTENTION — only what the hero has NOT already said. The hero above spells
+  // out the ungraded session in full, so repeating it here as an alert was the
+  // same sentence twice on one screen.
+  var attItems=buildAttentionItems(topics).filter(function(a){
+    return !(waitingSess && focusTopic && a.id===focusTopic.id);
+  });
+  if(attItems.length){
+    var attDiv=document.createElement('div');
+    attDiv.className='block';
+    attDiv.innerHTML='<div class="eyebrow">Needs your attention</div>';
+    attItems.forEach(function(a){
+      attDiv.appendChild(el('<div class="att '+a.sev+'"><div class="att-body"><h3>'+esc(a.title)+'</h3><p>'+esc(a.why)+'</p></div></div>'));
+    });
+    v.appendChild(attDiv);
+  }
+
+  // LAST SESSION REPORT — what the grader actually found, in full, so the
+  // parent never has to open Mastery just to see what happened last time.
+  var lastGraded = sessions.filter(function(s){ return s.status==='graded'; })
+    .sort(function(a,b){ var da=asDate(a.finishedAt||a.date), db=asDate(b.finishedAt||b.date);
+      return (db?db.getTime():0)-(da?da.getTime():0); })[0];
+  if(lastGraded){
+    var lastTopic=(topics.find(function(t){ return t.id===lastGraded.topicId; })||{}).n || lastGraded.topicName;
+    var lsDiv=document.createElement('div');
+    lsDiv.className='block';
+    lsDiv.innerHTML='<div class="eyebrow">Last session report</div>';
+    lsDiv.appendChild(el(buildLastSessionDetail(lastGraded, lastTopic, true)));
+    v.appendChild(lsDiv);
+  }
+
+  // What's actually happened so far — governs whether we show real stats/
+  // graphs or one calm onboarding line instead of three near-empty blocks.
+  var byStatus={pending:0,submitted:0,graded:0};
+  sessions.forEach(function(s){ byStatus[s.status]=(byStatus[s.status]||0)+1; });
+  var done = sessions.filter(function(s){ return s.status==='graded'||s.status==='submitted'; })
+    .sort(function(a,b){
+      var da=asDate(a.finishedAt||a.date), db=asDate(b.finishedAt||b.date);
+      return (db?db.getTime():0)-(da?da.getTime():0);     // newest first
+    });
+
+  if(!done.length){
+    // ONBOARDING — nothing finished yet. One honest line beats three blocks
+    // that would each just say "0" or "nothing yet" in a different shape.
+    var obDiv=document.createElement('div');
+    obDiv.className='block';
+    obDiv.innerHTML='<div class="eyebrow">Progress so far</div>';
+    obDiv.appendChild(el('<div class="card allclear">'+
+      (byStatus.pending
+        ? 'Nothing finished yet — his first session is queued and waiting for him.'
+        : 'Nothing finished yet.')+
+      '<br><span class="sm">Scores, streaks and trends will show up here once he\'s done one.</span></div>'));
+    v.appendChild(obDiv);
+  } else {
+
+  // PROGRESS SO FAR — a few numbers that actually mean something, not a
+  // raw dump of every status/kind count.
+  var countsDiv=document.createElement('div');
+  countsDiv.className='block';
+  countsDiv.innerHTML='<div class="eyebrow">Progress so far</div>';
+
+  var startDates=sessions.map(function(s){ return asDate(s.createdAt||s.date); }).filter(Boolean);
+  var firstDate=startDates.length?new Date(Math.min.apply(null,startDates.map(function(d){return d.getTime();}))):null;
+  var firstDateIso=firstDate?firstDate.toISOString():null;
+  var weeksActive=firstDate?Math.max(1,Math.ceil((daysAgo(firstDateIso)+1)/7)):1;
+  var perWeek=byStatus.graded ? (byStatus.graded/weeksActive).toFixed(1) : '0';
+
+  var scored5=finSessions.slice()
+    .sort(function(a,b){ var da=asDate(a.finishedAt||a.date), db=asDate(b.finishedAt||b.date);
+      return (db?db.getTime():0)-(da?da.getTime():0); })
+    .map(sessionScore).filter(Boolean).slice(0,5);
+  var avgScore = scored5.length
+    ? Math.round(scored5.reduce(function(sum,sc){ return sum+pct(cleanOf(sc),sc.of); },0)/scored5.length)
+    : null;
+  var masteryChecks=sessions.filter(function(s){ return s.status==='graded' && (s.kind==='check'||s.kind==='retest'); }).length;
+  var passed=sessions.filter(function(s){ return s.status==='graded' && (s.kind==='check'||s.kind==='retest') &&
+    sessionScore(s) && pct(sessionScore(s).right,sessionScore(s).of)>=80; }).length;
+
+  // Hints per question used to be its own block holding a single number. It is
+  // one more stat, so it sits in the strip with the rest.
+  var hintData=sessions.filter(function(s){ return avgHintsPerSession(s)!==null; }).slice(-8);
+  var hintNum='';
+  if(hintData.length){
+    var hVals=hintData.map(function(s){ return avgHintsPerSession(s); });
+    var hLatest=hVals[hVals.length-1].toFixed(1), hFirst=hVals[0].toFixed(1);
+    var falling=hintData.length>=2 && parseFloat(hLatest)<parseFloat(hFirst);
+    hintNum='<div class="strip-num" title="Lower is better — a better growth signal than score alone.">'+
+      '<b style="color:var(--master)">'+hLatest+'</b><span>hints / question'+
+      (falling?' ▼ from '+hFirst:'')+'</span></div>';
+  }
+
+  countsDiv.appendChild(el('<div class="strip-card"><div class="strip-nums">'+
+    '<div class="strip-num"><b>'+byStatus.graded+'</b><span>completed'+(firstDateIso?' since '+fmt(firstDateIso):'')+'</span></div>'+
+    (avgScore!==null?'<div class="strip-num" title="Unaided — first try, no hints. Completion is usually higher."><b style="color:'+(avgScore>=80?'var(--master)':avgScore>=50?'var(--developing)':'var(--beginner)')+'">'+avgScore+'%</b><span>clean average, last '+scored5.length+'</span></div>':'')+
+    hintNum+
+    '<div class="strip-num"><b>'+perWeek+'</b><span>sessions / week</span></div>'+
+    (masteryChecks?'<div class="strip-num"><b style="color:var(--master)">'+passed+'/'+masteryChecks+'</b><span>checks passed</span></div>':'')+
+    (byStatus.submitted?'<div class="strip-num"><b style="color:var(--process)">'+byStatus.submitted+'</b><span>needs grading now</span></div>':'')+
+    (byStatus.pending?'<div class="strip-num"><b style="color:var(--accent)">'+byStatus.pending+'</b><span>queued for him</span></div>':'')+
+    '</div></div>'));
+  v.appendChild(countsDiv);
+
+  // SCORE TREND — how each session actually went, in order
+  var scoreSessions = finSessions.slice()
+    .sort(function(a,b){ var da=asDate(a.finishedAt||a.date), db=asDate(b.finishedAt||b.date);
+      return (da?da.getTime():0)-(db?db.getTime():0); })
+    .filter(function(s){ return sessionScore(s); })
+    .slice(-10);
+  var trendDiv=null;
+  if(scoreSessions.length>=2){
+    trendDiv=document.createElement('div');
+    trendDiv.className='block';
+    trendDiv.innerHTML='<div class="eyebrow">Clean score, session by session</div>';
+    var pcts=scoreSessions.map(function(s){ return cleanPctOf(sessionScore(s)); });
+    var W=560,H=150,base=118,top=14,x0=36;
+    var step=(W-x0-16)/scoreSessions.length;
+    function yf(v){ return base-(v/100)*(base-top); }
+    var p='';
+    [50,80].forEach(function(v){
+      var y=yf(v);
+      p+='<line x1="'+x0+'" y1="'+y.toFixed(1)+'" x2="'+(W-8)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1"'+(v===80?' stroke-dasharray="3 3"':'')+'/>'+
+         '<text x="'+(x0-6)+'" y="'+(y+3.5).toFixed(1)+'" text-anchor="end" font-size="9" fill="var(--fg-faint)" font-family="monospace">'+v+'%</text>';
+    });
+    var pts=pcts.map(function(v,i){ return [x0+i*step+step/2, yf(v)]; });
+    p+='<polyline points="'+pts.map(function(q){return q[0].toFixed(1)+','+q[1].toFixed(1);}).join(' ')+
+      '" fill="none" stroke="var(--ch-line)" stroke-width="2" stroke-linejoin="round"/>';
+    pts.forEach(function(q,i){
+      var s=scoreSessions[i], v=pcts[i];
+      var tone=v>=80?'var(--master)':v>=50?'var(--developing)':'var(--beginner)';
+      var isProof=(s.kind==='check'||s.kind==='retest');
+      var sc=sessionScore(s);
+      var title=esc((KIND_LABEL[s.kind]||s.kind||'Session')+' · '+fmt(s.finishedAt||s.date)+' · '+
+        cleanOf(sc)+'/'+sc.of+' clean · '+sc.right+'/'+sc.of+' done');
+      if(isProof){
+        var r=6;
+        p+='<rect x="'+(q[0]-r).toFixed(1)+'" y="'+(q[1]-r).toFixed(1)+'" width="'+(r*2)+'" height="'+(r*2)+'" '+
+           'fill="'+tone+'" stroke="var(--surface)" stroke-width="2" data-tip="'+title+'"><title>'+title+'</title></rect>';
+      } else {
+        p+='<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="4" fill="'+tone+'" stroke="var(--surface)" stroke-width="2" data-tip="'+title+'">'+
+           '<title>'+title+'</title></circle>';
+      }
+      p+='<text x="'+q[0].toFixed(1)+'" y="'+(base+14)+'" text-anchor="middle" font-size="9" fill="var(--fg-faint)" font-family="monospace">'+esc(fmt(s.finishedAt||s.date).split(' ')[0])+'</text>';
+    });
+    trendDiv.appendChild(el('<div class="chart"><div id="score-svg"><svg viewBox="0 0 '+W+' '+H+'">'+p+'</svg></div>'+
+      '<div class="cap">Each dot is a session\'s <b>clean</b> score — right first try, no hints (hover for completion too). <b style="color:var(--ch-line)">■</b> squares are check/retest, the only sessions that prove mastery. 80% is the mastery bar.</div></div>'));
+    attachChartTips(trendDiv);
+  }
+
+  // TIME TREND — how long sessions are actually taking, against the
+  // parent's own budget. The per-session stat line answers "how did THIS
+  // one go"; this answers "is he using his time, or finishing well under
+  // it" — which is exactly what the grader's own growth rule reads before
+  // it will raise the question count (see CLAUDE.md "Session size").
+  var timeSessions = finSessions.slice()
+    .sort(function(a,b){ var da=asDate(a.finishedAt||a.date), db=asDate(b.finishedAt||b.date);
+      return (da?da.getTime():0)-(db?db.getTime():0); })
+    .filter(function(s){ return s.summary && typeof s.summary.msTaken==='number'; })
+    .slice(-10);
+  var timeDiv=null;
+  if(timeSessions.length>=2){
+    var budget = (DATA.child.settings && DATA.child.settings.sessionMinutes) || null;
+    var mins = timeSessions.map(function(s){ return s.summary.msTaken/60000; });
+    var maxV = Math.max(budget||0, mins.reduce(function(a,b){return Math.max(a,b);},0)) * 1.15 || 10;
+    timeDiv=document.createElement('div');
+    timeDiv.className='block';
+    timeDiv.innerHTML='<div class="eyebrow">Time per session</div>';
+    var TW=560,TH=150,tbase=110,ttop=14,tx0=36;
+    var tstep=(TW-tx0-16)/timeSessions.length;
+    function tyf(v){ return tbase-(v/maxV)*(tbase-ttop); }
+    var tp='';
+    if(budget){
+      var by=tyf(budget);
+      tp+='<line x1="'+tx0+'" y1="'+by.toFixed(1)+'" x2="'+(TW-8)+'" y2="'+by.toFixed(1)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 3"/>'+
+          '<text x="'+(tx0-6)+'" y="'+(by+3.5).toFixed(1)+'" text-anchor="end" font-size="9" fill="var(--fg-faint)" font-family="monospace">'+budget+'m</text>';
+    }
+    var tpts=mins.map(function(v,i){ return [tx0+i*tstep+tstep/2, tyf(v)]; });
+    tp+='<polyline points="'+tpts.map(function(q){return q[0].toFixed(1)+','+q[1].toFixed(1);}).join(' ')+
+      '" fill="none" stroke="var(--ch-line)" stroke-width="2" stroke-linejoin="round"/>';
+    tpts.forEach(function(q,i){
+      var s=timeSessions[i], v=mins[i];
+      var qs=countQuestions(s);
+      var perQ=qs?Math.round(s.summary.msTaken/qs/1000):null;
+      var overBudget=budget!=null && v>budget;
+      var tone=overBudget?'var(--beginner)':'var(--ch-line)';
+      var title=esc((KIND_LABEL[s.kind]||s.kind||'Session')+' · '+fmt(s.finishedAt||s.date)+' · '+
+        (Math.round(v*10)/10)+' min for '+qs+(qs===1?' question':' questions')+
+        (perQ!==null?' · '+perQ+'s a question':''));
+      tp+='<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="4" fill="'+tone+'" stroke="var(--surface)" stroke-width="2" data-tip="'+title+'">'+
+          '<title>'+title+'</title></circle>';
+      tp+='<text x="'+q[0].toFixed(1)+'" y="'+(tbase+14)+'" text-anchor="middle" font-size="9" fill="var(--fg-faint)" font-family="monospace">'+esc(fmt(s.finishedAt||s.date).split(' ')[0])+'</text>';
+      tp+='<text x="'+q[0].toFixed(1)+'" y="'+(tbase+24)+'" text-anchor="middle" font-size="9" fill="var(--fg-faint)" font-family="monospace">'+qs+'q</text>';
+    });
+    timeDiv.appendChild(el('<div class="chart"><div><svg viewBox="0 0 '+TW+' '+TH+'">'+tp+'</svg></div>'+
+      '<div class="cap">'+(budget
+        ? 'Each dot is a session\'s total time. Dashed line is the '+budget+'-minute session budget — '+
+          'comfortably under it is exactly what lets the grader grow question counts over time.'
+        : 'Each dot is a session\'s total time.')+
+      '</div></div>'));
+    attachChartTips(timeDiv);
+  }
+
+  // RECENT SESSIONS — what a parent actually wants to see each morning
+  // (done.length is already guaranteed >0 here, by the onboarding gate above)
+  var recDiv=document.createElement('div');
+  recDiv.className='block';
+  recDiv.innerHTML='<div class="eyebrow">Recent sessions</div>';
+  {
+    var recList=el('<div class="q-list"></div>');
+    done.slice(0,5).forEach(function(s){
+      var sc=sessionScore(s);
+      var qs=countQuestions(s)||((sc&&sc.of)||0);
+      var ms=s.summary&&s.summary.msTaken;
+      var perQ=(ms&&qs)?Math.round(ms/qs/1000):null;
+      var rushed=(perQ!==null&&perQ<20);
+      var revealed=(s.attempts||[]).filter(function(a){return a.revealed;}).length;
+      var topic=(topics.find(function(t){return t.id===s.topicId;})||{}).n||s.topicName||'Session';
+      var okPct=cleanPctOf(sc);
+      var tone=okPct===null?'var(--fg-dim)':okPct>=80?'var(--master)':okPct>=50?'var(--developing)':'var(--beginner)';
+
+      recList.appendChild(el('<div class="q-item">'+
+        '<span class="q-num mono">'+esc(fmt(s.finishedAt||s.date))+'</span>'+
+        '<span class="q-name">'+esc(topic)+
+          '<small>'+esc(KIND_LABEL[s.kind]||s.kind||'session')+
+          (ms?' · '+Math.max(1,Math.round(ms/60000))+' min':'')+
+          (perQ!==null?' · '+perQ+'s a question':'')+
+          (s.status==='submitted'?' · <b style="color:var(--process)">not graded</b>':'')+
+          '</small>'+
+          (rushed||revealed?'<small>'+
+            (rushed?'<span style="color:var(--developing)">⚡ went through it fast</span>':'')+
+            (rushed&&revealed?' · ':'')+
+            (revealed?'<span style="color:var(--developing)">'+revealed+' needed showing</span>':'')+
+          '</small>':'')+
+        '</span>'+
+        '<span class="mono" style="flex:none;font-weight:600;color:'+tone+'"'+
+          (sc?' title="'+sc.right+'/'+sc.of+' done"':'')+'>'+
+          (sc?cleanOf(sc)+'/'+sc.of:'—')+'</span>'+
+        '</div>'));
+    });
+    recDiv.appendChild(recList);
+  }
+
+  // LAST TWO WEEKS — a real graph: one bar per day, height is that day's
+  // score (or a flat grey stub when nothing happened that day).
+  // Local calendar key — toISOString() would shift local midnight into the
+  // previous UTC day and knock every bar one place out.
+  function dayKey(d){
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  var dayScores={};
+  done.forEach(function(s){
+    var d=asDate(s.finishedAt||s.date);
+    if(!d) return;
+    var sc=sessionScore(s);
+    if(sc) dayScores[dayKey(d)]=cleanPctOf(sc);
+  });
+  var days=[], activeDays=0;
+  for(var dd=13;dd>=0;dd--){
+    var day=new Date(); day.setDate(day.getDate()-dd);
+    var key=dayKey(day);
+    var v2=dayScores.hasOwnProperty(key)?dayScores[key]:null;
+    if(v2!==null) activeDays++;
+    days.push({key:key, label:day.toLocaleDateString('en-GB',{weekday:'narrow'}), v:v2});
+  }
+  var CW=560,CH=120,cbase=98,ctop=10,cx0=4;
+  var cstep=(CW-cx0*2)/14;
+  var barsP='';
+  days.forEach(function(d,i){
+    var bx=cx0+i*cstep+2, bw=cstep-4;
+    var h = d.v!==null ? Math.max(4,(d.v/100)*(cbase-ctop)) : 4;
+    var by = cbase-h;
+    var tone = d.v===null ? 'var(--surface-2)' : d.v>=80?'var(--master)':d.v>=50?'var(--developing)':'var(--beginner)';
+    var title=esc(d.key+(d.v!==null?' — '+d.v+'%':' — nothing done'));
+    barsP += '<rect x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="3" fill="'+tone+'"'+
+      (d.v===null?' stroke="var(--line)" stroke-width="1"':'')+'><title>'+title+'</title></rect>'+
+      '<text x="'+(bx+bw/2).toFixed(1)+'" y="'+(cbase+13)+'" text-anchor="middle" font-size="9" fill="var(--fg-faint)" font-family="monospace">'+esc(d.label)+'</text>';
+  });
+  var conDiv=document.createElement('div');
+  conDiv.className='block';
+  conDiv.innerHTML='<div class="eyebrow">Last two weeks</div>';
+  conDiv.appendChild(el('<div class="chart"><svg viewBox="0 0 '+CW+' '+CH+'">'+barsP+'</svg>'+
+    '<div class="cap">'+activeDays+' session'+(activeDays===1?'':'s')+' in the last 14 days. '+
+    'Bar height is that day\'s score; grey means nothing done. '+
+    (activeDays>=10?'Good rhythm.':activeDays>=5?'Steady enough.':'A regular slot helps more than long sessions.')+
+    '</div></div>'));
+
+  // These time-series charts are all the same shape and each reads fine at
+  // half width — stacked they cost a whole screen of scrolling for no extra
+  // clarity. An odd one out spans the full row instead of sitting alone in
+  // half of it (same fix as the Topics tab's "Shape of progress" group).
+  var chartList=[trendDiv, timeDiv, conDiv].filter(Boolean);
+  if(chartList.length){
+    var chartRow=document.createElement('div');
+    chartRow.className='charts';
+    chartList.forEach(function(c){ chartRow.appendChild(c); });
+    if(chartList.length%2===1) chartList[chartList.length-1].style.gridColumn='1/-1';
+    v.appendChild(chartRow);
+  }
+  v.appendChild(recDiv);
+
+  } // end done.length gate
+}
+
+function buildLastSessionSummary(s){
+  if(!s) return '';
+  var correct=(s.marks||[]).filter(function(m){return m==='correct';}).length;
+  var total=(s.marks||[]).length;
+  var attempts=s.attempts||[];
+  var wrong=attempts.filter(function(a){return !a.correct;});
+  if(!wrong.length) return correct+' of '+total+' — clean session.';
+  // find dominant slip
+  var slipCounts={};
+  wrong.forEach(function(a){ if(a.slipCode) slipCounts[a.slipCode]=(slipCounts[a.slipCode]||0)+1; });
+  var topSlip=Object.keys(slipCounts).sort(function(a,b){return slipCounts[b]-slipCounts[a];})[0];
+  var revealed=attempts.filter(function(a){return a.revealed;}).length;
+  var bits=[];
+  if(topSlip && slipCounts[topSlip]>1)
+    bits.push(slipCounts[topSlip]+' wrong answers were "'+(SLIP_LABEL[topSlip]||topSlip).toLowerCase()+'"');
+  if(revealed) bits.push(revealed+' needed the answer showing');
+  if(!bits.length) bits.push(wrong.length+' wrong, no single pattern');
+  return correct+' of '+total+' — '+bits.join('; ')+'.';
+}
+
+// qid → {ask, answer}, across every slot a question can live in.
+function questionMap(s){ return SessionShape.questionMap(s); }
+
+// The full "what the grader said" report for one graded session — a plain,
+// adult-readable breakdown of what he nailed outright, what took a nudge
+// (a hint, a retry, or more than one go) even though he got there, and what
+// he genuinely couldn't do — all with the real question text, never just an
+// id like "p1". Scans every attempt per question, not just the final one, so
+// a reveal or a hint buried earlier in the history still shows up even if a
+// later retry fixed the mark.
+// `tight` puts each question's detail on the same line as the question. Only
+// the Dashboard asks for it — the Topics tab keeps its roomier original rows.
+function buildLastSessionDetail(s, topicName, tight){
+  if(!s) return '';
+  var listCls = tight ? 'q-list tight' : 'q-list';
+  var qmap=questionMap(s);
+  var att=s.attempts||[];
+  var byQ={};                 // last attempt per question — decides the final mark
+  att.forEach(function(a){ byQ[a.questionId]=a; });
+  var byQAll={};               // every attempt per question — decides the struggle
+  att.forEach(function(a){ (byQAll[a.questionId]=byQAll[a.questionId]||[]).push(a); });
+  var ids=Object.keys(byQ);
+  var total=(s.marks||[]).length || ids.length;
+  var rightCount=(s.marks||[]).length
+    ? (s.marks||[]).filter(function(m){ return m==='correct'; }).length
+    : ids.filter(function(k){ return byQ[k].correct; }).length;
+
+  var wrongRows=[], helpRows=[], cleanCount=0;
+  ids.forEach(function(qid){
+    var last=byQ[qid], all=byQAll[qid]||[last], q=qmap[qid]||{};
+    var everRevealed=all.some(function(a){ return a.revealed; });
+    var everExhausted=all.some(function(a){ return a.exhausted; });
+    var maxHints=Math.max.apply(null, all.map(function(a){ return a.hintsUsed||0; }).concat(0));
+    var wrongTries=all.filter(function(a){ return !a.correct && !a.revealed && !a.exhausted; }).length;
+
+    if(!last.correct){
+      var given;
+      if(last.revealed) given='<span style="color:var(--developing)">shown the answer</span>';
+      else if(last.exhausted) given='<span style="color:var(--beginner)">moved on, unaided</span>';
+      else given='gave <b class="mono">'+esc(last.given!=null?String(last.given):'—')+'</b>';
+      var slip=last.slipCode?' · '+esc(SLIP_LABEL[last.slipCode]||last.slipCode):'';
+      wrongRows.push('<div class="q-item"><span class="q-name">'+esc(q.ask||qid)+
+        '<small>'+given+' → correct: <b class="mono">'+esc(q.answer!=null?String(q.answer):'—')+'</b>'+slip+'</small>'+
+        '</span></div>');
+    } else if(everRevealed || everExhausted || maxHints>0 || wrongTries>0){
+      var how=everRevealed ? 'needed the answer shown first, got there on a retry'
+            : everExhausted ? 'moved on unaided earlier, got there on a retry'
+            : maxHints>0 ? 'got it with '+maxHints+' hint'+(maxHints>1?'s':'')
+            : wrongTries+' wrong go'+(wrongTries>1?'es':'')+' before the right one';
+      helpRows.push('<div class="q-item"><span class="q-name">'+esc(q.ask||qid)+
+        '<small>'+how+' — answer: <b class="mono">'+esc(q.answer!=null?String(q.answer):'—')+'</b></small>'+
+        '</span></div>');
+    } else {
+      cleanCount++;
+    }
+  });
+
+  // The grader's plain-English read on what this means — the thing a parent
+  // actually wants ("he's solid on X, still trips on Y"), not a score recap.
+  // Older graded sessions won't have it (written before this field existed);
+  // fall back to the mechanical score+pattern line for those.
+  var summaryText = s.parentSummary || buildLastSessionSummary(s);
+
+  // How long it actually took — same numbers "Recent sessions" already shows
+  // in its compact list, but that view is easy to skim past; this is the
+  // report a parent actually reads carefully, so the timing belongs here too.
+  var ms=s.summary&&s.summary.msTaken;
+  var perQ=(ms&&total)?Math.round(ms/total/1000):null;
+  var rushed=(perQ!==null&&perQ<20);
+  var timingLine = ms
+    ? '<div class="sm dim" style="margin-top:3px">'+Math.max(1,Math.round(ms/60000))+' min'+
+        (perQ!==null?' · '+perQ+'s a question'+(rushed?' <span style="color:var(--developing)">⚡ went through it fast</span>':''):'')+
+      '</div>'
+    : '';
+
+  // How the teaching landed, cycle by cycle. This is the only view that
+  // shows WHAT he was learning rather than how many he got right — each row
+  // is one explanation and whether it worked.
+  var teaching=teachingOf(s);
+  var teachBlock = teaching
+    ? '<div><div class="xs faint" style="margin-bottom:6px">Teaching — '+teaching.landed+' of '+teaching.of+
+        ' landed straight away</div><div class="'+listCls+'">'+
+        teaching.cycles.map(function(c){
+          var colour = c.outcome==='landed' ? 'var(--master)'
+                     : c.outcome==='not-landed' ? 'var(--beginner)' : 'var(--developing)';
+          return '<div class="q-item"><span class="q-name">'+
+            esc(c.conceptName||c.concept||('Part '+(c.cycleIndex+1)))+
+            '<small><span style="color:'+colour+'">'+esc(OUTCOME_LABEL[c.outcome]||c.outcome)+'</span>'+
+            (c.secTaken?' · '+c.secTaken+'s':'')+'</small></span></div>';
+        }).join('')+'</div></div>'
+    : (s.teach ? '<div class="xs faint">Teaching detail not measured for this session.</div>' : '');
+
+  return '<div class="card" style="display:flex;flex-direction:column;gap:13px">'+
+    '<div class="row"><div><h3>'+esc(topicName||s.topicName||'Session')+'</h3>'+
+    '<div class="sm dim" style="margin-top:3px">'+esc(KIND_LABEL[s.kind]||s.kind||'session')+' · '+fmt(s.finishedAt||s.date)+'</div>'+
+    timingLine+'</div>'+
+    ((cleanCount===rightCount && rightCount===total)
+      ? '<span class="mono" style="font-weight:700;font-size:1.15rem;flex:none">'+total+'/'+total+'</span></div>'
+      : '<div style="flex:none;text-align:right">'+
+          '<span class="mono" style="font-weight:700;font-size:1.15rem">'+cleanCount+'/'+total+'</span>'+
+          '<div class="xs faint" style="margin-top:2px">clean · '+rightCount+'/'+total+' done</div>'+
+        '</div></div>')+
+    '<div class="sm" style="padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">'+esc(summaryText)+'</div>'+
+    teachBlock+
+    (wrongRows.length
+      ? '<div><div class="xs faint" style="margin-bottom:6px">Could not do</div><div class="'+listCls+'">'+wrongRows.join('')+'</div></div>'
+      : '')+
+    (helpRows.length
+      ? '<div><div class="xs faint" style="margin-bottom:6px">Got there, but needed a nudge</div><div class="'+listCls+'">'+helpRows.join('')+'</div></div>'
+      : '')+
+    (cleanCount
+      ? '<div class="xs faint">'+cleanCount+' solved cleanly, first try, no hints</div>'
+      : '')+
+    (!wrongRows.length && !helpRows.length
+      ? '<div class="sm" style="color:var(--master)">Clean session — nothing wrong, no hints needed.</div>'
+      : '')+
+    '</div>';
+}
+
+function buildAttentionItems(topics){
+  var items=[];
+  // Ungraded work blocks everything else — nothing moves until it is marked.
+  topics.filter(function(t){ return t.st==='awaitingGrading'; }).forEach(function(t){
+    items.push({sev:'high',id:t.id,title:t.n+' — done, needs grading',
+      why:childName()+' finished this on '+fmt(t.last)+'. Run /grade to mark it, write their feedback and queue the next session. Nothing else moves until then.'});
+  });
+  // Beginner topics that have not been re-run
+  topics.filter(function(t){ return t.lv==='beginner'; }).forEach(function(t){
+    items.push({sev:'high',title:t.n+' — Beginner',why:'Finished at Beginner level. Consider re-running before moving on.'});
+  });
+  // Stale masters (>42 days, no recent session)
+  var stales=topics.filter(function(t){ return t.lv==='master'&&t.last&&daysAgo(t.last)>42; });
+  if(stales.length){
+    items.push({sev:'mid',title:stales.length+' Master topic'+(stales.length>1?'s':'')+' not tested in over 6 weeks',
+      why:stales.map(function(t){return t.n+' ('+daysAgo(t.last)+'d)';}).join(', ')+'.'});
+  }
+  return items.slice(0,4);
+}
+
+/* ══ MASTERY ════════════════════════════════════════════════════════ */
+function renderMastery(topics, sessions, finSessions){
+  var v=document.getElementById('view-mastery');
+
+  var anyGraded = topics.some(function(t){ return !!t.lv; });
+
+  // Where things stand, in a sentence — before any colour-coding.
+  var sumDiv=document.createElement('div');
+  sumDiv.className='block';
+  if(anyGraded){
+    var m=topics.filter(function(t){return t.lv==='master';}).length;
+    var d=topics.filter(function(t){return t.lv==='developing';}).length;
+    var b=topics.filter(function(t){return t.lv==='beginner';}).length;
+    sumDiv.innerHTML='<div class="sm">'+
+      '<b>'+(m+d+b)+' of '+topics.length+'</b> topics have a level so far — '+
+      m+' Master, '+d+' Developing, '+b+' Beginner.</div>';
+  } else {
+    var waitingN=topics.filter(function(t){return t.st==='awaitingGrading';}).length;
+    sumDiv.innerHTML='<div class="card" style="padding:14px 15px">'+
+      '<div class="sm"><b>No levels yet.</b> Each topic gets one once '+esc(childName())+' has finished it '+
+      'and you have graded the work.</div>'+
+      (waitingN?'<div class="sm dim" style="margin-top:6px">'+waitingN+
+        ' topic'+(waitingN===1?' is':'s are')+' waiting on you now — run <b class="mono">/grade</b>.</div>':'')+
+      '</div>';
+  }
+  v.appendChild(sumDiv);
+
+  // What the words mean. A colour key alone does not help a first-time reader —
+  // the useful thing is what each level actually represents.
+  // STAGE_ICON/MODE_ICON (top-level — also used by the tile grid and by the
+  // toggle's in-place tile update) supply the shapes for this group and the
+  // "where the topic stands" row below.
+
+  var keyDiv=document.createElement('div');
+  keyDiv.className='block';
+  keyDiv.innerHTML='<div class="eyebrow">Status guide</div>'+
+    '<div class="legend-compact">'+
+
+      '<div class="legend-group"><div class="legend-group-label">His level on this topic</div><div class="legend-group-chips">'+
+        '<span class="lg-chip" title="Scored 80% or better on a final check, without hints. Retested every few weeks so it does not fade."><span class="pill p-master">Master</span>80%+, unaided</span>'+
+        '<span class="lg-chip" title="Finished the topic but landed under 80%. He can do it, not yet reliably."><span class="pill p-developing">Developing</span>under 80%</span>'+
+        '<span class="lg-chip" title="Well under 80%. Needs teaching again before moving on."><span class="pill p-beginner">Beginner</span>needs re-teaching</span>'+
+      '</div></div>'+
+
+      '<div class="legend-group"><div class="legend-group-label">Waiting on you or him</div><div class="legend-group-chips">'+
+        '<span class="lg-chip" title="He has done the work; it has no level until you run /grade."><span class="pill p-waiting">Needs grading</span>run /grade</span>'+
+        '<span class="lg-chip" title="A session is waiting for him to sit down and do."><span class="pill p-progress">Queued</span>ready to do</span>'+
+      '</div></div>'+
+
+      '<div class="legend-group"><div class="legend-group-label">Where the topic stands</div><div class="legend-group-chips">'+
+        '<span class="lg-chip" title="Actively being worked on — anything short of Master, once it has been touched at all.">'+
+          '<span style="color:var(--fg-dim);display:inline-flex;align-items:center;gap:6px">'+STAGE_ICON.underway+'<b style="color:var(--fg-dim)">Underway</b></span>in progress</span>'+
+        '<span class="lg-chip" title="Set aside by you on the Topics tab. Keeps its sessions and level; returns at its place in the queue when resumed.">'+
+          '<span style="color:var(--paused);display:inline-flex;align-items:center;gap:6px">'+STAGE_ICON.paused+'<b style="color:var(--paused)">Paused</b></span>set aside</span>'+
+        '<span class="lg-chip" title="Nothing has happened on this topic yet.">'+
+          '<span style="color:var(--fg-dim);display:inline-flex;align-items:center;gap:6px">'+STAGE_ICON.notStarted+'<b style="color:var(--fg-dim)">Not started</b></span>untouched</span>'+
+      '</div></div>'+
+
+    '</div>';
+  v.appendChild(keyDiv);
+
+  // Charts are meaningless with nothing graded — skip them entirely.
+  var chartsDiv=document.createElement('div');
+  chartsDiv.className='block';
+  chartsDiv.innerHTML='<div class="eyebrow">Shape of progress</div>';
+  var chartsGrid=el('<div class="charts"></div>');
+
+  // Strand mix
+  var strands=[...new Set(topics.map(function(t){return t.s;}))];
+  var mixDiv=el('<div class="chart"><h3>Where each strand stands</h3><div class="mix" id="mix-chart"></div>'+
+    '<div class="ch-legend"><span><i class="sw" style="background:var(--ch-master)"></i>Master</span>'+
+    '<span><i class="sw" style="background:var(--ch-dev)"></i>Developing</span>'+
+    '<span><i class="sw" style="background:var(--ch-beg)"></i>Beginner</span>'+
+    '<span><i class="sw" style="background:var(--ch-none)"></i>Not graded</span></div></div>');
+  var mixEl=mixDiv.querySelector('#mix-chart');
+  strands.forEach(function(strand){
+    var list=topics.filter(function(t){return t.s===strand;});
+    var m=list.filter(function(t){return t.lv==='master';}).length;
+    var d=list.filter(function(t){return t.lv==='developing';}).length;
+    var b=list.filter(function(t){return t.lv==='beginner';}).length;
+    var none=list.length-m-d-b;
+    var segs=[[m,'var(--ch-master)','Master'],[d,'var(--ch-dev)','Developing'],[b,'var(--ch-beg)','Beginner'],[none,'var(--ch-none)','Not graded']]
+      .filter(function(s){return s[0]>0;})
+      .map(function(s){return '<span class="mix-seg" style="flex:'+s[0]+';background:'+s[1]+'" title="'+s[2]+': '+s[0]+'"></span>';}).join('');
+    var counts=[m&&m+' M',d&&d+' D',b&&b+' B',none&&none+' to go'].filter(Boolean);
+    mixEl.appendChild(el('<div class="mix-row"><div class="mix-top"><span>'+esc(strand)+'</span>'+
+      '<span class="xs dim">'+esc(counts.join(' · '))+'</span></div><div class="mix-bar">'+segs+'</div></div>'));
+  });
+  chartsGrid.appendChild(mixDiv);
+
+  // Accuracy trend (first-attempt %). Early on there may not be enough data
+  // for this second chart yet — when it is the only one, let the strand card
+  // take the full row instead of sitting alone in half of it.
+  var accSessions=sessions.filter(function(s){ return firstAttemptPct(s)!==null; }).slice(-8);
+  if(accSessions.length<2) mixDiv.style.gridColumn='1/-1';
+  if(accSessions.length>=2){
+    var accDiv=el('<div class="chart"><h3>First-attempt accuracy</h3><div id="acc-svg"></div>'+
+      '<div class="cap">Share of questions right with no hint and no retry. 80% is the mastery bar.</div></div>');
+    var accPcts=accSessions.map(function(s){ return firstAttemptPct(s); });
+    var W=480,H=130,base=102,top=14,x0=40;
+    var step=(W-x0-14)/accSessions.length;
+    var minV=Math.min.apply(null,accPcts)-5, maxV=Math.max(85,Math.max.apply(null,accPcts)+5);
+    function yf(v){ return base-((v-minV)/(maxV-minV))*(base-top); }
+    var p='';
+    [Math.round((minV+maxV)/2),80].forEach(function(v){
+      if(v<minV||v>maxV) return;
+      var y=yf(v);
+      p+='<line x1="'+x0+'" y1="'+y.toFixed(1)+'" x2="'+(W-6)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1"'+(v===80?' stroke-dasharray="3 3"':'')+'/>'+
+         '<text x="'+(x0-7)+'" y="'+(y+3.5).toFixed(1)+'" text-anchor="end" font-size="9" fill="var(--fg-faint)" font-family="monospace">'+v+'%</text>';
+    });
+    var pts=accPcts.map(function(v,i){ return [x0+i*step+step/2, yf(v)]; });
+    p+='<polyline points="'+pts.map(function(q){return q[0].toFixed(1)+','+q[1].toFixed(1);}).join(' ')+
+      '" fill="none" stroke="var(--ch-line)" stroke-width="2" stroke-linejoin="round"/>';
+    pts.forEach(function(q,i){
+      var last=(i===pts.length-1);
+      p+='<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="'+(last?4.5:3)+'" fill="var(--ch-line)" stroke="var(--surface)" stroke-width="2"/>';
+      var label=fmt(accSessions[i].finishedAt||accSessions[i].date||accSessions[i].createdAt||'');
+      p+='<text x="'+q[0].toFixed(1)+'" y="'+(base+14)+'" text-anchor="middle" font-size="9" fill="var(--fg-faint)" font-family="monospace">'+esc(label.split(' ')[0])+'</text>';
+    });
+    p+='<text x="'+(x0+4)+'" y="'+(yf(80)+2).toFixed(1)+'" font-size="9" fill="var(--fg-faint)">80% Master bar</text>';
+    accDiv.querySelector('#acc-svg').innerHTML='<svg viewBox="0 0 '+W+' '+H+'">'+p+'</svg>';
+    chartsGrid.appendChild(accDiv);
+  }
+
+  chartsDiv.appendChild(chartsGrid);
+  if(anyGraded) v.appendChild(chartsDiv);   // empty bars teach nobody anything
+
+  // Detail slot — always shows something: the current topic by default,
+  // or whatever the parent last clicked.
+  var slot=el('<div id="detail-slot"></div>');
+  v.appendChild(slot);
+  var currentTopic = findCurrentTopic(topics, sessions);
+  if(currentTopic) openDetail(currentTopic, slot, topics, currentTopic);
+
+  // Topic grid by strand
+  // The topic actually being worked (queued, or waiting on grading) jumps to
+  // the front of its strand — that is the one the parent needs to see first.
+  function isActiveTopic(x){ return x.st==='inProgress'||x.st==='awaitingGrading'; }
+
+  // Teaching families, not strands — a strand like "Number" can swallow 30 of
+  // 40 topics on a primary stage, which is too coarse to tell a parent
+  // anything (see CLAUDE.md "Groups"). curriculum.groups[] is the real unit;
+  // fall back to one "Ungrouped" bucket for any legacy profile that predates
+  // it, so the page never silently drops a topic.
+  var curricGroups=(DATA.child.curriculum&&DATA.child.curriculum.groups)||[];
+  var groupDefs = curricGroups.length
+    ? curricGroups.slice().sort(function(a,b){ return (a.order||0)-(b.order||0); })
+    : [{id:null,name:'Topics'}];
+  if(topics.some(function(t){ return !t.g; }) && curricGroups.length)
+    groupDefs = groupDefs.concat([{id:null,name:'Ungrouped'}]);
+
+  var strandsDiv=el('<div id="strands-grid"></div>');
+  groupDefs.forEach(function(grp){
+    var list=topics.filter(function(t){return (t.g||null)===grp.id;});
+    if(!list.length) return;
+    list.sort(function(a,b){ return (isActiveTopic(b)?1:0)-(isActiveTopic(a)?1:0); });
+    var wrap=el('<div class="strand"><div class="strand-head"><h2>'+esc(grp.name)+'</h2>'+
+      '<span class="xs faint mono">'+(function(){
+        var g=list.filter(function(t){return !!t.lv;}).length;
+        return g ? g+' of '+list.length+' graded' : list.length+' topics';
+      })()+'</span></div>'+
+      '<div class="grid"></div></div>');
+    var grid=wrap.querySelector('.grid');
+    list.forEach(function(t){
+      var c=cls(t);
+      // Two separate facts, two separate slots. Top-right is WHERE the topic
+      // stands — Paused / Underway (graded work, no level yet) / Not started
+      // — independent of whether anything is currently pending on it. Bottom-
+      // right is an ACTION for the parent — Queued (ready for him) / Needs
+      // grading — which can be true at any stage (a Developing topic with an
+      // ungraded session is still "Developing", just also awaiting /grade).
+      //
+      // "Underway" means he is still actively working this topic — anything
+      // short of Master, once it has been touched at all. A Developing topic
+      // mid-practice is just as "underway" as one with no level yet; Master
+      // is the only level that's actually finished, so it's the only one
+      // with nothing to add here (the pill already says "done").
+      var stage = t.paused              ? ['Paused','var(--paused)',STAGE_ICON.paused]
+                : t.st==='notStarted'   ? ['Not started','var(--fg-dim)',STAGE_ICON.notStarted]
+                : t.lv==='master'       ? null                    // shown via the dot/mode slots below,
+                : ['Underway','var(--fg-dim)',STAGE_ICON.underway]; // not stacked into this same corner
+      // Icon only, no label — the shape already carries the meaning, and the
+      // word was the thing crowding this corner. Full word lives in the
+      // title tooltip for anyone who hovers.
+      var stageHtml = stage
+        ? '<span class="tile-status" style="color:'+stage[1]+'" title="'+esc(stage[0])+'">'+stage[2]+'</span>'
+        : '';
+
+      // The parent's Teach-fully/Check-first choice, only meaningful before a
+      // topic starts. Moved out of the top-right corner (it was fighting the
+      // stage word for the same spot) into the session-count's spot at the
+      // bottom-left — a not-started topic has no sessions to show there anyway.
+      var modeText = (!t.lv && !t.runs)
+        ? (t.school ? ['Check first','var(--accent)',MODE_ICON.check] : ['Teach fully','var(--developing)',MODE_ICON.teach])
+        : null;
+
+      // Short enough to actually sit beside the session count at tile width —
+      // "Needs grading" alone was wider than the tile and wrapped onto its
+      // own line even inside its own row. Full wording still appears in the
+      // detail panel and legend, where there's room for it.
+      var action = t.st==='awaitingGrading' ? ['Grade','var(--process)']
+                 : t.st==='inProgress'      ? ['Queued','var(--accent)']
+                 : null;
+
+      // The level as a small dot beside the title instead of a pill in the
+      // footer — frees the footer for session count / action, which is what
+      // was actually crowding the tile.
+      var dotColor = t.lv==='master' ? 'var(--master)' : t.lv==='developing' ? 'var(--developing)'
+                   : t.lv==='beginner' ? 'var(--beginner)' : null;
+      var dotHtml = dotColor
+        ? '<span class="tile-dot" style="background:'+dotColor+'" title="'+esc(LABEL[t.lv])+'"></span>' : '';
+
+      // Two explicit rows, not one wrapping flex line — a wrapped line lets
+      // the action text land in the wrong place, as it did before.
+      var footTop = (t.lv==='master'&&t.last&&daysAgo(t.last)>42) ? '<span class="fade">Stale '+daysAgo(t.last)+'d</span>' : '';
+      var footBottom = (t.runs ? '<span class="xs faint mono">'+t.runs+' session'+(t.runs===1?'':'s')+'</span>'
+                      : modeText ? '<span class="tile-mode-text" style="color:'+modeText[1]+'">'+modeText[2]+esc(modeText[0])+'</span>' : '')+
+        (action?'<span class="tile-action" style="color:'+action[1]+'">'+esc(action[0])+'</span>':'');
+      var foot = (footTop?'<div class="tile-foot-row">'+footTop+'</div>':'')+
+                 (footBottom?'<div class="tile-foot-row">'+footBottom+'</div>':'');
+      var btn=el('<button class="tile l-'+(c||'notStarted')+(currentTopic&&t.id===currentTopic.id?' selected':'')+'" type="button" data-topic-id="'+esc(t.id)+'">'+
+        '<div class="tile-top"><span class="tile-idx">'+(t.order||'')+'</span>'+stageHtml+'</div>'+
+        '<div class="tile-name-row">'+dotHtml+'<span class="tile-name">'+esc(t.n)+'</span></div>'+
+        '<div class="tile-foot">'+foot+'</div></button>');
+      btn.addEventListener('click',function(){ openDetail(t, slot, topics, currentTopic, true); });
+      grid.appendChild(btn);
+    });
+    strandsDiv.appendChild(wrap);
+  });
+  v.appendChild(strandsDiv);
+}
+
+var KIND_LABEL = { placement:'Placement', learning:'Practice', lesson:'Lesson', practice:'Practice', check:'Check', retest:'Retest' };
+
+var PHASE_LABEL = { placement:'Placement', lesson:'Lesson', practice:'Practice', check:'Check', retest:'Retest' };
+
+// Plain-language translation of uiMode, for the parent — not shown to the child.
+function describeAccess(m){
+  if(!m) return '';
+  if(m.retryPolicy==='oneShot')
+    return 'One try per question, no hints — a placement, to see what he already knows unaided.';
+  if(m.hintsMax===0 && !m.allowReveal)
+    return 'No help on this one — a check, to confirm it has really stuck.';
+  if(m.hintsMax>0)
+    return 'Up to '+m.hintsMax+' hint'+(m.hintsMax===1?'':'s')+' per question'+
+      (m.allowReveal?', with "show me how" if he is truly stuck.':'.');
+  return 'Standard practice support.';
+}
+
+// Phase + practice level as a single pill, from either a session's stage or
+// a topic's stored stage — whichever is the caller's current focus.
+function stagePill(topicOrStage){
+  var stage = topicOrStage.stage || (topicOrStage.ts && topicOrStage.ts.stage);
+  if(!stage || !stage.phase) return '';
+  var label = PHASE_LABEL[stage.phase] || stage.phase;
+  if(stage.practiceLevel) label += ' · level '+stage.practiceLevel;
+  return '<span class="pill p-neutral">'+esc(label)+'</span>';
+}
+
+// Score a session from whichever record it has: marks[] once graded,
+// otherwise the last try per question from attempts[].
+// Unaided first-try count: right on the first try with zero hints and no
+// reveal/exhaust. The mastery signal, distinct from completion (`right`).
+// Prefers the grader's stored quality[]; falls back to the raw attempt record
+// for ungraded or pre-quality[] sessions, using the same definition.
+// Guided questions are excluded: they sit right after the explanation that
+// taught them, with the full hint ladder up, so counting them as mastery
+// inflates the number the progression reads. Sessions graded before
+// questionIndex[] existed have no guided set, so nothing is excluded and
+// their numbers are unchanged.
+function sessionCleanCount(s){
+  var guided=guidedIds(s);
+  var idx=s.questionIndex;
+  if(Array.isArray(s.quality) && s.quality.length){
+    return s.quality.filter(function(q,i){
+      var id = idx && idx[i] && idx[i].id;
+      return q==='clean' && !(id && guided[id]);
+    }).length;
+  }
+  var firstTry={};
+  (s.attempts||[]).forEach(function(a){ if(!(a.questionId in firstTry)) firstTry[a.questionId]=a; });
+  var n=0;
+  Object.keys(firstTry).forEach(function(id){
+    if(guided[id]) return;
+    var t=firstTry[id];
+    if(t && t.correct && !t.hintsUsed && !t.revealed && !t.exhausted) n++;
+  });
+  return n;
+}
+function sessionScore(s){
+  var guided=guidedIds(s), idx=s.questionIndex;
+  if(Array.isArray(s.marks) && s.marks.length){
+    var unaided=s.marks.filter(function(m,i){
+      var id = idx && idx[i] && idx[i].id;
+      return !(id && guided[id]);
+    });
+    return { right:unaided.filter(function(m){return m==='correct';}).length, of:unaided.length,
+             clean:sessionCleanCount(s), graded:true };
+  }
+  var byQ={};
+  (s.attempts||[]).forEach(function(a){ if(!guided[a.questionId]) byQ[a.questionId]=a; });
+  var ids=Object.keys(byQ);
+  if(!ids.length) return null;
+  return { right:ids.filter(function(k){return byQ[k].correct;}).length, of:ids.length,
+           clean:sessionCleanCount(s), graded:false };
+}
+
+// How the teaching itself went, per cycle — null when the session carries no
+// cycle record (every session graded before this existed).
+function teachingOf(s){
+  if(!Array.isArray(s.cycleOutcomes) || !s.cycleOutcomes.length) return null;
+  var c=s.cycleOutcomes;
+  return { cycles:c,
+           landed:c.filter(function(x){return x.outcome==='landed';}).length,
+           of:c.length };
+}
+var OUTCOME_LABEL={ 'landed':'got it straight away', 'landed-after-hint':'got it with a nudge',
+                    'needed-second-angle':'needed another way in', 'not-landed':'did not land' };
+// The unaided count, with a safe fallback for scores that predate the field.
+function cleanOf(sc){ return (sc && sc.clean!=null) ? sc.clean : (sc ? sc.right : 0); }
+// Clean % — what the mastery bar and the trend now read instead of completion.
+function cleanPctOf(sc){ return sc ? pct(cleanOf(sc), sc.of) : null; }
+
+function openDetail(t, slot, topics, defaultTopic, fromClick){
+  slot.innerHTML='';
+  // Keep the tile highlight in sync with whatever topic the card is showing,
+  // no matter how we got here (tile click, Close, Start, Pause).
+  document.querySelectorAll('#strands-grid .tile.selected').forEach(function(x){ x.classList.remove('selected'); });
+  var selTile=document.querySelector('#strands-grid .tile[data-topic-id="'+t.id+'"]');
+  if(selTile) selTile.classList.add('selected');
+  // Oldest first. Pending sessions have no finishedAt, so fall back to the
+  // display date, and sort anything undated to the end.
+  var sessions=(t.sessions||[]).slice().sort(function(a,b){
+    var da=asDate(a.finishedAt||a.createdAt||a.date), db=asDate(b.finishedAt||b.createdAt||b.date);
+    if(!da) return 1;
+    if(!db) return -1;
+    return da-db;
+  });
+
+  var rows = sessions.map(function(s, i){
+    var sc=sessionScore(s);
+    var when=fmt(s.finishedAt||s.date||s.createdAt||'');
+    var kind=KIND_LABEL[s.kind]||s.kind||'Session';
+    var state = s.status==='graded' ? '<span class="pill p-master" style="font-size:.6rem">Graded</span>'
+              : s.status==='submitted' ? '<span class="pill p-waiting" style="font-size:.6rem">Needs grading</span>'
+              : '<span class="pill p-progress" style="font-size:.6rem">Not done yet</span>';
+
+    var what;
+    if(s.status==='pending'){
+      what='<span class="faint">'+countQuestions(s)+' questions waiting</span>';
+    } else {
+      var att=s.attempts||[];
+      var revealed=att.filter(function(a){return a.revealed;}).length;
+      var slips={};
+      att.forEach(function(a){ if(!a.correct&&a.slipCode) slips[a.slipCode]=(slips[a.slipCode]||0)+1; });
+      var topSlip=Object.keys(slips).sort(function(a,b){return slips[b]-slips[a];})[0];
+      var bits=[];
+      if(topSlip) bits.push(esc((SLIP_LABEL[topSlip]||topSlip))+' ×'+slips[topSlip]);
+      if(revealed) bits.push('<b style="color:var(--developing)">'+revealed+' needed showing</b>');
+      what = bits.length ? bits.join(' · ') : '<span class="faint">no pattern recorded</span>';
+    }
+
+    return '<tr><td class="mono">'+esc(when)+'</td>'+
+           '<td>'+esc(kind)+'</td>'+
+           '<td class="mono"'+(sc?' title="'+sc.right+'/'+sc.of+' done"':'')+'>'+(sc?cleanOf(sc)+'/'+sc.of:'—')+'</td>'+
+           '<td>'+state+'</td>'+
+           '<td class="dim">'+what+'</td></tr>';
+  }).join('') || '<tr><td colspan="5" class="dim">Nothing has happened on this topic yet.</td></tr>';
+
+  var scored=sessions.map(sessionScore).filter(Boolean);
+  var bars='';
+  if(scored.length>1){
+    bars='<div><div class="xs faint" style="margin-bottom:6px">Clean score across sessions</div>'+
+      '<div class="scorebars">'+scored.map(function(sc){
+        return '<span class="scorebar" title="'+sc.right+'/'+sc.of+' done"><em>'+cleanOf(sc)+'</em><i style="height:'+
+               Math.max(3, cleanOf(sc)/(sc.of||1)*34)+'px"></i></span>';
+      }).join('')+'</div></div>';
+  }
+
+  var why={
+    master:'Scored 80%+ on a final check without hints.',
+    developing:'Finished, but under 80% — he can do it, not yet reliably.',
+    beginner:'Well under 80%. Needs teaching again.'
+  }[t.lv]||'';
+
+  var topicsById={}; topics.forEach(function(x){ topicsById[x.id]=x; });
+  var chainIds=transitiveChainIds(t.id, topicsById);
+  var unmetPrereqs=unmetPrereqsFor(t, topicsById);
+  // Only the "Before this" line turns into a warning — an all-mastered chain
+  // (or a topic with no prereqs at all) stays as plain reference info, not
+  // something that reads as a problem. Shown here so the parent sees it
+  // before ever touching Start, not only in the confirm dialog afterward.
+  var chainHtml = chainIds.length
+    ? '<div class="sm'+(unmetPrereqs.length?'':' dim')+'"'+
+        (unmetPrereqs.length?' style="color:var(--developing)"':'')+'>'+
+      (unmetPrereqs.length?WARN_ICON:'')+
+      '<span class="faint">'+(unmetPrereqs.length?'Still needed first:':'Before this:')+'</span> '+
+      chainIds.map(function(id){
+        var p=topicsById[id];
+        var done=p && p.lv==='master';
+        return '<span'+(done?' style="color:var(--master)" title="Mastered"':'')+'>'+
+          esc(p?p.n:id)+(done?' ✓':'')+'</span>';
+      }).join(', ')+
+      '</div>'
+    : '';
+
+  // An unstarted topic with unmet prereqs isn't actually "up next" — saying
+  // "Starts with a check..." here would read as imminent and directly
+  // contradict the "Still needed first" line above it. Say plainly that it's
+  // waiting its turn instead of describing a session that isn't about to happen.
+  var notReady = !t.lv && !t.runs && !t.paused && t.st!=='inProgress' && t.st!=='awaitingGrading' && unmetPrereqs.length;
+
+  var nextUp = t.st==='awaitingGrading' ? 'Run <b class="mono">/grade</b> to mark the finished session.'
+             : t.st==='inProgress'      ? 'A session is queued and waiting for him.'
+             : t.paused                 ? 'Paused — nothing happens here until you resume it.'
+             : t.lv==='master'          ? 'Done. It will come back as a recall check in a few weeks.'
+             : t.lv                     ? 'More practice, then a final check to confirm it has stuck.'
+             : notReady                 ? 'Not reached yet — comes up once the topics above are done.'
+             : t.school                 ? 'Starts with a check to see what he already knows.'
+             : 'Starts with a lesson, then practice.';
+
+  // Recurring error types across this topic's whole history — the thing the
+  // grader actually tracks session to session, not just what happened last time.
+  var errProfile=(t.ts && t.ts.errorProfile) || {};
+  var errKeys=Object.keys(errProfile).sort(function(a,b){ return (errProfile[b].count||0)-(errProfile[a].count||0); });
+  var errHtml=errKeys.length ? '<div class="sm dim"><span class="faint">Recurring errors:</span> '+
+    errKeys.slice(0,4).map(function(k){ return esc(SLIP_LABEL[k]||k)+' ×'+(errProfile[k].count||0); }).join(', ')+'</div>' : '';
+
+  // The grader's full writeup for the most recently graded session — marks,
+  // what went wrong, the pattern it found, and the feedback he actually saw.
+  var lastGraded=sessions.filter(function(s){ return s.status==='graded'; }).slice(-1)[0];
+  var lastSessionHtml=lastGraded ? buildLastSessionDetail(lastGraded, 'Last session') : '';
+
+  // Controls, right where the parent is already reading the topic's history.
+  // Exactly one topic can be "active" (queued for him or waiting to be
+  // graded) at a time — that one only offers Pause. Every other topic offers
+  // a force-Start instead, which pauses whatever is active and takes its place.
+  var queueIds=(DATA.child.curriculum&&DATA.child.curriculum.topicQueue)||[];
+  var frozen=(t.st==='awaitingGrading');
+  var active=(t.st==='inProgress'||t.st==='awaitingGrading');
+  var started=!!t.lv || t.runs>0 || frozen;
+  // Ungraded work freezes the queue server-side — nothing can be reordered
+  // around it, so Start can't work anywhere while that is true.
+  var anyFrozen=topics.some(function(x){ return x.st==='awaitingGrading'; });
+
+  var ctrls;
+  if(active){
+    var pauseWhy=frozen ? 'Waiting to be graded — run /grade first'
+               : 'Set aside, and discard the session already built for him';
+    ctrls='<div class="q-acts" style="margin:2px 0 4px">'+
+      '<button class="ic w" data-act="pause" title="'+esc(pauseWhy)+'"'+(frozen?' disabled':'')+'>Pause</button>'+
+      '</div><div class="xs faint" id="q-msg"></div>';
+  } else {
+    var frozenTopic = anyFrozen && topics.filter(function(x){ return x.st==='awaitingGrading'; })[0];
+    // Same action either way (unshift into the queue, pause whatever is
+    // current) — but "Resume" is the honest word for a topic that already
+    // has history, and matches the Pause button that put it here.
+    var startBtn = t.lv!=='master'
+      ? '<button class="ic w start" data-act="start" title="'+
+        (anyFrozen?'Grade the waiting session first':
+          t.paused?'Bring this topic back — pauses whatever is in progress now':
+          'Make this the topic '+childName()+' works on next — pauses whatever is in progress now')+
+        '"'+(anyFrozen?' disabled':'')+'>'+(t.paused?'Resume':'Start')+'</button>'
+      : '';
+    var toggle = started ? '' :
+      '<div class="toggle-seg" role="group" aria-label="Teach fully or check first">'+
+        '<button type="button" class="'+(!t.school?'active is-teach':'')+'" data-act="mode" data-val="teach">Teach fully</button>'+
+        '<button type="button" class="'+(t.school?'active is-check':'')+'" data-act="mode" data-val="check">Check first</button>'+
+      '</div>';
+    // A greyed-out button with the reason hidden in a tooltip reads as broken.
+    // Ungraded work genuinely freezes the queue (the API 409s on any reorder
+    // around it), so say which topic is blocking and what clears it.
+    var blockedNote = (anyFrozen && startBtn)
+      ? '<div class="xs" style="color:var(--developing);margin-top:3px">'+
+          'Start is unavailable until <b>'+esc(frozenTopic ? frozenTopic.n : 'the finished session')+
+          '</b> is graded — he has already done that session. Run <b class="mono">/grade</b>, then come back.'+
+        '</div>'
+      : '';
+    ctrls='<div class="q-acts" style="margin:2px 0 4px;flex-wrap:wrap">'+startBtn+toggle+
+      '</div>'+blockedNote+'<div class="xs faint" id="q-msg"></div>';
+  }
+
+  // Session length — a child-wide setting (how long a session may run), not
+  // a per-topic one, so it is available regardless of this topic's own
+  // start/pause state. Lives here because this is where the parent already
+  // is when they'd want to change it — e.g. right before starting a new
+  // topic, when free time for the term is top of mind. Takes effect for the
+  // NEXT session the grader builds; a session already queued keeps its size
+  // (see CLAUDE.md "Session size") until discarded and rebuilt.
+  var curMinutes = (DATA.child.settings && DATA.child.settings.sessionMinutes) || 15;
+  var SESSION_MINUTES = [15, 30, 45, 60];
+  var sessionLenHtml = '<div class="session-len-row">'+
+    '<span class="xs faint" title="How long a session may run. The grader decides the actual size of each session within this — it need not fill it.">Session length</span>'+
+    '<div class="toggle-seg session-len" role="group" aria-label="Session length in minutes">'+
+      SESSION_MINUTES.map(function(m){
+        return '<button type="button" class="'+(m===curMinutes?'active':'')+'" data-act="minutes" data-val="'+m+'">'+m+'m</button>';
+      }).join('')+
+    '</div></div>';
+
+  var showClose = defaultTopic && t.id!==defaultTopic.id;
+
+  var d=el('<div class="detail">'+
+    '<div class="row"><div><h2>'+esc(t.n)+'</h2>'+
+      '<div class="sm dim" style="margin-top:4px">'+esc(t.s)+' · '+
+      (t.runs?t.runs+' graded session'+(t.runs===1?'':'s'):'nothing graded yet')+
+      (t.last?' · last '+fmt(t.last):'')+'</div></div>'+
+      '<div style="display:flex;gap:7px;align-items:center">'+
+        (t.lv?'<span class="pill '+PILL[t.lv]+'">'+LABEL[t.lv]+'</span>':'')+
+        (t.paused?'<span class="pill p-off">Paused</span>':'')+
+        (showClose?'<button class="close-btn" type="button">Close</button>':'')+'</div></div>'+
+    ctrls+
+    sessionLenHtml+
+    (t.description?'<div class="sm dim">'+esc(t.description)+'</div>':'')+
+    (why?'<div class="sm"><span class="faint">Level:</span> '+esc(why)+'</div>':'')+
+    chainHtml+
+    '<div class="sm"><span class="faint">Next:</span> <span class="next-up">'+nextUp+'</span></div>'+
+    errHtml+
+    bars+
+    lastSessionHtml+
+    '<table><thead><tr><th>Date</th><th>Type</th><th>Score</th><th></th><th>What happened</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table>'+
+    '</div>');
+  if(showClose){
+    d.querySelector('.close-btn').addEventListener('click',function(){
+      openDetail(defaultTopic, slot, topics, defaultTopic);
+    });
+  }
+
+  d.querySelectorAll('.q-acts .ic').forEach(function(b){
+    b.addEventListener('click', function(){
+      var act=b.dataset.act;
+      var ids=queueIds.slice();
+      if(act==='pause'){
+        if(t.pending && !confirm('Pause "'+t.n+'"?\n\n'+
+            'The session already built for him will be thrown away. '+
+            'Anything already graded is kept, and you can resume the topic later.')) return;
+        var pi=ids.indexOf(t.id);
+        if(pi!==-1) ids.splice(pi,1);
+        if(t.pending){ discardSession(t.pending._id || t.pending.id, { topicQueue: ids }, 'mastery'); return; }
+        saveCurriculum({ topicQueue: ids }, 'mastery');
+        return;
+      }
+      if(act==='start'){
+        // Same "Before this" chain the panel already shows, filtered to what
+        // is not yet mastered — the parent should see this BEFORE committing
+        // to Start, not as a toast after. The backend's own prereq-order
+        // check (app.js) only fires on a queue reorder; Start skips straight
+        // to the front of the queue without one, so this is the only warning
+        // that would ever reach the parent for this specific action.
+        var prereqWarn=unmetPrereqs.length
+          ? '\n\nHeads up: '+unmetPrereqs.map(function(p){return p.n;}).join(', ')+
+            (unmetPrereqs.length>1?' are prerequisites':' is a prerequisite')+' for this and '+
+            (unmetPrereqs.length>1?'are':'is')+' not mastered yet.'
+          : '';
+        if(!confirm('Start "'+t.n+'" now?\n\n'+
+            'Whatever is currently in progress will be paused, and its queued session (if any) thrown away.'+
+            prereqWarn)) return;
+        var current=topics.find(function(x){ return x.st==='inProgress'||x.st==='awaitingGrading'; });
+        var ti=ids.indexOf(t.id); if(ti!==-1) ids.splice(ti,1);
+        if(current && current.id!==t.id){
+          var ci=ids.indexOf(current.id); if(ci!==-1) ids.splice(ci,1);
+        }
+        ids.unshift(t.id);
+        if(current && current.id!==t.id && current.pending){
+          discardSession(current.pending._id || current.pending.id, { topicQueue: ids }, 'mastery');
+        } else {
+          saveCurriculum({ topicQueue: ids }, 'mastery');
+        }
+        return;
+      }
+    });
+  });
+
+  // Flipping this toggle used to go through saveCurriculum(), which re-renders
+  // the whole dashboard and so destroyed the very panel being read — the parent
+  // tapped a segment, the section closed, and the "Saving…" note vanished with
+  // it. A two-state toggle should just move. Update it in place, save in the
+  // background, and only interrupt if the save actually fails.
+  // Scoped to exclude .session-len — that toggle-seg is a different control
+  // (see below) and must not pick up this handler or be repainted by it.
+  d.querySelectorAll('.toggle-seg:not(.session-len) button').forEach(function(b){
+    b.addEventListener('click', function(){
+      var wantSchool = b.dataset.val==='check';
+      if(wantSchool===t.school) return;   // already that mode
+      var segs = d.querySelectorAll('.toggle-seg:not(.session-len) button');
+      var nextEl = d.querySelector('.next-up');
+      var msg = d.querySelector('#q-msg');
+      var paint = function(school){
+        segs.forEach(function(x){
+          var isCheck = x.dataset.val==='check';
+          x.className = (isCheck===school) ? ('active '+(isCheck?'is-check':'is-teach')) : '';
+        });
+        if(nextEl) nextEl.innerHTML = school
+          ? 'Starts with a check to see what he already knows.'
+          : 'Starts with a lesson, then practice.';
+        // The tile grid carries the same mode text — keep it in step, since
+        // we are deliberately not re-rendering. This toggle only ever shows
+        // for a topic with no level and no runs yet (see `started` below),
+        // the same condition that puts the mode text there in the first place.
+        var modeEl = document.querySelector('.tile[data-topic-id="'+t.id+'"] .tile-mode-text');
+        if(modeEl){
+          // textContent would also wipe the icon svg — rebuild icon+label together.
+          modeEl.innerHTML = (school ? MODE_ICON.check : MODE_ICON.teach)+(school ? 'Check first' : 'Teach fully');
+          modeEl.style.color = school ? 'var(--accent)' : 'var(--developing)';
+        }
+      };
+
+      var was = t.school;
+      t.school = wantSchool;
+      paint(wantSchool);
+      if(msg){ msg.textContent='Saving…'; msg.style.color='var(--fg-faint)'; }
+
+      var patch={}; patch[t.id]={ schoolCovered: wantSchool };
+      apiFetch('/api/curriculum/'+CHILD_ID, {
+        method:'PATCH', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ topicUpdates: patch })
+      })
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
+      .then(function(){
+        // Keep the shared copy in step so a later re-render agrees with the UI.
+        var src=(DATA.child.curriculum&&DATA.child.curriculum.topics)||[];
+        var row=src.find(function(x){ return x.id===t.id; });
+        if(row) row.schoolCovered = wantSchool;
+        if(msg){ msg.textContent='Saved.'; msg.style.color='var(--master)'; }
+      })
+      .catch(function(e){
+        t.school = was;
+        paint(was);
+        if(msg){ msg.textContent='Could not save: '+e.message; msg.style.color='var(--beginner)'; }
+      });
+    });
+  });
+
+  // Session length — same optimistic-update shape as the toggle above
+  // (paint() is the only DOM writer, revert is paint(was)), but this writes
+  // DATA.child.settings via the new PATCH /api/children/:childId, not
+  // curriculum, and it is not scoped to this topic at all.
+  d.querySelectorAll('.toggle-seg.session-len button').forEach(function(b){
+    b.addEventListener('click', function(){
+      var wantMinutes = parseInt(b.dataset.val, 10);
+      if(wantMinutes===curMinutes) return;
+      var segs = d.querySelectorAll('.toggle-seg.session-len button');
+      var msg = d.querySelector('#q-msg');
+      var paint = function(minutes){
+        segs.forEach(function(x){
+          x.className = (parseInt(x.dataset.val,10)===minutes) ? 'active' : '';
+        });
+      };
+
+      var was = curMinutes;
+      curMinutes = wantMinutes;
+      paint(wantMinutes);
+      if(msg){ msg.textContent='Saving…'; msg.style.color='var(--fg-faint)'; }
+
+      apiFetch('/api/children/'+CHILD_ID, {
+        method:'PATCH', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ settings: { sessionMinutes: wantMinutes } })
+      })
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
+      .then(function(){
+        if(!DATA.child.settings) DATA.child.settings = {};
+        DATA.child.settings.sessionMinutes = wantMinutes;
+        if(msg){ msg.textContent='Saved. Applies to the next session he gets.'; msg.style.color='var(--master)'; }
+      })
+      .catch(function(e){
+        curMinutes = was;
+        paint(was);
+        if(msg){ msg.textContent='Could not save: '+e.message; msg.style.color='var(--beginner)'; }
+      });
+    });
+  });
+
+  slot.appendChild(d);
+  if(fromClick) d.scrollIntoView({block:'nearest'});
+}
+
+
+/* ── boot ────────────────────────────────────────────────────────── */
+apiFetch('/api/dashboard/'+CHILD_ID)
+  .then(function(r){
+    if(r.status===404) return null;   // no child yet
+    if(!r.ok) throw new Error('Server returned '+r.status);
+    return r.json();
+  })
+  .then(function(data){
+    if(!data){ renderSetup(); return; }
+    DATA = data;
+    DATA.topics = buildTopics(data.child, data.sessions);
+    renderAll();
+  })
+  .catch(function(err){
+    document.getElementById('main-content').innerHTML=
+      '<div class="err-box"><b>Could not reach the server</b><br>'+
+      esc(err.message||'Make sure the server is running and MongoDB is connected.')+'<br><br>'+
+      '<button class="btn ghost" onclick="location.reload()">Try again</button></div>';
+  });
+
+function renderSetup(){
+  document.getElementById('page-title').textContent='Maths Map';
+  document.getElementById('page-sub').textContent='parent view';
+  document.getElementById('asof').textContent=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  document.getElementById('main-content').innerHTML=
+    '<div style="max-width:500px;margin:48px auto 0;display:flex;flex-direction:column;gap:20px">'+
+    '<div style="text-align:center;font-size:2.4rem;line-height:1">🧮</div>'+
+    '<div style="text-align:center">'+
+      '<h2 style="font-family:var(--display);font-size:1.35rem;font-weight:700;margin:0 0 8px">No child profile yet</h2>'+
+      '<p style="color:var(--fg-dim);font-size:.92rem;margin:0">'+
+        'Set up a child profile to get started. You\'ll choose their curriculum, approve the topic list, and then Claude will design their first session.'+
+      '</p>'+
+    '</div>'+
+    '<div class="card" style="display:flex;flex-direction:column;gap:11px">'+
+      '<div class="eyebrow">How it works</div>'+
+      '<div style="display:flex;flex-direction:column;gap:9px;font-size:.86rem">'+
+        '<div style="display:flex;gap:10px"><span style="color:var(--accent);font-weight:700;flex:none">1.</span><span>Tell Claude the child\'s name, age, and curriculum board (e.g. Cambridge Primary).</span></div>'+
+        '<div style="display:flex;gap:10px"><span style="color:var(--accent);font-weight:700;flex:none">2.</span><span>Claude researches the official framework and proposes the maths topics in order.</span></div>'+
+        '<div style="display:flex;gap:10px"><span style="color:var(--accent);font-weight:700;flex:none">3.</span><span>You approve, then Claude runs a short placement session to find where to start.</span></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="card" style="background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 40%,transparent)">'+
+      '<div class="eyebrow" style="color:var(--accent)">To set up</div>'+
+      '<p style="margin:8px 0 0;font-size:.88rem">Open Claude Code in your terminal inside this project and run:</p>'+
+      '<pre style="margin:8px 0 0;font-family:var(--mono);font-size:.82rem;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 12px;overflow-x:auto">/setup-child</pre>'+
+      '<p style="margin:10px 0 0;font-size:.82rem;color:var(--fg-dim)">Claude will guide you through the whole process. Nothing is written to the database until you approve.</p>'+
+    '</div>'+
+    '<div style="text-align:center"><button class="btn ghost" onclick="location.reload()">Reload once set up</button></div>'+
+    '</div>';
+}
+
+})();
+</script>
+</body>
+</html>

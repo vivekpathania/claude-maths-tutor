@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maths</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;600;700;800&display=swap">
+<link rel="icon" href="/ollie-kit/assets/ollie-avatar.svg" type="image/svg+xml">
+<style>
+:root{
+  --ground:#FBF6EC; --surface:#FFFFFF; --raised:#FFFDF8; --muted:#F4EEE2; --chip:#EFE7D8;
+  --line:#E8DFD0; --line-strong:#E0D5C2; --dashed:#D6CAB5;
+  --ink:#2B2722; --ink2:#4F473E; --ink3:#6B6257; --decor:#8A8177;
+  --sage:#3E6B55; --sage-strong:#2C4F3E; --sage-soft:#E3EEE6;
+  --amber:#B85F1F; --amber-text:#8A4513; --amber-soft:#FCEBD8; --amber-wash:#FFF6EC;
+  --blue:#3B6FD8; --blue-text:#234C9E; --blue-soft:#E2EAFA;
+  --danger:#B3261E; --danger-soft:#FBE9E7;
+  --display:'Baloo 2',ui-rounded,system-ui,sans-serif;
+  --body:'Nunito',ui-rounded,system-ui,-apple-system,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.15;font-weight:800}
+p{margin:0}
+button{font:inherit;color:inherit}
+a{color:var(--sage-strong)}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+[hidden]{display:none!important}
+
+/* header */
+.top{background:var(--raised);border-bottom:1px solid var(--line)}
+.top-in{max-width:1080px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:12px;font-family:var(--display);font-weight:800;font-size:19px;text-decoration:none;color:var(--ink)}
+.brand img{width:40px;height:40px}
+nav{display:flex;gap:6px}
+nav a{padding:8px 16px;border-radius:999px;font-weight:700;font-size:15px;color:var(--ink2);text-decoration:none}
+nav a[aria-current="page"]{background:var(--ink);color:#fff}
+main{max-width:1080px;margin:0 auto;padding:36px 24px 72px}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.page-head h1{font-size:36px}
+.page-head .aside{font-weight:700;color:var(--ink2)}
+.sub{color:var(--ink2);margin-top:4px}
+.back{display:inline-flex;align-items:center;gap:6px;font-weight:800;margin-bottom:10px}
+.eyebrow{font-weight:700;color:var(--ink2);font-size:14px}
+
+/* cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:22px}
+.card h2{font-size:20px;margin-bottom:4px}
+.card h3{font-size:18px}
+.muted{color:var(--ink2);font-size:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.grid2{display:grid;grid-template-columns:1.35fr 1fr;gap:20px;margin-bottom:24px}
+.grid-eq{display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start}
+.split{display:grid;grid-template-columns:1fr 330px;gap:20px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:20px}
+.q-card .eyebrow{margin-bottom:6px}
+.q-card h2{display:flex;align-items:center;gap:10px;font-size:22px;margin-bottom:8px}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--decor)}
+.dot.ok{background:var(--sage)}.dot.warn{background:var(--amber)}.dot.info{background:var(--blue)}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;margin:6px 0 12px}
+.sec-head h2{font-size:21px}
+.sec-head a{font-weight:700;font-size:14px}
+
+/* pills */
+.pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:800;background:var(--chip);color:var(--ink2);white-space:nowrap}
+.pill.getting{background:var(--blue-soft);color:var(--blue-text)}
+.pill.reteach{background:var(--amber-soft);color:var(--amber-text)}
+.pill.mastered{background:var(--sage-soft);color:var(--sage-strong)}
+.pill.paused{background:var(--chip);color:var(--ink2)}
+
+/* buttons */
+.btn{border:0;border-radius:14px;padding:12px 20px;font-family:var(--display);font-weight:800;font-size:17px;cursor:pointer;background:var(--sage);color:#fff}
+.btn:hover{background:var(--sage-strong)}
+.btn.ghost{background:var(--surface);color:var(--ink);border:1.5px solid var(--line-strong)}
+.btn.ghost:hover{background:var(--muted)}
+.btn[disabled]{opacity:.55;cursor:default}
+.btn.sm{padding:9px 16px;font-size:15px;border-radius:12px}
+.link{background:none;border:0;padding:0;font-weight:800;text-decoration:underline;color:var(--sage-strong);cursor:pointer;font-size:15px}
+
+/* chart */
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.chart text{font-family:var(--body)}
+
+/* calendar */
+.cal{display:grid;grid-template-columns:auto repeat(7,1fr);gap:6px;align-items:center;margin-top:14px}
+.cal .h{text-align:center;font-size:12px;font-weight:700;color:var(--ink2)}
+.cal .wk{font-size:12px;font-weight:700;color:var(--ink2);padding-right:6px;white-space:nowrap}
+.cal .d{height:36px;border-radius:9px;background:var(--chip);display:grid;place-items:center;font-weight:700;font-size:14px;color:var(--ink2)}
+.cal .d.on{background:var(--sage);color:#fff}
+.cal .d.today{outline:2.5px solid var(--ink);outline-offset:-2px}
+.cal .d.fut{background:transparent;border:1.5px dashed var(--dashed);color:var(--decor)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink2);margin-top:12px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--chip)}
+.legend i.on{background:var(--sage)}.legend i.today{background:#fff;border:2px solid var(--ink)}
+.legend i.blue{background:var(--blue)}.legend i.amber{background:var(--amber)}
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.stat{border-radius:14px;padding:14px 16px;background:var(--muted)}
+.stat b{display:block;font-family:var(--display);font-size:26px;line-height:1.1}
+.stat span{font-size:13px;font-weight:700;color:var(--ink2)}
+.stat.warn{background:var(--amber-soft)}.stat.warn b,.stat.warn span{color:var(--amber-text)}
+.stat.good{background:var(--sage-soft)}.stat.good b,.stat.good span{color:var(--sage-strong)}
+
+/* topic cards */
+.tcards{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card.tcard{display:flex;flex-direction:column;padding:0;overflow:hidden}
+.tcard.cur{border:2.5px solid var(--ink)}
+.tc-bar{background:var(--ink);color:#fff;font-family:var(--display);font-weight:800;font-size:15px;padding:10px 22px;display:flex;align-items:center;gap:10px}
+.tc-bar svg{width:12px;height:12px;fill:#fff}
+.tc-body{padding:22px;display:flex;flex-direction:column;gap:10px;flex:1}
+.tc-title{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.tcard h3{font-size:21px}
+.tcard p{font-size:15px}
+.tcard .acts{margin-top:auto;display:flex;gap:16px;align-items:center;padding-top:10px;flex-wrap:wrap}
+.note-head{display:flex;gap:12px;align-items:center;margin-bottom:14px;color:var(--ink2);font-size:14px;font-weight:700}
+.note-head img{width:44px;height:44px}
+.note-body{font-size:16px;line-height:1.6}
+
+/* sessions table */
+table{width:100%;border-collapse:collapse}
+th{font-size:12px;text-align:left;color:var(--ink2);font-weight:700;padding:0 10px 8px 0}
+td{padding:14px 10px 14px 0;border-top:1px solid var(--line);font-size:14.5px;vertical-align:middle}
+td.date{font-weight:800}
+.sq{display:inline-flex;gap:3px;vertical-align:middle;margin-right:8px}
+.sq i{width:12px;height:12px;border-radius:3px;background:var(--chip)}
+.sq i.on{background:var(--sage)}
+.score{font-weight:800}
+
+/* topics page */
+.strand-row{display:flex;align-items:center;gap:14px;padding:6px 0}
+.strand-row b{width:190px;flex:none;font-size:14px}
+.boxes{display:flex;gap:4px;flex-wrap:wrap;flex:1}
+.boxes i{width:13px;height:13px;border-radius:3px;background:var(--chip)}
+.boxes i.mastered{background:var(--sage)}.boxes i.getting{background:var(--blue)}.boxes i.reteach{background:var(--amber)}
+.strand-row .cnt{font-size:13px;color:var(--ink2);white-space:nowrap}
+.strand-card{margin-bottom:16px;padding:0}
+.strand-card>header{display:flex;justify-content:space-between;align-items:baseline;padding:18px 22px;border-bottom:1px solid var(--line)}
+.strand-card>header h3{font-size:20px}
+.grp{display:grid;grid-template-columns:200px 1fr;gap:12px 20px;padding:16px 22px;border-top:1px solid var(--line)}
+.grp:first-of-type{border-top:0}
+.grp h4{margin:0;font-size:14px;font-weight:800}
+.tl{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.tile{display:flex;flex-direction:column;gap:6px;text-align:left;cursor:pointer;background:var(--surface);border:1.5px solid var(--line-strong);border-radius:12px;padding:12px 14px;min-height:68px}
+.tile:hover{border-color:var(--ink);background:var(--raised)}
+.tile b{font-size:14.5px;font-weight:800;line-height:1.25}
+.tile .st{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--ink2);margin-top:auto}
+.tile .st i{width:9px;height:9px;border-radius:50%;border:2px solid var(--decor);flex:none}
+.tile.mastered{background:var(--sage-soft);border-color:#B9D4C3}.tile.mastered .st i{background:var(--sage);border-color:var(--sage)}
+.tile.getting{background:var(--blue-soft);border-color:#C3D3F4}.tile.getting .st i{background:var(--blue);border-color:var(--blue)}
+.tile.reteach{background:var(--amber-wash);border-color:#F0D3B4}.tile.reteach .st i{background:var(--amber);border-color:var(--amber)}
+.tile.paused .st i{background:var(--decor);border-color:var(--decor)}
+.tile.cur{border:2.5px solid var(--ink);padding:11px 13px}
+
+/* topic detail */
+.states{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.state{border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--surface)}
+.state b{display:block;font-size:14px}
+.state span{font-size:12.5px;color:var(--ink2)}
+.state.cur{border:2px solid var(--blue);background:var(--blue-soft)}
+.state.cur.reteach{border-color:var(--amber);background:var(--amber-wash)}
+.state.cur.mastered{border-color:var(--sage);background:var(--sage-soft)}
+.state.cur b::after{content:' (now)';font-weight:700;color:var(--ink2)}
+.eye{background:var(--surface)}
+.eye h3{margin-bottom:6px}
+.side-card{background:var(--muted);border:1px solid var(--line);border-radius:20px;padding:20px}
+.side-card h3{margin-bottom:10px}
+.seg{display:flex;gap:4px;flex-wrap:wrap;background:var(--chip);padding:4px;border-radius:14px;width:fit-content}
+.seg button{border:2px solid transparent;background:none;border-radius:10px;padding:7px 10px;font-weight:700;cursor:pointer;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--surface);border-color:var(--ink)}
+.side-actions{display:flex;flex-direction:column;gap:10px;align-items:flex-start;margin-top:14px}
+.srow{padding:12px 0;border-top:1px solid var(--line);display:grid;grid-template-columns:70px 1fr auto;gap:12px;align-items:start}
+.srow:first-of-type{border-top:0}
+.srow .d{font-weight:800;font-size:14px}
+.srow .t b{font-size:15px}.srow .t p{font-size:13.5px;color:var(--ink2)}
+.srow .r{font-weight:800;font-size:14px;white-space:nowrap}
+.r.good{color:var(--sage-strong)}.r.warn{color:var(--amber-text)}.r.wait{color:var(--blue-text)}
+.prereq{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.prereq b{flex:1;min-width:160px;font-size:15px}
+.banner{background:var(--amber-wash);color:var(--amber-text);border-radius:12px;padding:14px 16px;font-weight:700;font-size:14.5px;margin-top:6px}
+.opt{display:flex;gap:12px;padding:16px;border:1.5px solid var(--line);border-radius:14px;cursor:pointer;margin-top:10px;align-items:flex-start}
+.opt.sel{border:2.5px solid var(--ink);padding:15px}
+.opt input{margin-top:4px;width:18px;height:18px;accent-color:var(--ink)}
+.opt b{display:block;font-size:16px}
+.opt span{font-size:14px;color:var(--ink2)}
+.steps{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{display:flex;gap:12px;align-items:flex-start;font-size:15px}
+.steps li i{flex:none;width:26px;height:26px;border-radius:50%;background:var(--sage-soft);color:var(--sage-strong);font-style:normal;font-weight:800;font-size:13px;display:grid;place-items:center}
+.start-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:20px}
+.start-row span{font-size:14px;color:var(--ink2)}
+.field-label{font-weight:800;font-size:15px;margin:22px 0 8px}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:14px;font-weight:700;font-size:14.5px;max-width:min(560px,calc(100vw - 32px));z-index:20}
+.toast.bad{background:var(--danger)}
+.err{max-width:520px;margin:60px auto;text-align:center}
+.foot{max-width:1080px;margin:0 auto;padding:0 24px 40px;font-size:13px;color:var(--ink3)}
+
+@media (max-width:900px){
+  .grid3,.grid2,.grid-eq,.split,.tcards{grid-template-columns:1fr}
+  .grp{grid-template-columns:1fr}
+  .page-head h1{font-size:30px}
+}
+@media (max-width:640px){
+  main{padding:24px 16px 56px}
+  .top-in{padding:10px 16px}
+  .brand span{font-size:17px}
+  .card{padding:18px}
+  .states{grid-template-columns:1fr}
+  .strand-row{flex-wrap:wrap}.strand-row b{width:100%}
+  .tbl-wrap{overflow-x:auto;margin:0 -18px;padding:0 18px}
+  table{min-width:560px}
+  .srow{grid-template-columns:60px 1fr}.srow .r{grid-column:2}
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <a class="brand" href="#/"><img src="/ollie-kit/assets/ollie-avatar.svg" alt=""><span id="brand-name">Maths</span></a>
+  <nav aria-label="Pages"><a href="#/" id="nav-overview">Overview</a><a href="#/topics" id="nav-topics">Topics</a></nav>
+</div></header>
+<main id="main"><p class="muted">Loading…</p></main>
+<div class="foot"><a href="/dashboard-classic.html">Open the classic dashboard</a></div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script src="/session-shape.js"></script>
+<script>
+(function(){
+"use strict";
+
+// "me" = the only child; the server resolves it, so this public file carries no name or id.
+var CHILD_ID = 'me';
+var MINUTES = [15, 30, 45, 60];
+var D = null;   // { child, sessions, topics[], byId, started }
+
+/* ── API key (admin) — same flow as the classic page ───────────────── */
+var KEY_STORE = 'tutorAdminKey';
+function tutorKey(){ try { return localStorage.getItem(KEY_STORE) || ''; } catch(e){ return ''; } }
+function askForKey(rejected){
+  var k = window.prompt((rejected ? 'That key was not accepted.\n\n' : '') + 'Enter the dashboard access key (TUTOR_ADMIN_KEY):');
+  if(k === null) return false;
+  try { localStorage.setItem(KEY_STORE, k.trim()); } catch(e){}
+  return true;
+}
+function api(url, opts){
+  opts = opts || {};
+  var headers = {}; for(var h in (opts.headers||{})) headers[h] = opts.headers[h];
+  headers['x-tutor-key'] = tutorKey(); opts.headers = headers;
+  return fetch(url, opts).then(function(r){
+    if(r.status === 401){ if(askForKey(true)) location.reload(); throw new Error('The dashboard key was not accepted.'); }
+    if(r.status === 503) throw new Error('The server has no API keys set up — see docs/deploy.md.');
+    return r;
+  });
+}
+function send(url, method, body){
+  var opts = { method: method };
+  if(body){ opts.headers = {'Content-Type':'application/json'}; opts.body = JSON.stringify(body); }
+  return api(url, opts).then(function(r){
+    return r.json().then(function(j){ if(!r.ok) throw new Error(j.error || ('HTTP ' + r.status)); return j; });
+  });
+}
+
+/* ── small helpers ─────────────────────────────────────────────────── */
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+var toastT;
+function toast(msg, bad){
+  var t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast' + (bad ? ' bad' : ''); t.hidden = false;
+  clearTimeout(toastT); toastT = setTimeout(function(){ t.hidden = true; }, bad ? 7000 : 5000);
+}
+function asDate(v){
+  if(!v) return null; var s = String(v), m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  var d = m ? new Date(+m[3], +m[2]-1, +m[1]) : new Date(s);
+  return isNaN(d) ? null : d;
+}
+function dayStart(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function dayKey(d){ return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate(); }
+function daysBetween(a, b){ return Math.round((dayStart(b) - dayStart(a)) / 864e5); }
+var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var MONTHS_LONG = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var WEEKDAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+function dShort(d){ return d.getDate() + ' ' + MONTHS[d.getMonth()]; }
+function dLong(d){ return d.getDate() + ' ' + MONTHS_LONG[d.getMonth()]; }
+function ago(n){ return n <= 0 ? 'today' : n === 1 ? 'yesterday' : n + ' days ago'; }
+function plural(n, one, many){ return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+function first(){ var n = D && D.child && D.child.name; return n ? String(n).split(' ')[0] : 'your child'; }
+var KIND = { lesson:'Lesson', practice:'Practice', check:'Check', retest:'Check', placement:'Quick check' };
+var KIND_LC = { lesson:'lesson', practice:'practice', check:'check', retest:'check', placement:'quick check' };
+
+/* ── model ─────────────────────────────────────────────────────────── */
+function build(data){
+  var child = data.child, sessions = data.sessions || [];
+  var cur = child.curriculum || {}, ts = (child.topicStatus && child.topicStatus.topics) || {};
+  var queue = cur.topicQueue || [];
+  var groups = {}; (cur.groups || []).forEach(function(g){ groups[g.id] = g; });
+  var histBy = {};
+  Object.keys(ts).forEach(function(id){ (ts[id].sessionHistory || []).forEach(function(h){ histBy[h.sessionId] = h; }); });
+
+  var topics = (cur.topics || []).map(function(t, i){
+    var st = ts[t.id] || null, v = st && st.verdict;
+    var state = !st ? 'new' : v === 'mastered' ? 'mastered' : v === 'weak' ? 'reteach' : v === 'unassessed' ? 'started' : 'getting';
+    return { id:t.id, name:t.name, strand:t.strand, group:t.group, groupName:(groups[t.group] && groups[t.group].name) || '',
+      order:t.order || (i+1), idx:i, description:t.description || '', prereqs:t.prereqs || [], school:t.schoolCovered === true,
+      ts:st, state:state, started:!!st, paused: queue.indexOf(t.id) === -1, sessions:[], graded:[], pending:null, waiting:null };
+  });
+  var byId = {}; topics.forEach(function(t){ byId[t.id] = t; });
+
+  var done = [];
+  sessions.forEach(function(s){
+    var t = byId[s.topicId]; if(t) t.sessions.push(s);
+    if(s.status === 'pending' && t) t.pending = s;
+    if(s.status === 'submitted' && t) t.waiting = s;
+    if(s.status === 'graded' || s.status === 'submitted'){ s._when = asDate(s.finishedAt) || asDate(s.date) || asDate(s.createdAt); if(s._when) done.push(s); }
+  });
+  done.sort(function(a, b){ return a._when - b._when; });
+  var graded = done.filter(function(s){ return s.status === 'graded'; });
+  graded.forEach(function(s){ s._stat = sessionStat(s, histBy[s.id]); var t = byId[s.topicId]; if(t) t.graded.push(s); });
+  topics.forEach(function(t){ t.graded.sort(function(a, b){ return a._when - b._when; }); });
+
+  // The topic he is on now: whatever has a session waiting or queued, else the first started, unmastered topic in the queue.
+  var live = sessions.find(function(s){ return s.status === 'submitted'; }) || sessions.find(function(s){ return s.status === 'pending'; });
+  var currentId = live && byId[live.topicId] ? live.topicId : (queue.filter(function(id){ return byId[id] && byId[id].started && byId[id].state !== 'mastered'; })[0] || null);
+  return { currentId:currentId, child:child, sessions:sessions, topics:topics, byId:byId, queue:queue, done:done, graded:graded,
+           waiting:sessions.find(function(s){ return s.status === 'submitted'; }) || null,
+           pending:sessions.find(function(s){ return s.status === 'pending'; }) || null };
+}
+// Right first time (clean), questions asked (unaided), how many Ollie showed, minutes.
+function sessionStat(s, h){
+  var q = s.quality, clean, total;
+  if(h && h.total != null){ clean = h.cleanScore != null ? h.cleanScore : h.score; total = h.total; }
+  else if(q && q.length){ clean = q.filter(function(x){ return x === 'clean'; }).length; total = q.length; }
+  else { var m = s.marks || []; clean = m.filter(function(x){ return x === 'correct'; }).length; total = m.length; }
+  var shown = (h && h.revealedCount != null) ? h.revealedCount :
+    (function(){ var seen = {}; (s.attempts || []).forEach(function(a){ if(a.revealed) seen[a.questionId] = 1; }); return Object.keys(seen).length; })();
+  var min = h && h.minutesTaken != null ? h.minutesTaken : (s.summary && s.summary.msTaken ? s.summary.msTaken / 6e4 : null);
+  return { clean:clean, total:total, shown:shown, minutes:min };
+}
+function clip(t, n){ return t.length > n ? t.slice(0, n - 1).trim() + '…' : t; }
+function pctOf(st){ return st.total ? Math.round(st.clean / st.total * 100) : 0; }
+function questionCount(s){ return s ? SessionShape.countQuestions(s) : 0; }
+function stateLabel(t){
+  if(t.state === 'mastered') return ['mastered', 'Mastered'];
+  if(t.state === 'reteach') return ['reteach', 'Needs re-teaching'];
+  if(t.paused) return ['paused', 'Paused'];
+  if(t.state === 'getting') return ['getting', 'Getting there'];
+  if(t.state === 'started') return ['', 'Just started'];
+  return ['', 'Not started'];
+}
+function pillFor(t){ var l = stateLabel(t); return '<span class="pill ' + l[0] + '">' + l[1] + '</span>'; }
+function lastGraded(t){ return t.graded.length ? t.graded[t.graded.length - 1] : null; }
+
+function fallbackNote(t){
+  var g = lastGraded(t); if(!g) return 'Not much to report yet.';
+  var s = g._stat;
+  if(g.kind === 'lesson' && s.shown) return 'He finished the lesson with ' + s.clean + ' out of ' + s.total + ' and needed Ollie to show him ' + plural(s.shown, 'answer') + '.';
+  if(s.clean === s.total) return 'He got every question right first time in his last session.';
+  return 'He got ' + s.clean + ' out of ' + s.total + ' right first time in his last session.';
+}
+function nextLine(t){
+  if(t.waiting) return 'His last session is waiting to be graded.';
+  var p = t.pending;
+  if(p){
+    if(p.kind === 'lesson') return 'A lesson is ready for him.';
+    if(p.kind === 'check' || p.kind === 'retest' || p.kind === 'placement') return 'A short check is ready for him.';
+    return plural(questionCount(p), 'practice question') + (questionCount(p) === 1 ? ' is' : ' are') + ' ready for him.';
+  }
+  if(t.paused && t.state !== 'mastered') return t.state === 'reteach' ? 'It’s paused. Another lesson would help before he moves on.' : 'It’s paused.';
+  if(t.ts && t.ts.reteach) return 'A fresh lesson is next.';
+  return 'The next session gets built after grading.';
+}
+
+/* ── charts ────────────────────────────────────────────────────────── */
+function lineChart(sessions, opts){
+  opts = opts || {};
+  var W = 640, H = opts.h || 300, L = 52, R = 28, T = 40, B = opts.small ? 62 : 76, n = sessions.length;
+  var base = H - B, ph = base - T;
+  function y(p){ return base - p / 100 * ph; }
+  function x(i){ return L + (W - L - R) * (i + .5) / n; }
+  var out = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Right first time, session by session">';
+  [0, 50, 100].forEach(function(p){
+    out += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(p) + '" y2="' + y(p) + '" stroke="#E8DFD0"/>' +
+      '<text x="' + (L - 10) + '" y="' + (y(p) + 4) + '" text-anchor="end" font-size="12" fill="#4F473E">' + p + '%</text>';
+  });
+  out += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(80) + '" y2="' + y(80) + '" stroke="#3E6B55" stroke-width="1.5" stroke-dasharray="5 4"/>' +
+    '<rect x="' + (W - R - 108) + '" y="' + (y(80) + 6) + '" width="108" height="22" rx="11" fill="#E3EEE6"/>' +
+    '<text x="' + (W - R - 54) + '" y="' + (y(80) + 21) + '" text-anchor="middle" font-size="12" font-weight="700" fill="#2C4F3E">Mastered at 80%</text>';
+  var pts = sessions.map(function(s, i){ return { x:x(i), y:y(pctOf(s._stat)), p:pctOf(s._stat), s:s }; });
+  if(pts.length > 1) out += '<polyline fill="none" stroke="#B9AC95" stroke-width="3" stroke-linejoin="round" points="' + pts.map(function(p){ return p.x + ',' + p.y; }).join(' ') + '"/>';
+  pts.forEach(function(p){
+    var col = p.p >= 80 ? '#3E6B55' : p.p >= 50 ? '#3B6FD8' : '#B85F1F', s = p.s, st = s._stat;
+    out += '<circle cx="' + p.x + '" cy="' + p.y + '" r="6.5" fill="' + col + '"><title>' + st.clean + ' of ' + st.total + ' right first time</title></circle>' +
+      '<text x="' + p.x + '" y="' + (p.y - 14) + '" text-anchor="middle" font-size="15" font-weight="800" fill="#2B2722">' + p.p + '%</text>' +
+      '<text x="' + p.x + '" y="' + (base + 24) + '" text-anchor="middle" font-size="13" font-weight="800" fill="#2B2722">' + dShort(s._when) + '</text>';
+    var l2 = opts.small ? (KIND[s.kind] || '') : (clip(s.topicName || '', 20) + ', ' + (KIND_LC[s.kind] || ''));
+    out += '<text x="' + p.x + '" y="' + (base + 40) + '" text-anchor="middle" font-size="11.5" fill="#4F473E">' + esc(l2) + '</text>' +
+      '<text x="' + p.x + '" y="' + (base + 56) + '" text-anchor="middle" font-size="11.5" font-weight="700" fill="' + (st.shown ? '#8A4513' : '#4F473E') + '">' +
+      (st.shown ? 'Ollie showed him ' + st.shown : 'No help needed') + '</text>';
+  });
+  return out + '</svg>';
+}
+
+/* ── overview ──────────────────────────────────────────────────────── */
+function viewOverview(){
+  var today = new Date(), name = first();
+  var done = D.done, lastDone = done.length ? done[done.length - 1] : null;
+  var since = lastDone ? daysBetween(lastDone._when, today) : null;
+  var n28 = done.filter(function(s){ return daysBetween(s._when, today) < 28; }).length;
+  var n7 = done.filter(function(s){ return daysBetween(s._when, today) < 7; }).length;
+
+  // 1 — is he practising
+  var c1;
+  if(!lastDone) c1 = ['info', 'Not yet', 'He hasn’t done a session yet.'];
+  else {
+    var head = since <= 2 ? (n7 >= 2 ? 'Yes, regularly' : 'Yes, recently') : since <= 7 ? 'A little' : 'Not lately';
+    c1 = [since <= 2 ? 'ok' : 'warn', head, plural(n28, 'session') + ' in the last 4 weeks, the last one ' + ago(since) + '.'];
+  }
+
+  // 2 — is it working: first vs latest graded session on the most recently practised topic with 2+
+  var c2 = ['info', 'Too early to say', 'It needs a couple more sessions to show a trend.'];
+  for(var i = D.graded.length - 1; i >= 0; i--){
+    var t = D.byId[D.graded[i].topicId];
+    if(t && t.graded.length >= 2){
+      var f = t.graded[0], l = t.graded[t.graded.length - 1], diff = pctOf(l._stat) - pctOf(f._stat);
+      var h2 = diff >= 15 ? ['ok', 'Yes, it’s improving'] : diff > -15 ? ['info', 'Holding steady'] : ['warn', 'Not yet'];
+      c2 = [h2[0], h2[1], 'On ' + t.name + ' he went from ' + f._stat.clean + ' out of ' + f._stat.total +
+        ' to ' + l._stat.clean + ' out of ' + l._stat.total + ', ' + (l._stat.shown || l._stat.clean < l._stat.total ? 'with some help' : 'with no help') + '.'];
+      break;
+    }
+  }
+
+  // 3 — what can I do
+  var c3, pt = D.pending && D.byId[D.pending.topicId];
+  if(D.waiting) c3 = ['Run /grade', 'He has finished a session and it’s waiting to be graded.'];
+  else if(D.pending) c3 = [since === null || since >= 3 ? 'Sit with him for 5 minutes' : 'Nothing needed, he’s on track',
+    (D.pending.kind === 'lesson' ? 'A lesson' : plural(questionCount(D.pending), 'practice question')) + (pt ? ' on ' + pt.name : '') + (D.pending.kind === 'lesson' ? ' is' : questionCount(D.pending) === 1 ? ' is' : ' are') + ' waiting for him.'];
+  else c3 = ['Run /next-session', 'No session is queued for him yet.'];
+
+  var html = '<div class="page-head"><h1>Here’s how ' + esc(name) + ' is doing</h1><div class="aside">' + WEEKDAYS[today.getDay()] + ' ' + dLong(today) + '</div></div>' +
+    '<div class="grid3">' +
+      qcard('Is he practising?', c1[0], c1[1], c1[2]) + qcard('Is it working?', c2[0], c2[1], c2[2]) + qcard('What can I do?', 'info', c3[0], c3[1]) + '</div>';
+
+  // chart + calendar
+  var cg = D.graded.slice(-6);
+  html += '<div class="grid2"><section class="card chart"><h2>Right first time, session by session</h2>' +
+    '<p class="muted">Questions he got right on his first try, without a clue.</p>' +
+    (cg.length ? lineChart(cg) : '<p class="muted" style="margin-top:16px">Nothing graded yet.</p>') + '</section>' +
+    '<section class="card"><h2>Practice, last 4 weeks</h2><p class="muted">' + calSummary(n28, since) + '</p>' + calendar(done, today) +
+      '<div class="stat-row"><div class="stat"><b>' + (Math.round(n28 / 4 * 10) / 10) + '</b><span>sessions a week on average</span></div>' +
+      (lastDone ? '<div class="stat ' + (since <= 2 ? 'good' : 'warn') + '"><b>' + (since <= 0 ? 'Today' : since + (since === 1 ? ' day' : ' days')) + '</b><span>' + (since <= 0 ? 'he practised' : 'since his last session') + '</span></div>' : '') +
+      '</div></section></div>';
+
+  // working on + note
+  var active = D.topics.filter(function(t){ return t.started && t.state !== 'mastered'; })
+    .sort(function(a, b){ return (b.id === D.currentId) - (a.id === D.currentId) || (lastTime(b) - lastTime(a)); }).slice(0, 2);
+  var notePart = '<section><div class="sec-head"><h2>Ollie’s note on his last session</h2></div>' + ollieNote() + '</section>';
+  html += '<div class="grid2"><section><div class="sec-head"><h2>What he’s working on</h2><a href="#/topics">All ' + D.topics.length + ' topics</a></div>' +
+    (active.length ? '<div class="tcards">' + active.map(topicCard).join('') + '</div>' : '<div class="card"><p class="muted">No topic has been started yet. Pick one on the Topics page.</p></div>') + '</section>' + notePart + '</div>';
+
+  // recent sessions
+  var rec = D.graded.slice(-6).reverse();
+  html += '<section class="card"><h2 style="margin-bottom:12px">Recent sessions</h2>' + (rec.length ?
+    '<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Topic</th><th>Type</th><th>Right first time</th><th>Time</th><th>What happened</th></tr></thead><tbody>' +
+    rec.map(function(s){
+      var st = s._stat, sq = '';
+      for(var k = 0; k < st.total; k++) sq += '<i' + (k < st.clean ? ' class="on"' : '') + '></i>';
+      return '<tr><td class="date">' + dShort(s._when) + '</td><td><b>' + esc(s.topicName || '') + '</b></td><td>' + (KIND[s.kind] || '') + '</td>' +
+        '<td><span class="sq">' + sq + '</span><span class="score">' + st.clean + ' of ' + st.total + '</span></td>' +
+        '<td>' + (st.minutes == null ? '–' : Math.max(1, Math.round(st.minutes)) + ' min') + '</td><td>' + esc(happened(s)) + '</td></tr>';
+    }).join('') + '</tbody></table></div>' : '<p class="muted">Nothing graded yet.</p>') + '</section>';
+  return html;
+}
+function qcard(q, dot, head, body){ return '<section class="card q-card"><div class="eyebrow">' + q + '</div><h2><span class="dot ' + dot + '"></span>' + esc(head) + '</h2><p class="muted" style="font-size:15px">' + esc(body) + '</p></section>'; }
+function calSummary(n, since){ return n ? plural(n, 'session') + ' in the last 4 weeks.' + (since > 7 ? ' Nothing in the last week.' : '') : 'Nothing in the last 4 weeks.'; }
+function lastTime(t){ var g = lastGraded(t); return g ? g._when.getTime() : (t.pending && asDate(t.pending.createdAt) ? asDate(t.pending.createdAt).getTime() : 0); }
+function happened(s){
+  var st = s._stat;
+  if(st.clean === st.total && st.total) return 'All right first time, no clues';
+  var quick = st.minutes != null && st.minutes < 3 && st.total >= 6 ? 'Went through it quickly. ' : '';
+  if(st.shown) return quick + 'Ollie showed him how on ' + st.shown + '.';
+  return st.clean / (st.total || 1) >= .8 ? 'Nearly all right first time.' : quick + 'Needed a few clues along the way.';
+}
+function calendar(done, today){
+  var mon = dayStart(today); mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7) - 21);
+  var on = {}; done.forEach(function(s){ on[dayKey(s._when)] = 1; });
+  var out = '<div class="cal"><span></span>' + ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(function(d){ return '<span class="h">' + d + '</span>'; }).join('');
+  for(var w = 0; w < 4; w++){
+    var ws = new Date(mon); ws.setDate(mon.getDate() + w * 7);
+    out += '<span class="wk">' + dShort(ws) + '</span>';
+    for(var d = 0; d < 7; d++){
+      var day = new Date(ws); day.setDate(ws.getDate() + d);
+      var isToday = dayKey(day) === dayKey(today), fut = day > dayStart(today);
+      out += '<span class="d' + (on[dayKey(day)] ? ' on' : '') + (isToday ? ' today' : '') + (fut ? ' fut' : '') + '"' +
+        (on[dayKey(day)] ? ' title="Practised"' : '') + '>' + day.getDate() + '</span>';
+    }
+  }
+  return out + '</div><div class="legend"><span><i class="on"></i>Practised</span><span><i></i>No maths</span><span><i class="today"></i>Today</span></div>';
+}
+function ollieNote(){
+  var g = D.graded[D.graded.length - 1];
+  if(!g) return '<div class="card"><p class="muted">Ollie’s note appears here after his first graded session.</p></div>';
+  return '<div class="card"><div class="note-head"><img src="/ollie-kit/assets/ollie-avatar.svg" alt=""><span>' + esc(g.topicName || '') + ' ' + (KIND_LC[g.kind] || '') + ', ' + dLong(g._when) + '</span></div>' +
+    '<p class="note-body">' + esc(g.parentSummary || happened(g)) + '</p></div>';
+}
+function topicCard(t){
+  var g = lastGraded(t), st = g && g._stat, needsReteach = t.state === 'reteach' || t.paused, cur = t.id === D.currentId;
+  return '<article class="card tcard' + (cur ? ' cur' : '') + '">' +
+    (cur ? '<div class="tc-bar"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1l9 5-9 5z"/></svg>Current topic</div>' : '') +
+    '<div class="tc-body"><div class="tc-title"><h3>' + esc(t.name) + '</h3>' + pillFor(t) + '</div>' +
+    '<p>' + esc((t.ts && t.ts.parentNote) || fallbackNote(t)) + '</p>' +
+    (st ? '<p><b>Last session:</b> ' + st.clean + ' out of ' + st.total + '</p>' : '') +
+    '<p><b>Next:</b> ' + esc(nextLine(t)) + '</p>' +
+    '<div class="acts">' + (needsReteach && t.state !== 'mastered' ? '<button class="btn sm" data-act="reteach" data-id="' + esc(t.id) + '">Re-teach this topic</button>' : '') +
+    '<a href="#/topic/' + encodeURIComponent(t.id) + '" class="link">See this topic</a></div></div></article>';
+}
+
+/* ── topics list ───────────────────────────────────────────────────── */
+function viewTopics(){
+  var strands = []; D.topics.forEach(function(t){ if(strands.indexOf(t.strand) === -1) strands.push(t.strand); });
+  var started = D.topics.filter(function(t){ return t.started; }).sort(function(a, b){ return (b.id === D.currentId) - (a.id === D.currentId); });
+  var html = '<div class="page-head"><div><h1>Topics this year</h1><p class="sub">A topic is mastered when he gets 80% right first time, on his own, in a check-up session.</p></div>' +
+    '<div class="aside"><b style="font-family:var(--display);font-size:19px">' + started.length + ' of ' + D.topics.length + ' started</b></div></div>';
+
+  html += '<section class="card" style="margin-bottom:24px"><h2>Where each strand stands</h2><p class="muted" style="margin-bottom:8px">One box per topic.</p>';
+  strands.forEach(function(s){
+    var ts = D.topics.filter(function(t){ return t.strand === s; }), st = ts.filter(function(t){ return t.started; }).length;
+    html += '<div class="strand-row"><b>' + esc(s) + '</b><span class="boxes">' + ts.map(function(t){
+      return '<i class="' + (t.started ? t.state : '') + '" title="' + esc(t.name) + '"></i>'; }).join('') + '</span><span class="cnt">' +
+      st + ' started, ' + (ts.length - st) + ' to go</span></div>';
+  });
+  html += '<div class="legend"><span><i class="on"></i>Mastered</span><span><i class="blue"></i>Getting there</span><span><i class="amber"></i>Needs re-teaching</span><span><i></i>Not started</span></div></section>';
+
+  if(started.length) html += '<div class="sec-head"><h2>Started</h2></div><div class="tcards" style="margin-bottom:28px">' + started.map(topicCard).join('') + '</div>';
+
+  var rest = D.topics;
+  html += '<div class="sec-head"><h2>All topics</h2></div><p class="muted" style="margin:-6px 0 14px">All ' + rest.length + ' topics, in programme order. Choose one to see it or start it.</p>';
+  strands.forEach(function(s){
+    var inS = rest.filter(function(t){ return t.strand === s; }); if(!inS.length) return;
+    var gids = []; inS.forEach(function(t){ if(gids.indexOf(t.group) === -1) gids.push(t.group); });
+    html += '<section class="card strand-card"><header><h3>' + esc(s) + '</h3><span class="muted">' + inS.length + ' topics</span></header>' +
+      gids.map(function(g){
+        var ts = inS.filter(function(t){ return t.group === g; });
+        return '<div class="grp"><h4>' + esc(ts[0].groupName) + '</h4><div class="tl">' + ts.map(function(t){
+          var l = stateLabel(t);
+          return '<button type="button" class="tile ' + l[0] + (t.id === D.currentId ? ' cur' : '') + '" data-go="' + esc(t.id) + '"><b>' + esc(t.name) + '</b>' +
+            '<span class="st"><i></i>' + (t.id === D.currentId ? 'Current topic · ' : '') + l[1] + '</span></button>'; }).join('') + '</div></div>';
+      }).join('') + '</section>';
+  });
+  return html;
+}
+
+/* ── topic detail ──────────────────────────────────────────────────── */
+function chainIds(id){
+  var out = [], seen = {};
+  (function walk(i){ var n = D.byId[i]; if(!n) return; n.prereqs.forEach(function(p){ if(seen[p]) return; seen[p] = 1; walk(p); out.push(p); }); })(id);
+  return out;
+}
+function minutesSeg(){
+  var cur = (D.child.settings && D.child.settings.sessionMinutes) || 15;
+  return '<div class="seg" role="group" aria-label="Session length">' + MINUTES.map(function(m){
+    return '<button type="button" data-min="' + m + '" aria-pressed="' + (m === cur) + '">' + m + ' min</button>'; }).join('') + '</div>';
+}
+function sessionRows(t){
+  var rows = t.sessions.filter(function(s){ return s.status !== 'pending'; }).sort(function(a, b){ return (asDate(a.finishedAt || a.createdAt) || 0) - (asDate(b.finishedAt || b.createdAt) || 0); }).map(function(s){
+    var when = s._when || asDate(s.createdAt), st = s._stat;
+    return '<div class="srow"><span class="d">' + (when ? dShort(when) : '') + '</span><div class="t"><b>' + (KIND[s.kind] || '') + '</b><p>' + esc(st ? happened(s) : 'Waiting to be graded.') + '</p></div>' +
+      '<span class="r ' + (st ? (st.clean === st.total ? 'good' : 'warn') : 'wait') + '">' + (st ? st.clean + ' out of ' + st.total : 'Waiting') + '</span></div>';
+  });
+  if(t.pending) rows.push('<div class="srow"><span class="d">Waiting</span><div class="t"><b>' + (KIND[t.pending.kind] || '') + '</b><p>' +
+    (t.pending.kind === 'lesson' ? 'A lesson is' : plural(questionCount(t.pending), 'question') + (questionCount(t.pending) === 1 ? ' is' : ' are')) + ' ready for him.</p></div><span class="r wait">Not done yet</span></div>');
+  return rows.join('');
+}
+function viewTopic(id){
+  var t = D.byId[id]; if(!t) return '<div class="err"><h1>Topic not found</h1><p class="muted" style="margin:10px 0 16px">It may have been removed from the curriculum.</p><a class="link" href="#/topics">All topics</a></div>';
+  return t.started ? viewStarted(t) : viewNew(t);
+}
+function viewStarted(t){
+  var g = lastGraded(t), st = g && g._stat, ready = t.pending ? (t.pending.kind === 'lesson' ? 'A lesson ready for him' : plural(questionCount(t.pending), 'practice question') + ' ready for him') : '';
+  var cur = t.state === 'mastered' ? 'mastered' : t.state === 'reteach' ? 'reteach' : 'getting';
+  function stateBox(k, h, sub){ return '<div class="state' + (cur === k ? ' cur ' + k : '') + '"><b>' + h + '</b><span>' + sub + '</span></div>'; }
+  var html = '<a class="back" href="#/topics">‹ All topics</a><p class="eyebrow">' + esc(t.strand + (t.groupName ? ', ' + t.groupName.toLowerCase() : '')) + '</p>' +
+    '<div class="page-head" style="margin-top:2px"><div><h1>' + esc(t.name) + '</h1><p class="sub">' + esc(t.description) + '</p></div>' + (ready ? '<span class="pill getting">' + esc(ready) + '</span>' : '') + '</div>';
+  html += '<div class="split"><div class="stack">' +
+    '<section class="card"><h2>Where he is</h2><div class="states">' +
+      stateBox('reteach', 'Needs re-teaching', 'Struggling, needs another lesson') + stateBox('getting', 'Getting there', 'Can do it, not reliably yet') +
+      stateBox('mastered', 'Mastered', 'Can do it on his own, at 80% or more in a check-up') + '</div>' +
+      '<p class="muted" style="font-size:15px">' + (st ? 'He got ' + st.clean + ' out of ' + st.total + ' right first time in his last ' + (KIND_LC[g.kind] || 'session') + '. ' : '') +
+      'To count as mastered he needs 80% or more on his own in a check-up session.</p></section>' +
+    (t.graded.length ? '<section class="card chart"><h2>Right first time in this topic</h2><p class="muted">Each session on ' + esc(t.name) + '.</p>' + lineChart(t.graded.slice(-6), { small:true, h:270 }) + '</section>' : '') +
+    '<section class="card"><h2>His sessions</h2>' + (sessionRows(t) || '<p class="muted">None yet.</p>') + '</section></div>' +
+    '<div class="stack">' +
+    ((t.ts && t.ts.parentWatch) ? '<section class="card eye"><h3>Keep an eye on</h3><p style="font-size:15px">' + esc(t.ts.parentWatch) + '</p></section>' : '') +
+    '<section class="side-card"><h3>Settings for this topic</h3><div class="muted" style="margin-bottom:8px;font-weight:700">Session length</div>' + minutesSeg() +
+      '<div class="side-actions">' + (t.state === 'mastered' ? '' :
+        '<button class="btn ghost sm" data-act="' + (t.paused ? 'resume' : 'pause') + '" data-id="' + esc(t.id) + '">' + (t.paused ? 'Resume this topic' : 'Pause this topic') + '</button>') +
+      '<button class="btn ghost sm" data-act="reteach" data-id="' + esc(t.id) + '">Re-teach from the start</button></div></section></div></div>';
+  return html;
+}
+function viewNew(t){
+  var chain = chainIds(t.id).map(function(i){ return D.byId[i]; }).filter(function(p){ return p && p.state !== 'mastered'; });
+  var html = '<a class="back" href="#/topics">‹ All topics</a><p class="eyebrow">' + esc(t.strand + (t.groupName ? ', ' + t.groupName.toLowerCase() : '')) + '</p>' +
+    '<div class="page-head" style="margin-top:2px"><div><h1>' + esc(t.name) + '</h1><p class="sub">' + esc(t.description) + '</p></div>' + pillFor(t) + '</div>';
+  html += '<div class="split"><div class="stack">';
+  if(chain.length){
+    var best = chain[0];
+    html += '<section class="card" style="border-color:#F0D3B4"><h2>Before he starts</h2><p class="muted">This topic builds on ' + chain.length + (chain.length === 1 ? ' other' : ' others') + ' he hasn’t finished yet.</p>' +
+      chain.map(function(p){ return '<div class="prereq"><b>' + esc(p.name) + '</b>' + pillFor(p) + '<a class="link" href="#/topic/' + encodeURIComponent(p.id) + '">See topic</a></div>'; }).join('') +
+      '<div class="banner">Best next step: start ' + esc(best.name) + ' first. To try this topic now anyway, choose “Check what he knows first” below.</div></section>';
+  }
+  html += '<section class="card"><h2>Start this topic</h2><div class="field-label" style="margin-top:12px">How should Ollie begin?</div>' +
+    '<label class="opt' + (t.school ? '' : ' sel') + '"><input type="radio" name="how" value="teach"' + (t.school ? '' : ' checked') + '><span><b>Teach it from the start</b><span>Ollie teaches the idea step by step, then he practises. Best for something new.</span></span></label>' +
+    '<label class="opt' + (t.school ? ' sel' : '') + '"><input type="radio" name="how" value="check"' + (t.school ? ' checked' : '') + '><span><b>Check what he knows first</b><span>A short set of questions with no help, to see what he already knows. Best if school has covered it.</span></span></label>' +
+    '<div class="field-label">How long should each session be?</div>' + minutesSeg() +
+    '<div class="start-row"><button class="btn" data-act="start" data-id="' + esc(t.id) + '">Start this topic</button><span>It will be waiting for ' + esc(first()) + ' next time he opens Ollie.</span></div></section></div>' +
+    '<div class="stack"><section class="card"><h3>What happens when you start</h3><ol class="steps">' +
+      '<li><i>1</i><span>Ollie gets the first session ready.</span></li><li><i>2</i><span>' + esc(first()) + ' finds it waiting next time he opens Ollie.</span></li>' +
+      '<li><i>3</i><span>You’ll see how it went here and on the overview.</span></li></ol></section>' +
+    '<section class="card"><h3>His sessions</h3><p class="muted" style="margin-top:8px">None yet. They’ll appear here once he starts.</p></section></div></div>';
+  return html;
+}
+
+/* ── actions ───────────────────────────────────────────────────────── */
+function refresh(then){
+  return api('/api/dashboard/' + CHILD_ID).then(function(r){ return r.json(); }).then(function(data){ D = build(data); render(); if(then) then(); });
+}
+function queueInsertAt(id){
+  var q = D.queue.filter(function(x){ return x !== id; }), me = D.byId[id], at = q.length;
+  for(var i = 0; i < q.length; i++){ var o = D.byId[q[i]]; if(o && o.idx > me.idx){ at = i; break; } }
+  q.splice(at, 0, id); return q;
+}
+function act(kind, id, btn){
+  var t = D.byId[id]; if(!t) return;
+  function fail(e){ if(btn) btn.disabled = false; toast(e.message, true); }
+  if(btn) btn.disabled = true;
+  if(kind === 'pause'){
+    if(!confirm('Pause "' + t.name + '"?\n\nThe session already built for him will be thrown away. Anything already graded is kept, and you can resume it later.')){ btn.disabled = false; return; }
+    var q = D.queue.filter(function(x){ return x !== id; });
+    (t.pending ? send('/api/sessions/' + encodeURIComponent(t.pending.id), 'DELETE') : Promise.resolve())
+      .then(function(){ return send('/api/curriculum/' + CHILD_ID, 'PATCH', { topicQueue:q }); })
+      .then(function(){ return refresh(function(){ toast('Paused. Anything already graded is kept.'); }); }).catch(fail);
+  } else if(kind === 'resume'){
+    send('/api/curriculum/' + CHILD_ID, 'PATCH', { topicQueue: queueInsertAt(id) })
+      .then(function(){ return refresh(function(){ toast('Resumed.'); }); }).catch(fail);
+  } else if(kind === 'reteach'){
+    if(!confirm('Re-teach "' + t.name + '" from the start?\n\nAny session already built for him is thrown away, and the next one will be a fresh lesson. His past results are kept.')){ btn.disabled = false; return; }
+    send('/api/children/' + CHILD_ID + '/topics/' + encodeURIComponent(id) + '/reteach', 'POST')
+      .then(function(){ return refresh(function(){ toast('Done. The next session Ollie builds will be a fresh lesson (run /next-session).'); }); }).catch(fail);
+  } else if(kind === 'start'){
+    var school = (document.querySelector('input[name="how"]:checked') || {}).value === 'check';
+    var chain = chainIds(id).map(function(i){ return D.byId[i]; }).filter(function(p){ return p && p.state !== 'mastered'; });
+    var current = D.topics.find(function(x){ return x.id !== id && (x.pending || x.waiting); });
+    if(!confirm('Start "' + t.name + '" now?' + (current ? '\n\nWhat is in progress (' + current.name + ') will be paused and its queued session thrown away.' : '') +
+        (chain.length ? '\n\nHeads up: ' + chain.map(function(p){ return p.name; }).join(', ') + (chain.length > 1 ? ' are prerequisites' : ' is a prerequisite') + ' and not mastered yet.' : ''))){ btn.disabled = false; return; }
+    var q2 = D.queue.filter(function(x){ return x !== id && !(current && x === current.id); }); q2.unshift(id);
+    var body = { topicQueue:q2 }; if(school !== t.school){ body.topicUpdates = {}; body.topicUpdates[id] = { schoolCovered:school }; }
+    (current && current.pending ? send('/api/sessions/' + encodeURIComponent(current.pending.id), 'DELETE') : Promise.resolve())
+      .then(function(){ return send('/api/curriculum/' + CHILD_ID, 'PATCH', body); })
+      .then(function(j){ return refresh(function(){ toast('Started. Run /next-session to have Ollie build the first session.' + (j.warnings && j.warnings.length ? ' Heads up: ' + j.warnings[0] + '.' : '')); }); }).catch(fail);
+  }
+}
+function wire(){
+  var m = document.getElementById('main');
+  m.querySelectorAll('[data-act]').forEach(function(b){ b.addEventListener('click', function(){ act(b.dataset.act, b.dataset.id, b); }); });
+  m.querySelectorAll('[data-go]').forEach(function(b){ b.addEventListener('click', function(){ location.hash = '#/topic/' + encodeURIComponent(b.dataset.go); }); });
+  m.querySelectorAll('[data-min]').forEach(function(b){ b.addEventListener('click', function(){
+    var v = +b.dataset.min, was = (D.child.settings && D.child.settings.sessionMinutes) || 15; if(v === was) return;
+    D.child.settings = D.child.settings || {}; D.child.settings.sessionMinutes = v;
+    m.querySelectorAll('[data-min]').forEach(function(x){ x.setAttribute('aria-pressed', +x.dataset.min === v); });
+    send('/api/children/' + CHILD_ID, 'PATCH', { settings:{ sessionMinutes:v } }).then(function(){ toast('Saved. It applies to the next session he gets.'); })
+      .catch(function(e){ D.child.settings.sessionMinutes = was; m.querySelectorAll('[data-min]').forEach(function(x){ x.setAttribute('aria-pressed', +x.dataset.min === was); }); toast(e.message, true); });
+  }); });
+  m.querySelectorAll('.opt input').forEach(function(i){ i.addEventListener('change', function(){
+    m.querySelectorAll('.opt').forEach(function(o){ o.classList.toggle('sel', o.querySelector('input').checked); }); }); });
+}
+
+/* ── render + routing ──────────────────────────────────────────────── */
+function render(){
+  if(!D) return;
+  var h = location.hash || '#/', main = document.getElementById('main'), page = 'overview', html;
+  var tm = h.match(/^#\/topic\/(.+)$/);
+  if(tm){ page = 'topics'; html = viewTopic(decodeURIComponent(tm[1])); }
+  else if(h === '#/topics'){ page = 'topics'; html = viewTopics(); }
+  else html = viewOverview();
+  main.innerHTML = html;
+  ['overview', 'topics'].forEach(function(k){
+    var a = document.getElementById('nav-' + k);
+    if(k === page) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+  });
+  document.getElementById('brand-name').textContent = first() + '’s maths';
+  document.title = first() + '’s maths';
+  wire();
+}
+window.addEventListener('hashchange', function(){ render(); window.scrollTo(0, 0); });
+
+api('/api/dashboard/' + CHILD_ID).then(function(r){
+  if(r.status === 404) return null; if(!r.ok) throw new Error('Server returned ' + r.status); return r.json();
+}).then(function(data){
+  if(!data){ document.getElementById('main').innerHTML = '<div class="err"><h1>No child profile yet</h1><p class="muted" style="margin:10px 0 16px">Run /setup-child in Claude Code to choose a curriculum and set up the first topics.</p><a class="link" href="/dashboard-classic.html">Open the classic dashboard</a></div>'; return; }
+  D = build(data); render();
+}).catch(function(e){
+  document.getElementById('main').innerHTML = '<div class="err"><h1>Could not reach the server</h1><p class="muted" style="margin:10px 0 16px">' + esc(e.message) + '</p><button class="btn" onclick="location.reload()">Try again</button></div>';
+});
+})();
+</script>
+</body>
+</html>

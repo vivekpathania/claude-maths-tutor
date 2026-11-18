@@ -1,0 +1,10 @@
+{
+  "name": "claude-maths-tutor-voice",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Build-time text-to-speech for Coach Ollie. Runs on the parent's Mac only. Deliberately NOT part of the app's own package.json: kokoro-js pulls in @huggingface/transformers and a native ONNX runtime (hundreds of MB) that must never reach the Netlify deploy or the child's iPad. See docs/voice.md.",
+  "dependencies": {
+    "kokoro-js": "1.2.1"
+  }
+}

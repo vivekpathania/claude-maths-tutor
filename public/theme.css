@@ -1,0 +1,1382 @@
+/* Child session theme. Colours and spacing come from DESIGN.md
+   (Calm Hearth). The page is a full window — cream edge to edge —
+   with a header and a footer. Cards inside the page are rounded;
+   the page itself is not.
+
+   Spacing scale: xs 4, sm 8, md 16, lg 24, xl 36, 2xl 56. */
+
+:root {
+  /* surface #fcf9f4, card #ffffff, on-surface #1c1c19 */
+  --rgb-canvas: 252 249 244;
+  --rgb-cream: 252 249 244;
+  --rgb-card: 255 255 255;
+  /* sand hairline #D8CFBE */
+  --rgb-border: 216 207 190;
+  /* on-surface #1c1c19, outline #717975 */
+  --rgb-dark: 28 28 25;
+  --rgb-muted: 113 121 117;
+  /* primary sage #567A6E, hover primary #3e6156, primary-fixed #c4ebdc */
+  --rgb-sage: 86 122 110;
+  --rgb-sage-hover: 62 97 86;
+  --rgb-sage-light: 196 235 220;
+  --rgb-sage-highlight: 196 235 220;
+  /* terracotta #C98A58, secondary-fixed #ffdcc4, on-secondary-container #78461a */
+  --rgb-peach-border: 201 138 88;
+  --rgb-peach-bg: 255 220 196;
+  --rgb-peach-text: 120 70 26;
+  /* math slab #F2ECE1, secondary button #E4DDD0 */
+  --rgb-gray-box: 242 236 225;
+  --rgb-gray-hover: 228 221 208;
+  /* inactive progress #E5DFD5 */
+  --rgb-dot: 229 223 213;
+  /* surface-container-high #ebe8e3 */
+  --rgb-chart-head: 235 232 227;
+  --rgb-chart-line: 216 207 190;
+  /* hint well #F5EFE6 */
+  --rgb-ollie-bg: 245 239 230;
+  --rgb-ollie-border: 216 207 190;
+
+  --color-canvas: rgb(var(--rgb-canvas));
+  --color-cream: rgb(var(--rgb-cream));
+  --color-card: rgb(var(--rgb-card));
+  --color-border: rgb(var(--rgb-border));
+  --color-dark: rgb(var(--rgb-dark));
+  --color-muted: rgb(var(--rgb-muted));
+  --color-sage: rgb(var(--rgb-sage));
+  --color-sage-hover: rgb(var(--rgb-sage-hover));
+  --color-sage-light: rgb(var(--rgb-sage-light));
+  --color-sage-highlight: rgb(var(--rgb-sage-highlight));
+  --color-peach-border: rgb(var(--rgb-peach-border));
+  --color-peach-bg: rgb(var(--rgb-peach-bg));
+  --color-peach-text: rgb(var(--rgb-peach-text));
+  --color-gray-box: rgb(var(--rgb-gray-box));
+  --color-dot: rgb(var(--rgb-dot));
+  --color-chart-head: rgb(var(--rgb-chart-head));
+  --color-chart-line: rgb(var(--rgb-chart-line));
+  --color-ollie-bg: rgb(var(--rgb-ollie-bg));
+  --color-ollie-border: rgb(var(--rgb-ollie-border));
+
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+
+  /* DESIGN.md spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.25rem;
+  --space-2xl: 3.5rem;
+  --space-gutter: 2rem;
+  --space-margin: 2rem;
+
+  --space-1: var(--space-xs);
+  --space-2: var(--space-sm);
+  --space-3: 0.75rem;
+  --space-4: var(--space-md);
+  --space-5: var(--space-md);
+  --space-6: var(--space-lg);
+  --space-7: var(--space-xl);
+  --space-8: var(--space-xl);
+  --space-9: var(--space-2xl);
+
+  --space-stack: var(--space-md);
+  --space-stack-tight: var(--space-sm);
+  --space-cols: var(--space-gutter);
+  --space-card: var(--space-md);
+  --space-section: var(--space-lg);
+
+  /* page is square; cards and controls are rounded */
+  --radius-sm: 0.5rem;
+  --radius-control: 1rem;
+  --radius-card: 1.5rem;
+  --radius-pill: 9999px;
+
+  --shadow-card: none;
+
+  /* Centered on a laptop. 1040px was the tablet width and left a
+     narrow column on a wider screen. */
+  --shell-max: 1200px;
+  /* about 62% / 38%, the design's split */
+  --col-left: minmax(0, 1.65fr);
+  --col-right: minmax(16rem, 1fr);
+
+  --title-size: 28px;
+  --title-size-lg: 28px;
+}
+
+@media (max-width: 767px) {
+  :root {
+    --space-margin: 1rem;
+    --space-gutter: 1rem;
+    --title-size: 26px;
+    --title-size-lg: 26px;
+  }
+}
+
+/* ── page shell: full window, header, main, footer ─────────── */
+
+.session-body {
+  margin: 0;
+  min-height: 100svh;
+  min-height: var(--vvh, 100svh);
+  display: flex;
+  flex-direction: column;
+  background: var(--color-cream);
+  color: var(--color-dark);
+  font-family: var(--font-sans);
+}
+
+.page-header {
+  flex: none;
+  width: 100%;
+  background: var(--ol-color-surface-raised);
+  font-family: var(--ol-font-body);
+}
+
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-bottom: 1px solid var(--ol-color-line);
+}
+
+
+.page-bar {
+  width: min(var(--shell-max), 100%);
+  margin-inline: auto;
+  padding: var(--ol-pad-header);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ol-space-4);
+}
+
+.page-header .page-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--ol-space-4);
+}
+.page-header .ol-header__actions { grid-column: -2 / -1; justify-self: end; }
+
+.page-foot-note { flex: 1 1 auto; width: 100%; }
+
+.page-main {
+  flex: 1 1 auto;
+  width: min(var(--shell-max), 100%);
+  margin-inline: auto;
+  padding: var(--space-lg) var(--space-margin);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-lg);
+}
+
+.page-foot-note {
+  margin: 0;
+  max-width: none;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: var(--ol-space-2-5);
+  font-size: var(--ol-type-body-s-size);
+  font-weight: 600;
+  line-height: var(--ol-type-body-s-line);
+  color: var(--ol-color-ink-secondary);
+}
+.page-foot-note span { min-width: 0; }
+.page-foot-note b { font-weight: 800; color: var(--ol-color-ink); }
+.page-foot-note .ol-icon {
+  flex: 0 0 auto;
+  display: block;
+  width: var(--ol-size-icon-m);
+  height: var(--ol-size-icon-m);
+  max-width: none;
+  color: var(--ol-color-sage);
+}
+
+.foot-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-sage);
+  flex: none;
+}
+
+.take-time {
+  margin: var(--space-2) 0 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--color-muted);
+}
+
+.session-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-peach-bg);
+  border: 1px solid var(--color-peach-border);
+  border-radius: var(--radius-control);
+  padding: var(--space-3) var(--space-4);
+  font-size: 14px;
+  color: var(--color-peach-text);
+}
+
+.page-header .ol-header__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--ol-space-3-5);
+  min-width: 0;
+  overflow: hidden;
+}
+.page-header .ol-header__copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0;
+}
+.page-header .ol-header__eyebrow {
+  font-size: var(--ol-type-micro-size);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ol-color-ink-label);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.page-header .ol-header__eyebrow:empty { display: none; }
+.page-header .ol-icon-tile {
+  width: var(--ol-size-icon-tile);
+  height: var(--ol-size-icon-tile);
+  flex: 0 0 auto;
+  border-radius: var(--ol-radius-md);
+  background: var(--ol-color-sage-soft);
+  color: var(--ol-color-sage);
+  display: grid;
+  place-items: center;
+}
+.page-header .ol-icon-tile svg { width: var(--ol-size-icon-l); height: var(--ol-size-icon-l); }
+.page-header .ol-header__title {
+  font-family: var(--ol-font-display);
+  font-size: var(--ol-type-title-size);
+  font-weight: 700;
+  line-height: var(--ol-type-title-line);
+  color: var(--ol-color-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-macro-steps { display: flex; align-items: center; min-width: 0; }
+.session-macro-steps:empty { display: none; }
+.page-header .ol-steps { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ol-space-2); list-style: none; margin: 0; padding: 0; }
+.page-header .ol-steps__item {
+  display: flex;
+  align-items: center;
+  gap: var(--ol-space-2);
+  padding: var(--ol-space-1-5) var(--ol-space-3) var(--ol-space-1-5) var(--ol-space-1-5);
+  border-radius: var(--ol-radius-full);
+  border: 1px solid transparent;
+  font-size: var(--ol-type-caption-size);
+  font-weight: 700;
+  color: var(--ol-color-ink-tertiary);
+  background: transparent;
+}
+.page-header .ol-steps__dot {
+  width: var(--ol-size-stone);
+  height: var(--ol-size-stone);
+  flex: none;
+  box-sizing: border-box;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--ol-color-surface-chip);
+  color: var(--ol-color-ink-tertiary);
+  font-family: var(--ol-font-display);
+  font-size: var(--ol-type-caption-size);
+  font-weight: 800;
+}
+.page-header .ol-steps__item[aria-current="step"] {
+  background: var(--ol-color-surface);
+  border-color: var(--ol-color-ink);
+  color: var(--ol-color-ink);
+  font-weight: 800;
+}
+.page-header .ol-steps__item[aria-current="step"] .ol-steps__dot { background: var(--ol-color-ink); color: var(--ol-color-on-primary); }
+.page-header .ol-steps__item[data-state="done"] { color: var(--ol-color-ink); }
+.page-header .ol-steps__item[data-state="done"] .ol-steps__dot { background: var(--ol-color-sage); color: var(--ol-color-on-primary); }
+.page-header .ol-steps__dot svg { width: var(--ol-size-icon-s); height: var(--ol-size-icon-s); }
+
+.page-header .ol-header__actions { display: flex; align-items: center; gap: var(--ol-space-2-5); }
+.page-header .ol-chip--streak {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ol-space-1-5);
+  padding: var(--ol-pad-chip);
+  border: 0;
+  border-radius: var(--ol-radius-full);
+  background: var(--ol-color-amber-soft);
+  color: var(--ol-color-amber-text);
+  font-size: var(--ol-type-caption-size);
+  font-weight: 800;
+}
+.page-header .ol-chip--streak:empty { display: none; }
+.page-header .ol-chip--streak svg { width: var(--ol-size-icon-s); height: var(--ol-size-icon-s); }
+
+.session-child-chip { display: flex; align-items: center; gap: var(--ol-space-2); }
+.session-child-chip:empty { display: none; }
+.page-header .ol-avatar {
+  --ol-avatar: var(--ol-size-avatar);
+  width: var(--ol-avatar);
+  height: var(--ol-avatar);
+  border-radius: 50%;
+  background: var(--ol-color-blue);
+  color: var(--ol-color-on-primary);
+  display: grid;
+  place-items: center;
+  font-family: var(--ol-font-display);
+  font-weight: 800;
+  font-size: calc(var(--ol-avatar) * 0.5);
+}
+.child-name-stack { display: flex; flex-direction: column; line-height: 1.2; }
+.child-name-stack b { font-size: var(--ol-type-caption-size); font-weight: 800; color: var(--ol-color-ink); }
+.child-name-stack span { font-size: var(--ol-type-label-size); font-weight: 600; color: var(--ol-color-ink-secondary); }
+
+/* iPad landscape is 1024–1194 wide. The stones share that row with the
+   title and the child chip, and they paint over both. They take the
+   full width on their own row until there is a desktop's worth of room. */
+@media (max-width: 1279px) {
+  .page-header .page-bar { grid-template-columns: minmax(0, 1fr) auto; }
+  .page-header .ol-header__actions { grid-row: 1; }
+  .page-header .session-macro-steps {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: center;
+    max-width: 100%;
+  }
+}
+@media (max-width: 767px) {
+  .page-header .page-bar { grid-template-columns: minmax(0, 1fr) auto; }
+  .session-macro-steps,
+.child-name-stack { display: none; }
+}
+
+.session-phase-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.session-phase-label:empty { display: none; }
+
+.session-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--color-peach-text);
+  background: var(--color-peach-bg);
+  border: 1px solid var(--color-peach-border);
+  border-radius: var(--radius-pill);
+  padding: 2px 8px;
+}
+.session-stars:empty { display: none; }
+.session-stars svg { width: 13px; height: 13px; }
+
+@media (max-width: 639px) {
+  .session-phase-label { display: none; }
+}
+
+/* Single-column screens (start, feedback, close) sit in the same panel. */
+.session-card {
+  background: var(--color-card);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: none;
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+@media (min-width: 640px) {
+  .session-card { padding: var(--space-8); }
+}
+
+/* ── question / teach columns ───────────────────────────────── */
+/* One centred column at every width (Ollie lives in the corner, not beside the
+   content). The three regions stack head, side, action; placeAction() nests action
+   under head so the question card holds the title, the answer and the clues.
+   (Old note: below 932px the three regions stack in document order: head, side,
+   action. That is the theme's stack width, and it is where an iPad
+   portrait stops fitting two columns. The order keeps the explanation
+   above the input when the keyboard is up. At 932px and up,
+   placeAction() nests action under head, and this becomes two columns.
+   932 is the same breakpoint placeAction() checks in index.html. */
+
+.session-split {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-cols);
+  min-width: 0;
+}
+
+.stage-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-stack);
+  min-width: 0;
+}
+
+#stage-head { gap: var(--space-4); }
+#stage-head > button { align-self: flex-start; }
+.q-badge { align-self: flex-start; }
+#stage-action { gap: var(--space-stack-tight); }
+#stage-action:empty { display: none; }
+
+.session-split.is-solo #stage-side { display: none; }
+
+
+.q-title {
+  margin: 0;
+  font-size: var(--title-size);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+@media (min-width: 640px) {
+  .q-title { font-size: var(--title-size-lg); }
+}
+
+.cluster {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.review-back { display: flex; }
+
+/* ── cards on the right ─────────────────────────────────────── */
+
+.side-card {
+  background: var(--color-card);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-card);
+  box-shadow: none;
+}
+
+.side-card-right { border-color: rgb(var(--rgb-sage) / 0.4); }
+
+.side-stack { display: flex; flex-direction: column; }
+
+/* Ollie's bubble-over-figure pairing — what he's saying, then who's saying
+   it, sized to read as a character rather than a small inline icon. */
+
+.nested-box-inner {
+  background: var(--color-gray-box);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+}
+
+.nested-box-inner.is-dashed { border: 1px dashed var(--color-border); }
+
+.card-split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.card-split.is-first {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.chart-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin: 0 0 var(--space-2);
+}
+
+.hint-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.hint-row + .hint-row {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.hint-lock {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.angle-step { margin: 0 0 var(--space-2); }
+.angle-step:last-child { margin-bottom: 0; }
+
+/* ── teach steps ────────────────────────────────────────────── */
+
+.step-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  border: 1px solid transparent;
+}
+
+.step-on {
+  border-color: var(--color-sage);
+  background: var(--color-sage-light);
+}
+
+.step-off { background: var(--color-gray-box); }
+.step-dim { opacity: 0.4; }
+
+/* ── place value figure + chart ─────────────────────────────── */
+
+.pv-figure,
+.pv-legend {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--color-gray-box);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.pv-figure {
+  align-items: center;
+  padding: var(--space-6) var(--space-5);
+  gap: 2px;
+}
+
+.pv-figure-tagged {
+  align-items: flex-end;
+  padding-top: var(--space-9);
+}
+
+.pv-legend {
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+}
+
+.pv-table {
+  border: 1px solid var(--color-chart-line);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}
+
+.pv-table-head,
+.pv-table-body { display: grid; }
+
+.pv-table-head {
+  background: var(--color-chart-head);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-muted);
+}
+
+.pv-table-body {
+  background: var(--color-card);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--color-dark);
+}
+
+.pv-cell {
+  text-align: center;
+  padding: var(--space-2) var(--space-1);
+  border-right: 1px solid var(--color-chart-line);
+}
+
+.pv-cell:last-child { border-right: 0; }
+
+.pv-table-body .pv-cell { padding-top: var(--space-2); padding-bottom: var(--space-2); }
+
+.pv-cell-on {
+  background: var(--color-sage-highlight);
+  color: var(--color-sage);
+  font-weight: 800;
+}
+
+/* Look-back uses the Ollie theme. These rules sit outside a layer so they
+   win over Tailwind preflight, which is also unlayered. Every value is an
+   --ol-* token from design/ollie-theme/app.css. */
+.page-main.is-lookback,
+.page-main.is-start,
+.page-main:has(.ol-practice),
+.page-main:has(.ol-learn) { justify-content: flex-start; }
+
+.session-split.ol-lookback,
+.session-split.ol-start {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--ol-layout-column-gap);
+}
+
+.ol-lookback { font-family: var(--ol-font-body); color: var(--ol-color-ink); }
+.ol-lookback h1 {
+  margin: 0;
+  font-family: var(--ol-font-display);
+  font-size: var(--ol-type-heading-xl-size);
+  font-weight: 800;
+  line-height: var(--ol-type-heading-xl-line);
+  color: var(--ol-color-ink);
+}
+.ol-lookback p { margin: 0; max-width: none; }
+.ol-lookback .ol-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ol-space-2-5);
+  min-height: var(--ol-size-button-secondary-h);
+  padding: var(--ol-pad-button-secondary);
+  border: 2px solid transparent;
+  border-radius: var(--ol-radius-xl);
+  font-family: var(--ol-font-body);
+  font-size: var(--ol-type-body-size);
+  font-weight: 800;
+  line-height: 1.1;
+  cursor: pointer;
+}
+.ol-lookback .ol-btn--primary {
+  min-height: var(--ol-size-button-primary-h);
+  min-width: var(--ol-size-button-primary-min-w);
+  padding: var(--ol-pad-button-primary);
+  border-radius: var(--ol-radius-2xl);
+  background: var(--ol-color-sage);
+  color: var(--ol-color-on-primary);
+  font-family: var(--ol-font-display);
+  font-size: var(--ol-type-button-l-size);
+}
+.ol-lookback .ol-btn--primary:hover { background: var(--ol-color-sage-strong); color: var(--ol-color-on-primary); }
+.ol-lookback .ol-btn--primary:active { background: var(--ol-color-sage-deep); }
+.ol-lookback .ol-icon { width: var(--ol-size-icon-m); height: var(--ol-size-icon-m); flex: 0 0 auto; }
+
+.ol-lookback-panel { display: flex; flex-direction: column; align-items: center; gap: var(--ol-space-4); }
+.ol-lookback-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ol-space-2);
+  background: var(--ol-color-surface-muted);
+  border: 1px solid var(--ol-color-line);
+}
+.ol-lookback .ol-lookback-current {
+  background: var(--ol-color-surface);
+  border: 1px solid var(--ol-color-ink);
+}
+.ol-lookback .ol-lookback-kicker { color: var(--ol-color-ink-secondary); }
+
+/* Tailwind's unlayered reset sets border-color on every element, which
+   beats the theme's layered borders. Re-state the look-back borders here. */
+.ol-lookback .ol-card,
+.ol-lookback .ol-border { border: 1px solid var(--ol-color-line); }
+
+.ol-lookback .ol-rule-card { border: 2px solid var(--ol-color-amber-line); background: var(--ol-color-surface); }
+.ol-lookback .ol-bg-muted { background: var(--ol-color-surface-muted); }
+.ol-lookback .ol-bg-surface { background: var(--ol-color-surface); }
+.ol-lookback .ol-pill { background: var(--ol-color-surface-chip); color: var(--ol-color-ink-secondary); }
+.ol-lookback .ol-chip--stars { background: var(--ol-color-sage-soft); color: var(--ol-color-sage-strong); }
+.ol-lookback .ol-digit { border: 3px solid var(--ol-color-line); background: var(--ol-color-surface); color: var(--ol-color-ink); }
+.ol-lookback .ol-digit--given { background: var(--ol-color-sage-soft); border-color: var(--ol-color-sage); color: var(--ol-color-sage-strong); }
+.ol-lookback .ol-digit--zero { background: var(--ol-color-amber-soft); border-color: var(--ol-color-amber); border-style: dashed; color: var(--ol-color-amber-text); }
+.ol-lookback .ol-digit--empty { border-color: var(--ol-color-line-placeholder); border-style: dashed; color: var(--ol-color-ink-tertiary); }
+.ol-lookback .ol-digit--target { background: var(--ol-color-blue); border-color: var(--ol-color-blue); color: var(--ol-color-on-primary); }
+.ol-lookback .ol-digit--dim { background: var(--ol-color-surface); border-color: var(--ol-color-line); color: var(--ol-color-ink-decor); }
+.ol-lookback .ol-stone { background: var(--ol-color-surface-chip); color: var(--ol-color-ink-tertiary); }
+.ol-lookback .ol-stone--done { background: var(--ol-color-sage); color: var(--ol-color-on-primary); }
+.ol-lookback .ol-stone--current { background: var(--ol-color-ink); border: 0; color: var(--ol-color-on-primary); }
+
+.ol-start { font-family: var(--ol-font-body); color: var(--ol-color-ink); }
+.ol-start h1 {
+  margin: 0;
+  font-family: var(--ol-font-display);
+  font-size: var(--ol-type-heading-xl-size);
+  font-weight: 800;
+  line-height: var(--ol-type-heading-xl-line);
+  color: var(--ol-color-ink);
+}
+.ol-start p { margin: 0; max-width: none; }
+.ol-start .ol-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ol-space-2-5);
+  min-height: var(--ol-size-button-primary-h);
+  min-width: var(--ol-size-button-primary-min-w);
+  padding: var(--ol-pad-button-primary);
+  border: 2px solid transparent;
+  border-radius: var(--ol-radius-2xl);
+  background: var(--ol-color-sage);
+  color: var(--ol-color-on-primary);
+  font-family: var(--ol-font-display);
+  font-size: var(--ol-type-button-l-size);
+  font-weight: 800;
+  cursor: pointer;
+}
+.ol-start .ol-btn:hover { background: var(--ol-color-sage-strong); color: var(--ol-color-on-primary); }
+.ol-start .ol-icon { width: var(--ol-size-icon-m); height: var(--ol-size-icon-m); flex: 0 0 auto; }
+
+.ol-start .ol-card { border: 1px solid var(--ol-color-line); background: var(--ol-color-surface); }
+.ol-start .ol-pill { align-self: flex-start; background: var(--ol-color-surface-chip); color: var(--ol-color-ink-secondary); }
+.ol-start-topic {
+  display: flex;
+  align-items: center;
+  gap: var(--ol-space-4);
+  background: var(--ol-color-sage-soft);
+  border-radius: var(--ol-radius-xl);
+  padding: var(--ol-space-4) var(--ol-space-5);
+}
+.ol-start-topic-icon {
+  width: var(--ol-size-icon-tile);
+  height: var(--ol-size-icon-tile);
+  flex: 0 0 auto;
+  border-radius: var(--ol-radius-md);
+  background: var(--ol-color-sage);
+  color: var(--ol-color-on-primary);
+  display: grid;
+  place-items: center;
+}
+.ol-start-topic-icon svg { width: var(--ol-size-icon-l); height: var(--ol-size-icon-l); }
+.ol-start-topic-name {
+  font-family: var(--ol-font-display);
+  font-size: var(--ol-type-title-size);
+  font-weight: 700;
+  line-height: var(--ol-type-title-line);
+  color: var(--ol-color-ink);
+}
+.ol-start-plan { display: flex; flex-wrap: wrap; gap: var(--ol-space-3); }
+.ol-start-step {
+  flex: 1 1 160px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ol-space-2);
+  background: var(--ol-color-surface);
+  border: 1px solid var(--ol-color-line);
+  border-radius: var(--ol-radius-xl);
+  padding: var(--ol-space-4);
+}
+.ol-start-step-icon {
+  width: var(--ol-size-avatar);
+  height: var(--ol-size-avatar);
+  border-radius: var(--ol-radius-md);
+  display: grid;
+  place-items: center;
+}
+.ol-start-step-icon[data-tone="amber"] { background: var(--ol-color-amber-soft); color: var(--ol-color-amber-text); }
+.ol-start-step-icon[data-tone="blue"] { background: var(--ol-color-blue-soft); color: var(--ol-color-blue-text); }
+.ol-start-step-icon[data-tone="sage"] { background: var(--ol-color-sage-soft); color: var(--ol-color-sage-strong); }
+.ol-start-step-title {
+  font-family: var(--ol-font-display);
+  font-size: var(--ol-type-title-size);
+  font-weight: 700;
+  line-height: var(--ol-type-title-line);
+  color: var(--ol-color-ink);
+}
+
+.ol-week {
+  background: var(--ol-color-surface-muted);
+  border-radius: var(--ol-radius-2xl);
+  padding: var(--ol-space-4) var(--ol-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ol-space-3);
+}
+.ol-week-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ol-space-3);
+}
+.ol-week-streak {
+  font-size: var(--ol-type-caption-size);
+  font-weight: 800;
+  color: var(--ol-color-amber-text);
+  white-space: nowrap;
+}
+.ol-week-days {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--ol-space-1);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ol-week-days li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ol-space-1);
+  min-width: 0;
+}
+.ol-week-dot {
+  width: var(--ol-size-stone-current);
+  height: var(--ol-size-stone-current);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  background: var(--ol-color-surface);
+  border: 2px solid var(--ol-color-line);
+  color: var(--ol-color-on-primary);
+}
+.ol-week-dot[data-state="done"] {
+  background: var(--ol-color-amber);
+  border-color: var(--ol-color-amber);
+}
+.ol-week-dot[data-state="today"] {
+  background: var(--ol-color-surface);
+  border-color: var(--ol-color-ink);
+}
+.ol-week-dot[data-state="later"] {
+  background: transparent;
+  border: 2px dashed var(--ol-color-line-dashed);
+}
+.ol-week-dot[data-state="missed"] {
+  background: transparent;
+  border-color: var(--ol-color-line);
+}
+.ol-week-dot svg {
+  width: var(--ol-size-icon-s);
+  height: var(--ol-size-icon-s);
+  max-width: none;
+  display: block;
+}
+.ol-week-label {
+  font-size: var(--ol-type-micro-size);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--ol-color-ink-secondary);
+}
+.ol-week p {
+  margin: 0;
+  max-width: none;
+  font-size: var(--ol-type-body-s-size);
+  font-weight: 700;
+  line-height: var(--ol-type-body-s-line);
+  color: var(--ol-color-ink);
+}
+
+/* Practice question — one card on the left, Ollie and the clue on the right. */
+.session-split.ol-practice #stage-left {
+  background: var(--ol-color-surface);
+  border: 1px solid var(--ol-color-line);
+  border-radius: var(--ol-radius-card);
+  padding: var(--ol-pad-card);
+  gap: var(--ol-gap-card);
+}
+.session-split.ol-practice.is-correct #stage-left { border: 3px solid var(--ol-color-sage); }
+.ol-practice #stage-head,
+.ol-practice #stage-action { gap: var(--ol-space-4); }
+.ol-practice h1 {
+  margin: 0;
+  max-width: none;
+  font-family: var(--ol-font-display);
+  font-size: var(--ol-type-heading-l-size);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ol-color-ink);
+}
+.ol-qhead { display: flex; align-items: center; justify-content: space-between; gap: var(--ol-space-3); }
+.ol-qhead-tools { display: flex; align-items: center; gap: var(--ol-space-2); margin-left: auto; }
+.ol-practice .ol-pill {
+  align-self: center;
+  background: var(--ol-color-surface-chip);
+  color: var(--ol-color-ink-secondary);
+}
+.ol-star-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ol-space-1-5);
+  padding: var(--ol-pad-chip);
+  border-radius: var(--ol-radius-full);
+  background: var(--ol-color-amber);
+  color: var(--ol-color-on-primary);
+  font-size: var(--ol-type-caption-size);
+  font-weight: 800;
+}
+.ol-star-chip svg { width: var(--ol-size-icon-s); height: var(--ol-size-icon-s); max-width: none; }
+.ol-practice .ol-tries { display: inline-flex; align-items: center; gap: var(--ol-space-2); font-size: var(--ol-type-caption-size); font-weight: 800; color: var(--ol-color-ink-secondary); }
+.ol-practice .ol-tries__dot { width: 12px; height: 12px; border-radius: 50%; background: var(--ol-color-line); box-sizing: border-box; }
+.ol-practice .ol-tries__dot[data-state="used"] { background: var(--ol-color-amber); }
+.ol-answer-label { font-size: var(--ol-type-caption-size); font-weight: 800; color: var(--ol-color-ink-secondary); }
+.ol-practice .ol-answer-row { display: flex; flex-wrap: wrap; gap: var(--ol-space-3-5); align-items: stretch; }
+.ol-practice .ol-answer {
+  flex: 1 1 var(--ol-size-input-w);
+  width: var(--ol-size-input-w);
+  min-width: min(100%, var(--ol-size-input-w));
+  max-width: var(--ol-size-input-w);
+  height: var(--ol-size-input-h);
+  padding: var(--ol-pad-input);
+  border-radius: var(--ol-radius-2xl);
+  border: 3px solid var(--ol-color-line);
+  background: var(--ol-color-surface);
+  font-family: var(--ol-font-display);
+  font-size: var(--ol-type-answer-size);
+  font-weight: 700;
+  color: var(--ol-color-ink);
+  outline: none;
+  box-shadow: none;
+}
+.ol-practice .ol-answer::placeholder { color: var(--ol-color-ink-tertiary); }
+.ol-practice .ol-answer:focus { border-color: var(--ol-color-blue); box-shadow: var(--ol-focus-ring); }
+.ol-practice .ol-answer[data-state="retry"] { border-color: var(--ol-color-amber); background: var(--ol-color-amber-wash); color: var(--ol-color-ink); box-shadow: none; }
+.ol-practice .ol-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ol-space-2-5);
+  min-height: var(--ol-size-button-primary-h);
+  padding: var(--ol-pad-button-primary);
+  border: 2px solid transparent;
+  border-radius: var(--ol-radius-2xl);
+  font-family: var(--ol-font-display);
+  font-size: var(--ol-type-button-l-size);
+  font-weight: 700;
+  line-height: 1.1;
+  cursor: pointer;
+}
+.ol-practice .ol-btn--primary { background: var(--ol-color-sage); color: var(--ol-color-on-primary); min-width: var(--ol-size-button-primary-min-w); }
+.ol-practice .ol-btn--primary:hover { background: var(--ol-color-sage-strong); color: var(--ol-color-on-primary); }
+.ol-practice .ol-btn--secondary { background: var(--ol-color-surface-raised); border-color: var(--ol-color-line); color: var(--ol-color-ink); min-height: var(--ol-size-button-secondary-h); font-family: var(--ol-font-body); font-size: 17px; }
+.ol-practice .ol-btn svg { width: var(--ol-size-icon-m); height: var(--ol-size-icon-m); max-width: none; flex: 0 0 auto; }
+.ol-qfoot { display: flex; justify-content: flex-end; }
+.ol-slip {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ol-space-2);
+  margin: 0;
+  padding: var(--ol-space-3) var(--ol-space-4);
+  border-radius: var(--ol-radius-lg);
+  background: var(--ol-color-amber-wash);
+  color: var(--ol-color-amber-text);
+  font-weight: 700;
+}
+.ol-slip svg { width: var(--ol-size-icon-s); height: var(--ol-size-icon-s); max-width: none; flex: 0 0 auto; margin-top: 2px; }
+.ol-yousaid {
+  display: flex;
+  align-items: center;
+  gap: var(--ol-space-3);
+  background: var(--ol-color-sage-soft);
+  border-radius: var(--ol-radius-xl);
+  padding: var(--ol-space-4) var(--ol-space-5);
+}
+.ol-yousaid-mark {
+  width: var(--ol-size-avatar);
+  height: var(--ol-size-avatar);
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--ol-color-sage);
+  color: var(--ol-color-on-primary);
+  display: grid;
+  place-items: center;
+}
+.ol-yousaid-mark svg { width: var(--ol-size-icon-m); height: var(--ol-size-icon-m); max-width: none; }
+.ol-yousaid-line {
+  margin: 0;
+  max-width: none;
+  font-family: var(--ol-font-display);
+  font-size: var(--ol-type-title-size);
+  font-weight: 800;
+  line-height: var(--ol-type-title-line);
+  color: var(--ol-color-ink);
+}
+
+
+.ol-hand-lock {
+  width: var(--ol-size-avatar);
+  height: var(--ol-size-avatar);
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--ol-color-surface);
+  color: var(--ol-color-ink-tertiary);
+  display: grid;
+  place-items: center;
+}
+.ol-hand-lock svg { width: var(--ol-size-icon-s); height: var(--ol-size-icon-s); max-width: none; }
+
+/* one clue = one row: number, text, its own Listen button */
+
+.ol-angle { background: var(--ol-color-surface-muted); border-radius: var(--ol-radius-xl); padding: var(--ol-space-4); display: flex; flex-direction: column; gap: var(--ol-space-2); }
+.ol-angle-step { margin: 0; max-width: none; display: flex; flex-direction: column; gap: var(--ol-space-1); }
+.ol-angle-step span { font-weight: 600; color: var(--ol-color-ink-secondary); }
+.ol-today {
+  background: var(--ol-color-surface-muted);
+  border-radius: var(--ol-radius-2xl);
+  padding: var(--ol-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ol-space-3);
+}
+.ol-today-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ol-space-2); }
+.ol-today-grid div { background: var(--ol-color-surface); border-radius: var(--ol-radius-lg); padding: var(--ol-space-4) var(--ol-space-2); text-align: center; }
+.ol-today-grid b {
+  display: block;
+  font-family: var(--ol-font-display);
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ol-color-ink);
+}
+.ol-today-grid .ol-today-stars { color: var(--ol-color-amber-text); }
+.ol-today-grid span {
+  font-family: var(--ol-font-body);
+  font-size: var(--ol-type-label-size);
+  font-weight: 700;
+  color: var(--ol-color-ink-secondary);
+}
+.ol-qprogress { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: center; gap: var(--ol-space-3) var(--ol-space-4); }
+.ol-qprogress-group { display: flex; flex-direction: column; align-items: flex-start; gap: var(--ol-space-1-5); }
+.ol-qprogress-label { font-size: var(--ol-type-caption-size); font-weight: 800; line-height: 1.2; color: var(--ol-color-ink); }
+.ol-qprogress-rule { width: 1px; height: var(--ol-size-stone-current); background: var(--ol-color-line); flex: none; }
+.ol-qstones { display: flex; align-items: center; gap: var(--ol-space-1-5); }
+.ol-qstone {
+  width: var(--ol-size-stone);
+  height: var(--ol-size-stone);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  background: var(--ol-color-surface-chip);
+  color: var(--ol-color-ink-secondary);
+  font-family: var(--ol-font-display);
+  font-size: var(--ol-type-micro-size);
+  font-weight: 800;
+}
+.ol-qstone[data-state="star"] { background: var(--ol-color-amber); color: var(--ol-color-on-primary); }
+.ol-qstone[data-state="done"] { background: var(--ol-color-sage); color: var(--ol-color-on-primary); }
+.ol-qstone[data-state="helped"] { background: var(--ol-color-sage-soft); color: var(--ol-color-sage); }
+.ol-qstone[data-state="current"] {
+  width: var(--ol-size-stone-current);
+  height: var(--ol-size-stone-current);
+  background: var(--ol-color-surface);
+  border: 3px solid var(--ol-color-ink);
+  color: var(--ol-color-ink);
+  font-size: var(--ol-type-caption-size);
+}
+.ol-qstone svg { width: var(--ol-size-icon-s); height: var(--ol-size-icon-s); max-width: none; }
+
+/* Learn walkthrough — one card for the part, Ollie and the golden rule beside it. */
+.ol-learn { font-family: var(--ol-font-body); color: var(--ol-color-ink); }
+.ol-learn .ol-card { width: 100%; }
+.ol-learn h1 {
+  margin: 0;
+  max-width: none;
+  font-family: var(--ol-font-display);
+  font-size: var(--ol-type-heading-xl-size);
+  font-weight: 800;
+  line-height: var(--ol-type-heading-xl-line);
+  letter-spacing: -0.02em;
+  color: var(--ol-color-ink);
+}
+.ol-learn p { margin: 0; max-width: none; }
+.ol-learn .ol-pill {
+  align-self: flex-start;
+  white-space: normal;
+  background: var(--ol-color-surface-chip);
+  color: var(--ol-color-ink-secondary);
+}
+.ol-learn .ol-text-secondary { color: var(--ol-color-ink-secondary); font-size: var(--ol-type-body-size); line-height: 1.45; }
+.ol-learn-visual {
+  background: var(--ol-color-surface-muted);
+  border-radius: var(--ol-radius-3xl);
+  padding: var(--ol-space-6) var(--ol-space-4);
+}
+.ol-learn-visual:has(.pv-figure),
+.ol-learn-visual:has(.pv-legend) { background: transparent; padding: 0; }
+
+/* Place-value figure. A column being talked about is a sage tile with its
+   name sitting on the top edge. Every other digit is just the digit. */
+.pv-figure,
+.pv-legend {
+  background: var(--ol-color-surface-muted);
+  border-radius: var(--ol-radius-3xl);
+  gap: var(--ol-space-3);
+}
+.pv-figure {
+  align-items: center;
+  justify-content: center;
+  padding: 40px var(--ol-space-6) var(--ol-space-5);
+}
+.pv-figure-tagged { padding-top: 44px; }
+.pv-digit {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  font-family: var(--ol-font-display);
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ol-color-ink-tertiary);
+}
+.pv-digit--plain { color: var(--ol-color-ink); }
+.pv-digit[data-lit] {
+  width: 64px;
+  height: 72px;
+  border-radius: 18px;
+  background: var(--ol-color-sage);
+  color: var(--ol-color-on-primary);
+  box-shadow: none;
+}
+.pv-digit__label {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -50%);
+  padding: 3px 8px;
+  border-radius: var(--ol-radius-full);
+  background: var(--ol-color-sage-strong);
+  color: var(--ol-color-on-primary);
+  font-family: var(--ol-font-body);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.pv-sep {
+  font-family: var(--ol-font-display);
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ol-color-ink-tertiary);
+}
+.ol-learn-steps { display: flex; flex-direction: column; gap: var(--ol-space-3); }
+.ol-learn-step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ol-space-3);
+  padding: var(--ol-space-4) var(--ol-space-5);
+  border-radius: var(--ol-radius-xl);
+  background: var(--ol-color-surface-muted);
+}
+.ol-learn-step[data-state="current"] { background: var(--ol-color-sage-soft); }
+.ol-learn-step[data-state="later"] b { color: var(--ol-color-ink-tertiary); }
+.ol-learn-step-num {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--ol-color-surface);
+  color: var(--ol-color-sage);
+  font-family: var(--ol-font-display);
+  font-size: var(--ol-type-caption-size);
+  font-weight: 800;
+}
+.ol-learn-step[data-state="current"] .ol-learn-step-num {
+  background: var(--ol-color-sage);
+  color: var(--ol-color-on-primary);
+}
+.ol-learn-step[data-state="done"] .ol-learn-step-num {
+  background: var(--ol-color-sage);
+  color: var(--ol-color-on-primary);
+}
+.ol-learn-step b {
+  display: block;
+  font-family: var(--ol-font-display);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--ol-color-ink);
+}
+.ol-learn-step p { margin-top: var(--ol-space-1); color: var(--ol-color-ink-secondary); }
+.ol-learn-step-num svg,
+.ol-learn-upnext svg,
+.ol-rule-kicker svg { width: var(--ol-size-icon-s); height: var(--ol-size-icon-s); max-width: none; }
+.ol-learn-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ol-space-4);
+}
+.ol-learn-upnext {
+  display: flex;
+  align-items: center;
+  gap: var(--ol-space-2);
+  color: var(--ol-color-ink-secondary);
+  font-size: var(--ol-type-caption-size);
+  font-weight: 800;
+}
+.ol-learn .ol-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ol-space-2-5);
+  margin-left: auto;
+  min-height: var(--ol-size-button-primary-h);
+  min-width: var(--ol-size-button-primary-min-w);
+  padding: var(--ol-pad-button-primary);
+  border: 2px solid transparent;
+  border-radius: var(--ol-radius-2xl);
+  background: var(--ol-color-sage);
+  color: var(--ol-color-on-primary);
+  font-family: var(--ol-font-display);
+  font-size: var(--ol-type-button-l-size);
+  font-weight: 700;
+  line-height: 1.1;
+  cursor: pointer;
+}
+.ol-learn .ol-btn:hover { background: var(--ol-color-sage-strong); color: var(--ol-color-on-primary); }
+.ol-learn .ol-btn svg { width: var(--ol-size-icon-m); height: var(--ol-size-icon-m); max-width: none; flex: 0 0 auto; }
+
+
+.ol-rule {
+  background: var(--ol-color-surface);
+  border: 1px solid var(--ol-color-line);
+  border-radius: var(--ol-radius-card);
+  padding: var(--ol-space-5) var(--ol-space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ol-space-2);
+}
+.ol-rule-kicker {
+  display: flex;
+  align-items: center;
+  gap: var(--ol-space-1-5);
+  font-size: var(--ol-type-label-size);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ol-color-amber);
+}
+.ol-rule b {
+  font-family: var(--ol-font-display);
+  font-size: var(--ol-type-title-size);
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--ol-color-ink);
+}
+.ol-rule p { margin: 0; max-width: none; color: var(--ol-color-ink-secondary); line-height: 1.45; }
+
+/* ── scene diagrams (public/scene.js) ────────────────────────────────────
+   One generic renderer, so one set of classes. Lines keep a constant width
+   however the scene is scaled (non-scaling-stroke); text is sized by the
+   renderer. Colours mean the same thing in every diagram: amber marks what is
+   EQUAL or SQUARE (matching-side ticks, right-angle corner), sage is filled,
+   blue is a marker the child is asked about. */
+.sc-figure {
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--ol-color-surface-muted);
+  border-radius: var(--ol-radius-3xl);
+  padding: var(--ol-space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ol-space-2);
+}
+.sc-svg { display: block; width: 100%; height: auto; max-height: 280px; overflow: visible; }
+.sc-caption { font-size: 0.875rem; color: var(--ol-color-ink-tertiary); text-align: center; }
+
+.sc-poly,
+.sc-seg,
+.sc-tick,
+.sc-eq,
+.sc-mark,
+.sc-dot,
+.sc-rect,
+.sc-pt { vector-effect: non-scaling-stroke; }
+.sc-poly { fill: var(--ol-color-surface); stroke: var(--ol-color-ink); stroke-width: 2.5; stroke-linejoin: round; }
+.sc-poly--fill { fill: var(--ol-color-sage-soft); }
+.sc-seg { stroke: var(--ol-color-ink); stroke-width: 2.5; stroke-linecap: round; }
+.sc-tick { stroke: var(--ol-color-ink-secondary); stroke-width: 2; stroke-linecap: round; }
+.sc-head { fill: var(--ol-color-ink); }
+.sc-eq { stroke: var(--ol-color-amber); stroke-width: 2.5; stroke-linecap: round; }
+.sc-mark { fill: none; stroke: var(--ol-color-amber); stroke-width: 2.2; stroke-linejoin: miter; }
+.sc-dot,
+.sc-rect { fill: var(--ol-color-surface); stroke: var(--ol-color-line-placeholder); stroke-width: 2; }
+.sc-dot--on,
+.sc-rect--on { fill: var(--ol-color-sage); stroke: var(--ol-color-sage-strong); }
+.sc-pt { fill: var(--ol-color-blue); stroke: var(--ol-color-surface); stroke-width: 2; }
+
+.sc-text { fill: var(--ol-color-ink); font-family: inherit; font-weight: 700; }
+.sc-text--vtx { fill: var(--ol-color-ink-secondary); }
+.sc-text--angle { fill: var(--ol-color-amber-text); }
+.sc-text--marker { fill: var(--ol-color-blue-text); }
+.sc-text--tick { fill: var(--ol-color-ink-tertiary); font-weight: 600; }
+
+/* ── Ollie's voice (public/voice.js) ─────────────────────────────────────
+   A round Listen button inside Ollie's bubble, and a header switch. Both are
+   hidden by one class on <body> (voice-off), so turning the voice off needs no
+   re-render. Big enough to tap: iPad fingers, a 10-year-old's. */
+
+/* the block Ollie is reading right now */
+
+/* off = dimmed with a slash, so the state is not carried by colour alone */
+
+/* the Listen button inside the golden-rule heading, a clue label and the slip line:
+   pushed to the right edge of those flex rows */
+
+
+/* ── Ollie's corner ─────────────────────────────────────────── */
+/* The dock (public/ollie-kit/ollie/ollie.css) owns the bottom-left corner, so the
+   content is one centred column no wider than --ollie-content-max, and nothing else is
+   fixed to the bottom of a child page. Today's goal sits at the top of the content. */
+.page-main.ollie-content { max-width: var(--ollie-content-max, 1000px); }
+.page-main > .page-foot-note { flex: none; width: auto; margin-bottom: var(--ol-space-4); }
+.page-foot-note:empty { display: none; }
+.ol-clue-visual { margin-top: var(--ol-space-3); }
+
+/* Ollie: captions are always on (the bubble is how he speaks when muted), so the kit's
+   captions button goes; the mute button replaces it. A glow shows who is talking. */
+.ollie-dock [data-action="captions"]{display:none}
+.ollie-dock__ollie{border-radius:50%;position:relative}
+/* Who is talking: a warm spotlight breathing behind him, no ring. */
+.ollie-dock.is-speaking .ollie-dock__ollie{background:radial-gradient(circle,rgba(255,206,92,.65) 0,rgba(255,206,92,.28) 52%,rgba(255,206,92,0) 72%);animation:ollie-spot 1.4s ease-in-out infinite}
+@keyframes ollie-spot{50%{transform:scale(1.07)}}
+.ollie-dock__btn[data-action="mute"]{background:#fff;color:var(--ol-color-ink,#2B2722)}
+.ollie-dock__btn[data-action="mute"][aria-pressed="true"]{background:#FFF1D6;color:#8A5300}
+@media (prefers-reduced-motion:reduce){.ollie-dock.is-speaking .ollie-dock__ollie{animation:none}}
+
+/* Strip layout: the controls sit beside Ollie on the left. Netlify's "Powered by Netlify"
+   badge is fixed bottom-right on preview deploys and would cover them there. */
+@media (max-width:1199px){.ollie-dock .ollie-dock__bar{justify-content:flex-start;gap:16px}}
+
+/* Type scales down on a phone. The design tokens are tablet-sized (a question heading is
+   42px), which fills an iPhone screen with three words a line. */
+@media (max-width:767px){
+  :root{
+    --ol-type-display-xl-size:44px; --ol-type-display-l-size:38px; --ol-type-digit-size:34px;
+    --ol-type-heading-xl-size:30px; --ol-type-heading-l-size:27px; --ol-type-answer-size:28px;
+    --ol-type-button-l-size:22px; --ol-type-title-size:19px; --ol-type-coach-size:18px; --ol-type-body-l-size:17px;
+  }
+  .pv-digit,.pv-sep{font-size:30px}
+  .ol-today-grid b{font-size:26px}
+}

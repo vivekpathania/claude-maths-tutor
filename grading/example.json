@@ -1,0 +1,46 @@
+{
+  "_note": "SCHEMA SAMPLE for the grader agent's output file. Never save this exact file — save-grading.js would reject sessionId 'EXAMPLE-ONLY' since it doesn't exist. One topic per grading decision.",
+
+  "sessionId": "day2-2026-10-17",
+  "childId": "sam",
+  "topicId": "place-value-6digit",
+
+  "marks": ["wrong", "wrong", "correct", "correct", "wrong", "correct", "wrong", "wrong", "wrong", "wrong"],
+
+  "feedback": [
+    {
+      "q": "Today",
+      "title": "Six digits broke the pattern that works for five",
+      "body": "Everything you got right was 4 or 5 digits — the value of the 5 in 53719 was <b style=\"color:var(--correct)\">spot on</b>. Six digits is where it slipped.<br><br>In 807254 you need to count all six columns from the right before naming one. One extra column, one extra count.<div class=\"rule\">🔑 Six digits? Count all six columns before you answer.</div>"
+    }
+  ],
+
+  "diagnosis": [
+    { "questionId": "q1", "errorType": "blank" },
+    { "questionId": "q2", "errorType": "blank" },
+    { "questionId": "q5", "errorType": "blank" },
+    { "questionId": "q7", "errorType": "wrong_column" },
+    { "questionId": "q8", "errorType": "wrong_column" },
+    { "questionId": "q9", "errorType": "wrong_column" },
+    { "questionId": "q10", "errorType": "wrong_column" }
+  ],
+
+  "verdict": "partial",
+  "checkOutcome": null,
+  "backtrackTo": null,
+
+  "stage": { "phase": "practice", "practiceLevel": 1 },
+
+  "brief": {
+    "topicId": "place-value-6digit",
+    "topicName": "Digits in 5- and 6-digit numbers",
+    "phase": "practice",
+    "practiceLevel": 1,
+    "uiMode": { "hintsMax": 2, "allowReveal": true, "retryPolicy": "multi", "showScore": true },
+    "difficultyTier": "core",
+    "dominantError": { "code": "wrong_column", "description": "Miscounts columns once a number reaches six digits; solid at four and five." },
+    "retentionQuestions": [],
+    "ageStageContext": { "age": 10, "stage": "Stage 5", "name": "Sam" },
+    "instructions": "Six-digit numbers only. Open with the column-counting method explicitly in the first hint of every question — count from the right, every digit, before naming one."
+  }
+}

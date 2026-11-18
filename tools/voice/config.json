@@ -1,0 +1,6 @@
+{
+  "voice": "af_heart",
+  "provisional": false,
+  "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+  "dtype": "q8"
+}

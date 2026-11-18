@@ -1,0 +1,240 @@
+/* ollie.css — Coach Ollie: character animation, the dock, the speech bubble
+ * and the clue area under the answer box.
+ *
+ * Uses the --ol-* tokens from app.css when they exist, with the same values
+ * as fallbacks, so this file also works on its own.
+ * Flat design: no shadows. Reduced motion turns every animation off.
+ */
+
+:root {
+  /* help colour: used only for clues */
+  --ollie-help-bg: #F3EFFB;
+  --ollie-help-line: #CDBFEF;
+  --ollie-help-strong: #7A5BC7;
+  --ollie-help-text: #55399E;
+  --ollie-help-chip: #E7E0F7;
+
+  --ollie-size: 104px;
+  --ollie-size-strip: 76px;
+  --ollie-bubble-w: 296px;
+  --ollie-rail: 340px;
+  --ollie-strip-h: 100px;
+  --ollie-breakpoint: 1200px; /* reference only; media queries below use the number */
+}
+
+/* =========================================================================
+   CHARACTER
+   ========================================================================= */
+.ollie { display: block; overflow: visible; }
+.ollie g, .ollie path { transform-box: fill-box; }
+
+/* idle: always running, on different clocks so it never looks like a loop */
+.ollie__bob   { transform-origin: 50% 100%; animation: ollie-bob 3.2s ease-in-out infinite; }
+.ollie__tilt  { transform-origin: 50% 100%; animation: ollie-idle-tilt 11s ease-in-out infinite; }
+.ollie__look  { animation: ollie-look 7.5s ease-in-out infinite; }
+.ollie__blink { transform-origin: 50% 50%; animation: ollie-blink 4.6s ease-in-out infinite; }
+.ollie__wing--l-down { transform-origin: 50% 0%; animation: ollie-ruffle-l 9s ease-in-out infinite; }
+.ollie__wing--r-down { transform-origin: 50% 0%; animation: ollie-ruffle-r 9s ease-in-out 1.5s infinite; }
+
+/* talking: beak and a gentle sway, only while data-talking="true" */
+.ollie__sway { transform-origin: 50% 100%; }
+.ollie__jaw  { transform-origin: 50% 0%; }
+.ollie[data-talking="true"] .ollie__sway { animation: ollie-sway 520ms ease-in-out infinite alternate; }
+.ollie[data-talking="true"] .ollie__jaw  { animation: ollie-talk 130ms ease-in-out infinite alternate; }
+
+/* poses: one left wing and one right wing per mood */
+.ollie__wing, .ollie__happy { display: none; }
+.ollie[data-mood="neutral"] .ollie__wing--l-down,
+.ollie[data-mood="neutral"] .ollie__wing--r-down,
+.ollie[data-mood="wave"] .ollie__wing--l-down,
+.ollie[data-mood="wave"] .ollie__wing--r-up,
+.ollie[data-mood="think"] .ollie__wing--l-down,
+.ollie[data-mood="think"] .ollie__wing--r-think,
+.ollie[data-mood="point"] .ollie__wing--l-point,
+.ollie[data-mood="point"] .ollie__wing--r-down,
+.ollie[data-mood="cheer"] .ollie__wing--l-up,
+.ollie[data-mood="cheer"] .ollie__wing--r-up { display: inline; }
+
+.ollie[data-mood="cheer"] .ollie__happy { display: inline; }
+.ollie[data-mood="cheer"] .ollie__gaze  { display: none; }
+
+/* gaze: where the pupils sit for each mood */
+.ollie__gaze { transition: transform 300ms ease; }
+.ollie[data-mood="think"] .ollie__gaze { transform: translate(4px, -8px); }
+.ollie[data-mood="point"] .ollie__gaze { transform: translate(-7px, 0); }
+
+/* think holds a head tilt for as long as the mood lasts */
+.ollie__react { transform-origin: 50% 100%; transition: transform 450ms ease-out; }
+.ollie[data-mood="think"] .ollie__react { transform: rotate(-7deg); }
+
+/* one-off reactions, played each time a new line starts (.is-reacting) */
+.ollie.is-reacting[data-mood="wave"] .ollie__wing--r-up { transform-origin: 0% 100%; animation: ollie-wave 650ms ease-in-out 3; }
+.ollie.is-reacting[data-mood="cheer"] .ollie__react { animation: ollie-hop 900ms ease-out 2; }
+.ollie.is-reacting[data-mood="cheer"] .ollie__wing--l-up { transform-origin: 100% 100%; animation: ollie-flap 300ms ease-in-out 6; }
+.ollie.is-reacting[data-mood="cheer"] .ollie__wing--r-up { transform-origin: 0% 100%; animation: ollie-flap 300ms ease-in-out 6; }
+.ollie.is-reacting[data-mood="point"] .ollie__wing--l-point { transform-origin: 100% 100%; animation: ollie-nudge 500ms ease-in-out 3; }
+.ollie.is-reacting[data-mood="neutral"] .ollie__react,
+.ollie.is-reacting[data-mood="point"] .ollie__react { animation: ollie-peek 600ms ease-out 1; }
+
+@keyframes ollie-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes ollie-idle-tilt { 0%, 58%, 100% { transform: rotate(0); } 63%, 72% { transform: rotate(-6deg); } 78%, 84% { transform: rotate(4deg); } 90% { transform: rotate(0); } }
+@keyframes ollie-look { 0%, 35%, 100% { transform: translateX(0); } 40%, 55% { transform: translateX(-4px); } 60%, 75% { transform: translateX(4px); } 80% { transform: translateX(0); } }
+@keyframes ollie-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+@keyframes ollie-ruffle-l { 0%, 70%, 100% { transform: rotate(0); } 74% { transform: rotate(10deg); } 78% { transform: rotate(-4deg); } 82% { transform: rotate(6deg); } 86% { transform: rotate(0); } }
+@keyframes ollie-ruffle-r { 0%, 70%, 100% { transform: rotate(0); } 74% { transform: rotate(-10deg); } 78% { transform: rotate(4deg); } 82% { transform: rotate(-6deg); } 86% { transform: rotate(0); } }
+@keyframes ollie-sway { 0% { transform: rotate(-2.5deg); } 100% { transform: rotate(2.5deg); } }
+@keyframes ollie-talk { 0% { transform: translateY(0); } 100% { transform: translateY(4px); } }
+@keyframes ollie-wave { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-22deg); } 70% { transform: rotate(8deg); } }
+@keyframes ollie-flap { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(18deg); } }
+@keyframes ollie-hop { 0%, 100% { transform: translateY(0); } 25% { transform: translateY(-14px); } 50% { transform: translateY(0); } 70% { transform: translateY(-6px); } 85% { transform: translateY(0); } }
+@keyframes ollie-nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-5px); } }
+@keyframes ollie-peek { 0% { transform: translateY(0) rotate(0); } 40% { transform: translateY(-4px) rotate(-3deg); } 100% { transform: translateY(0) rotate(0); } }
+
+/* =========================================================================
+   DOCK
+   ========================================================================= */
+.ollie-dock {
+  position: fixed; z-index: var(--ol-z-sticky, 10);
+  left: 24px; bottom: 24px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 14px;
+  max-width: calc(var(--ollie-rail) - 24px);
+  pointer-events: none;
+  font-family: var(--ol-font-body, 'Nunito', ui-rounded, system-ui, sans-serif);
+}
+.ollie-dock > * { pointer-events: auto; }
+
+.ollie-dock__bubble {
+  position: relative; box-sizing: border-box;
+  width: var(--ollie-bubble-w); max-width: 100%;
+  padding: 16px 20px 18px;
+  background: var(--ol-color-surface, #FFFFFF);
+  border: 1px solid var(--ol-color-line, #E8DFD0);
+  border-radius: var(--ol-radius-4xl, 24px);
+  color: var(--ol-color-ink, #2B2722);
+}
+.ollie-dock__bubble[hidden] { display: none; }
+.ollie-dock__bubble::after {
+  content: ""; position: absolute; bottom: -12px; left: 41px;
+  width: 22px; height: 22px;
+  background: var(--ol-color-surface, #FFFFFF);
+  border-right: 1px solid var(--ol-color-line, #E8DFD0);
+  border-bottom: 1px solid var(--ol-color-line, #E8DFD0);
+  transform: rotate(45deg);
+}
+.ollie-dock__text { margin: 0; font-size: 19px; font-weight: 700; line-height: 1.4; }
+.ollie-dock__bubble.is-entering { animation: ollie-pop 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.ollie-dock__bubble.is-leaving { animation: ollie-fade 350ms ease forwards; }
+@keyframes ollie-pop { from { transform: translateY(8px) scale(0.96); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes ollie-fade { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(6px); } }
+
+.ollie-dock__bar { display: flex; align-items: center; gap: 12px; }
+
+.ollie-dock__ollie {
+  width: var(--ollie-size); height: var(--ollie-size); flex: 0 0 var(--ollie-size);
+  padding: 0; border: 0; border-radius: 24px; background: transparent; cursor: pointer;
+  display: grid; place-items: center;
+}
+.ollie-dock__ollie .ollie { width: 100%; height: 100%; }
+.ollie-dock__ollie:focus-visible,
+.ollie-dock__btn:focus-visible { outline: 3px solid var(--ol-color-blue, #3B6FD8); outline-offset: 2px; }
+
+.ollie-dock__controls {
+  display: flex; align-items: center; gap: 4px; padding: 4px;
+  border-radius: 999px;
+  background: var(--ol-color-surface, #FFFFFF);
+  border: 1px solid var(--ol-color-line, #E8DFD0);
+}
+.ollie-dock__btn {
+  width: 48px; height: 48px; padding: 0; border: 0; border-radius: 50%;
+  display: grid; place-items: center; cursor: pointer;
+  background: transparent; color: var(--ol-color-ink-tertiary, #6B6257);
+}
+.ollie-dock__btn[aria-pressed="true"],
+.ollie-dock__btn--replay { background: var(--ol-color-sage-soft, #E3EEE6); color: var(--ol-color-sage-strong, #2C4F3E); }
+.ollie-dock__btn:hover { background: var(--ol-color-surface-muted, #F4EEE2); color: var(--ol-color-ink, #2B2722); }
+
+/* Large screens: keep a rail free for Ollie. Put .ollie-content on <main>. */
+@media (min-width: 1200px) {
+  .ollie-docked .ollie-content {
+    margin-left: max(var(--ollie-rail), calc((100% - var(--ollie-content-max, 1000px)) / 2));
+    margin-right: auto;
+  }
+}
+
+/* Tablets and small laptops: a strip along the bottom */
+@media (max-width: 1199px) {
+  .ollie-dock { left: 0; right: 0; bottom: 0; max-width: none; gap: 12px; }
+  .ollie-dock__bubble { width: 520px; max-width: calc(100% - 32px); margin-left: 16px; }
+  .ollie-dock__bubble::after { left: 33px; }
+  .ollie-dock__bar {
+    align-self: stretch; justify-content: space-between;
+    min-height: var(--ollie-strip-h); box-sizing: border-box;
+    padding: 12px 24px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: var(--ol-color-surface-raised, #FFFDF8);
+    border-top: 1px solid var(--ol-color-line, #E8DFD0);
+  }
+  .ollie-dock__ollie { width: var(--ollie-size-strip); height: var(--ollie-size-strip); flex-basis: var(--ollie-size-strip); }
+  .ollie-docked .ollie-content { padding-bottom: calc(var(--ollie-strip-h) + 160px); }
+  /* keyboard open: voice only, nothing covers the answer box */
+  .ollie-dock.is-keyboard { display: none; }
+}
+
+/* =========================================================================
+   CLUES (under the answer box)
+   ========================================================================= */
+.ollie-clues { display: flex; flex-direction: column; gap: 12px; padding-top: 18px; border-top: 1px solid var(--ol-color-line, #E8DFD0); }
+.ollie-clues[hidden] { display: none; }
+
+.ollie-chip { padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 800; background: var(--ollie-help-chip); color: var(--ollie-help-text); white-space: nowrap; }
+
+.ollie-clues__locked {
+  display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 16px;
+  border: 2px dashed var(--ol-color-line-dashed, #D6CAB5); border-radius: 16px;
+  color: var(--ol-color-ink-tertiary, #6B6257); font-size: 16px; font-weight: 700;
+}
+.ollie-clues__locked svg { flex: 0 0 auto; }
+.ollie-clues__locked-text { flex: 1 1 auto; }
+.ollie-clues__locked .ollie-chip { background: var(--ol-color-surface-chip, #EFE7D8); color: var(--ol-color-ink-tertiary, #6B6257); }
+
+.ollie-clue {
+  display: flex; flex-direction: column; gap: 8px; padding: 16px 18px;
+  border-radius: 18px; border: 2px solid var(--ollie-help-line); background: var(--ollie-help-bg);
+  transition: border-color 200ms ease;
+}
+.ollie-clue.is-being-read { border: 3px solid var(--ollie-help-strong); padding: 15px 17px; }
+.ollie-clue__head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ollie-clue__label { display: flex; align-items: center; gap: 8px; margin-right: auto; font-size: 13px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ollie-help-text); }
+.ollie-clue__label svg { color: var(--ollie-help-strong); width: 18px; height: 18px; }
+.ollie-clue__reading { display: none; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px; background: #FFFFFF; font-size: 13px; font-weight: 800; color: var(--ollie-help-text); }
+.ollie-clue.is-being-read .ollie-clue__reading { display: inline-flex; }
+.ollie-clue__bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
+.ollie-clue__bars span { width: 3px; border-radius: 2px; background: var(--ollie-help-strong); animation: ollie-bars 700ms ease-in-out infinite alternate; }
+.ollie-clue__bars span:nth-child(1) { height: 6px; }
+.ollie-clue__bars span:nth-child(2) { height: 12px; animation-delay: 120ms; }
+.ollie-clue__bars span:nth-child(3) { height: 8px; animation-delay: 240ms; }
+@keyframes ollie-bars { from { transform: scaleY(0.5); } to { transform: scaleY(1); } }
+.ollie-clue__bars span { transform-origin: 50% 100%; }
+
+.ollie-clue__nav { display: inline-flex; gap: 6px; }
+.ollie-clue__flip {
+  width: 40px; height: 40px; padding: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+  border: 1px solid var(--ollie-help-line); background: #FFFFFF; color: var(--ollie-help-text);
+}
+.ollie-clue__flip:disabled { opacity: 0.4; cursor: default; }
+.ollie-clue__text { margin: 0; font-size: 18px; font-weight: 700; line-height: 1.45; color: var(--ol-color-ink, #2B2722); }
+
+.ollie-clue-btn {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 10px;
+  min-height: 52px; padding: 0 10px 0 16px; border-radius: 16px;
+  border: 2px solid var(--ollie-help-line); background: #FFFFFF; color: var(--ollie-help-text);
+  font-family: inherit; font-size: 17px; font-weight: 800; cursor: pointer;
+}
+.ollie-clue-btn:hover { background: var(--ollie-help-bg); }
+.ollie-clue-btn:focus-visible, .ollie-clue__flip:focus-visible { outline: 3px solid var(--ol-color-blue, #3B6FD8); outline-offset: 2px; }
+
+/* =========================================================================
+   REDUCED MOTION: a still Ollie; voice and captions work as normal
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .ollie, .ollie *, .ollie-dock__bubble, .ollie-clue__bars span { animation: none !important; transition: none !important; }
+}

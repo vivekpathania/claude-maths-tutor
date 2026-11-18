@@ -1,0 +1,1868 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maths</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/design/ollie-theme/app.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
+<!-- Tailwind CSS CDN — this page is a single static file with no build step.
+     Colours resolve to the variables in theme.css so there is one palette. -->
+<link rel="stylesheet" href="/theme.css">
+<link rel="stylesheet" href="/ollie-kit/ollie/ollie.css">
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+        colors: {
+          app: {
+            canvas: 'rgb(var(--rgb-canvas) / <alpha-value>)',
+            cream: 'rgb(var(--rgb-cream) / <alpha-value>)',
+            card: 'rgb(var(--rgb-card) / <alpha-value>)',
+            border: 'rgb(var(--rgb-border) / <alpha-value>)',
+            dark: 'rgb(var(--rgb-dark) / <alpha-value>)',
+            muted: 'rgb(var(--rgb-muted) / <alpha-value>)',
+            sage: 'rgb(var(--rgb-sage) / <alpha-value>)',
+            sageHover: 'rgb(var(--rgb-sage-hover) / <alpha-value>)',
+            sageLight: 'rgb(var(--rgb-sage-light) / <alpha-value>)',
+            sageHighlight: 'rgb(var(--rgb-sage-highlight) / <alpha-value>)',
+            peachBorder: 'rgb(var(--rgb-peach-border) / <alpha-value>)',
+            peachBg: 'rgb(var(--rgb-peach-bg) / <alpha-value>)',
+            peachText: 'rgb(var(--rgb-peach-text) / <alpha-value>)',
+            grayBox: 'rgb(var(--rgb-gray-box) / <alpha-value>)',
+            grayHover: 'rgb(var(--rgb-gray-hover) / <alpha-value>)',
+            dot: 'rgb(var(--rgb-dot) / <alpha-value>)',
+            ollieBg: 'rgb(var(--rgb-ollie-bg) / <alpha-value>)',
+            ollieBorder: 'rgb(var(--rgb-ollie-border) / <alpha-value>)'
+          }
+        }
+      }
+    }
+  };
+</script>
+<style>
+/* iPad/iOS Safari overlays the on-screen keyboard instead of shrinking the
+   layout viewport, so CSS svh/dvh stay full-screen while the keyboard covers
+   the bottom half. --vvh is set from window.visualViewport by the page script. */
+html{min-height:100%}
+body{min-height:100svh;min-height:var(--vvh,100svh)}
+[hidden]{display:none!important}
+@keyframes rise{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:no-preference){ .enter{animation:rise .2s ease-out both} }
+@keyframes pvPop{0%{transform:scale(.55) translateY(5px)}65%{transform:scale(1.14) translateY(-2px)}100%{transform:scale(1) translateY(0)}}
+.pv-lit{animation:pvPop .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes qBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.q-placeholder::placeholder{animation:qBounce 1.6s ease-in-out infinite}
+/* The @tailwindcss/forms plugin gives every text input its own blue focus
+   ring via box-shadow, not outline — focus:outline-none never touches it,
+   and even focus:shadow-none loses the specificity fight with the plugin's
+   own [type='text']:focus rule. This is a direct, narrow override of that
+   one plugin default, not a general pattern. */
+.q-placeholder:focus{box-shadow:none!important}
+</style>
+</head>
+<body class="session-body">
+<header class="page-header">
+  <div class="page-bar">
+    <div class="ol-header__brand" id="brand-topic">
+      <span class="ol-icon-tile" id="topic-mark" aria-hidden="true"></span>
+      <div class="ol-header__copy">
+        <span id="topic-eyebrow" class="ol-header__eyebrow"></span>
+        <span id="topic-name" class="ol-header__title"></span>
+      </div>
+    </div>
+    <div class="ol-header__brand" id="brand-start" hidden>
+      <div class="ol-header__copy">
+        <span id="start-date" class="ol-header__eyebrow"></span>
+        <span class="ol-header__title">Coach Ollie</span>
+      </div>
+    </div>
+    <div id="macro-steps" class="session-macro-steps"></div>
+    <div class="ol-header__actions">
+      <span id="streak" class="ol-chip ol-chip--streak"></span>
+      <div id="child-chip" class="session-child-chip"></div>
+    </div>
+  </div>
+</header>
+
+<main class="page-main ollie-content">
+  <!-- Today's goal. It used to be a footer bar; nothing may sit fixed at the bottom now
+       that Ollie lives in that corner. -->
+  <p id="page-foot" class="page-foot-note"></p>
+  <div id="demo-banner" class="session-banner" hidden>
+    <span aria-hidden="true">🧪</span>
+    <span><b>Demo session</b> — no child profile is set up yet. Your answers won't be saved. <a href="/dashboard.html" class="underline">Set up a profile →</a></span>
+  </div>
+
+  <!-- Single-column screens: loading, error, feedback, start, close, lesson, review. -->
+  <div id="stage-single"></div>
+
+  <!-- Split screens: teach + question. One centred column at every width (Ollie lives in
+       the bottom-left dock, not beside the content). Head, then side, then action;
+       placeAction() nests #stage-action under #stage-head so the question card holds the
+       title, the answer box and the clues. -->
+  <div id="stage-split" class="session-split" hidden>
+    <div id="stage-left" class="stage-col">
+      <section id="stage-head" class="stage-col"></section>
+    </div>
+    <section id="stage-side" class="stage-col"></section>
+    <section id="stage-action" class="stage-col"></section>
+  </div>
+</main>
+<script src="/session-shape.js"></script>
+<script src="/ollie-lines.js"></script>
+<script src="/scene.js"></script>
+<script src="/speech.js"></script>
+<script src="/ollie-kit/ollie/ollie-character.js"></script>
+<script src="/ollie-kit/ollie/ollie-dock.js"></script>
+<script src="/ollie-kit/ollie/ollie-clues.js"></script>
+<script src="/ollie-voice.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  function setVVH(){
+    var vv = window.visualViewport;
+    document.documentElement.style.setProperty('--vvh', (vv ? vv.height : window.innerHeight) + 'px');
+  }
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize', setVVH);
+    window.visualViewport.addEventListener('scroll', setVVH);
+  }
+  window.addEventListener('resize', setVVH);
+  setVVH();
+
+  var SESSION = null;
+
+  /* ── answer normalisation + marking ──────────────────────────────── */
+  function normalise(s){
+    var v = String(s).trim().toLowerCase()
+      .replace(/\s+/g,'').replace(/[·•]/g,'.').replace(/,/g,'').replace(/^\+/,'')
+      .replace(/(?!^)-/g,'');
+    if(v === '') return null;
+    if(/^\.\d+$/.test(v)) v = '0' + v;
+    if(!/^-?\d*\.?\d+$/.test(v)) return v.replace(/^the/,'').replace(/column$/,'').replace(/s$/,'');
+    var n = parseFloat(v);
+    if(isNaN(n)) return v;
+    return String(parseFloat(n.toFixed(6)));
+  }
+  function correct(given, expected){
+    return normalise(given) !== null && normalise(given) === normalise(expected);
+  }
+
+  /* ── DOM helpers ─────────────────────────────────────────────────── */
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function h(html){ var d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstElementChild; }
+
+  /* ── SVG icons — /public/assets/icons|ollie|progress ────────────────
+   * Fetched once at boot and cached as raw markup so Tailwind classes
+   * (sizing, text-color for stroke="currentColor") apply the same way
+   * they would to an inline <svg>. An <img src="..."> can't pick up
+   * currentColor, which is why these are inlined rather than referenced. */
+  var ICON_FILES = {
+    star: '/assets/icons/star.svg',
+    streakFlame: '/assets/icons/streak-flame.svg',
+    goalTarget: '/assets/icons/goal-target.svg',
+    clueBulb: '/assets/icons/clue-bulb.svg',
+    lock: '/assets/icons/lock.svg',
+    check: '/assets/icons/check.svg',
+    clock: '/assets/icons/clock.svg',
+    lessonColumns: '/assets/icons/lesson-columns.svg',
+    lessonBook: '/assets/icons/lesson-book.svg',
+    arrowRight: '/assets/icons/arrow-right.svg',
+    replay: '/assets/icons/replay.svg',
+    speaker: '/assets/icons/speaker.svg',
+    pause: '/assets/icons/pause.svg'
+  };
+  var ICON_CACHE = {};
+  function loadIcons(){
+    return Promise.all(Object.keys(ICON_FILES).map(function(key){
+      return fetch(ICON_FILES[key]).then(function(r){ return r.ok ? r.text() : ''; })
+        .then(function(svg){ ICON_CACHE[key]=svg; })
+        .catch(function(){ ICON_CACHE[key]=''; });
+    }));
+  }
+  function icon(name, cls){
+    var svg = ICON_CACHE[name];
+    if(!svg) return '';
+    return svg.replace('<svg', '<svg class="'+(cls||'')+' shrink-0"');
+  }
+
+  // Coach Ollie lives in a dock, bottom-left, and speaks through `speaker`
+  // (public/ollie-voice.js): a bubble that fades on its own, a recording when there is
+  // one. If the kit or that file did not load, this no-op stand-in keeps every screen
+  // below working — the child just gets no Ollie.
+  var speaker = { say:function(){}, sayText:function(){}, chain:function(){}, stop:function(){},
+    setQuestion:function(){}, remap:null, isSpeaking:function(){ return false; } };
+  var dock = null;
+
+  /* ── API helpers ─────────────────────────────────────────────────── */
+  // Every /api call carries the child key (app.js "Authentication"). It is
+  // stored per device, so the parent types it once on the iPad and never
+  // again. This is the CHILD key: it reaches only the three routes below, so
+  // a borrowed iPad cannot read the dashboard or delete anything.
+  var KEY_STORE = 'tutorChildKey';
+  function tutorKey(){
+    try { return localStorage.getItem(KEY_STORE) || ''; } catch(e){ return ''; }
+  }
+  function setTutorKey(k){
+    try { localStorage.setItem(KEY_STORE, k); } catch(e){}
+  }
+  function apiFetch(url, opts){
+    opts = opts || {};
+    var headers = {};
+    for(var h in (opts.headers||{})) headers[h] = opts.headers[h];
+    headers['x-tutor-key'] = tutorKey();
+    opts.headers = headers;
+    return fetch(url, opts);
+  }
+
+  // Every answer goes to the server as it happens, IN ORDER, and is kept until the
+  // server confirms it. A send that fails is not dropped: it waits at the front of
+  // the queue and everything behind it waits too. Order matters — the grader reads a
+  // question's FIRST recorded try as the unaided one, so a retry must never land a
+  // second try ahead of the first. Each attempt carries a clientId, so if a send
+  // succeeded but its reply was lost, sending it again is harmless (the server
+  // acknowledges a repeat and stores it once). The last screen says so if anything
+  // is still unsent. Used to be `.catch(function(){})`: a failed send did nothing,
+  // and 30 minutes of work reached no one while the screen looked fine.
+  // shortcut: the queue lives in memory — a reload during an outage loses what was
+  // unsent, and the page then resumes from what the server holds.
+  var sendQueue = [], inflight = null;
+  function newClientId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+  function flushQueue(){
+    if(inflight) return inflight;
+    if(!sendQueue.length) return Promise.resolve();
+    inflight = (function next(){
+      if(!sendQueue.length) return Promise.resolve();
+      var it = sendQueue[0];
+      return apiFetch(it.url, {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(it.body)
+      }).then(function(r){
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        sendQueue.shift();
+        return next();
+      });
+    })().then(function(){}, function(){}).then(function(){ inflight = null; });
+    return inflight;
+  }
+  function enqueue(url, body){ sendQueue.push({url:url, body:body}); return flushQueue(); }
+
+  function postAttempt(data){
+    if(SESSION) (SESSION.attempts = SESSION.attempts || []).push(data);
+    if(!SESSION || SESSION.demo) return;
+    data.clientId = newClientId();
+    enqueue('/api/sessions/'+SESSION.id+'/attempts', data);
+  }
+  function postFinish(summary){
+    if(!SESSION || SESSION.demo) return Promise.resolve();
+    return enqueue('/api/sessions/'+SESSION.id+'/finish', summary);
+  }
+
+  /* ── state ───────────────────────────────────────────────────────── */
+  var state = {screen:'loading', i:0, tries:0, hintsShown:0, result:null,
+               teachStep:{}, lastGiven:'', log:[], fbSeen:{}, startedAt: Date.now(),
+               reviewing:false, reviewStep:0, angleSeen:{}, chartOpen:{},
+               streak:0, streakShown:0, resumeStep:-1};
+  var steps = [];
+  var RESUME_AT = 0;
+  var firstPracticeStepIdx = -1;
+
+  /* ── Coach Ollie — the single voice ──────────────────────────────────
+   * register() decides how much Ollie is allowed to say, from uiMode —
+   * never from SESSION.kind string-matching. See docs/mascot.md §3. */
+  function computeRegister(S){
+    var u = S.uiMode || {};
+    if (u.retryPolicy === 'oneShot' || u.allowReveal === false) return 'assessment';
+    return S.teach ? 'teaching' : 'practice';
+  }
+  var REGISTER = 'practice';
+
+  // How the page speaks. q.ollie (an authored line for one question) is handled in
+  // ollie-voice.js — it only replaces the plain fresh/wrong/right moments, never the
+  // structural ones. A click that opens a new screen can set a lead-in ('start',
+  // 'feedback.done'): the screen's own opener then waits for it to finish.
+  var leadIn = null;
+  function speakAll(items){
+    if(leadIn){ items = [{moment:leadIn}].concat(items); leadIn = null; }
+    if(items.length===1 && !items[0].text) speaker.say(items[0].moment, items[0].o);
+    else speaker.chain(items);
+  }
+  function say(moment, o){ speakAll([{moment:moment, o:o}]); }
+  // A screen is drawn again for every change. Only a NEW screen, question or teach step
+  // may open with a line; after an answer, Ollie reacts through the clue track instead.
+  var openerSig = '';
+  function isNewScreen(sig){ if(sig===openerSig) return false; openerSig = sig; if(speaker && speaker.newScreen) speaker.newScreen(); return true; }
+
+  function oneShotSession(){
+    if(SESSION.uiMode && SESSION.uiMode.retryPolicy) return SESSION.uiMode.retryPolicy==='oneShot';
+    return SESSION.kind==='placement';
+  }
+
+  function buildSteps(S){
+    steps = [];
+    S.warmup.items.forEach(function(q,i){
+      steps.push({kind:'q', phase:'warm', q:q, label:'Warm-up '+(i+1),
+                  phaseIndex:i+1, phaseTotal:S.warmup.items.length});
+    });
+    var teach = SessionShape.normalizeTeach(S);
+    if(teach){
+      var n = teach.cycles.length;
+      teach.cycles.forEach(function(c,ci){
+        steps.push({kind:'teach', phase:'teach', cycle:c, cycleIndex:ci, cycleCount:n,
+                    title:teach.title});
+        if(c.q){
+          steps.push({kind:'q', phase:'teach', guided:true, cycle:c, cycleIndex:ci,
+                      q:c.q, label: n>1 ? ('You try — part '+(ci+1)) : 'You try'});
+        }
+      });
+    }
+    S.practice.forEach(function(q,i){
+      steps.push({kind:'q', phase:'practice', q:q, label:'Practice '+(i+1),
+                  phaseIndex:i+1, phaseTotal:S.practice.length});
+    });
+    var qCount = steps.filter(function(s){ return s.kind==='q'; }).length;
+    state.log = new Array(qCount).fill(null);
+    state.halfwayShown = false;
+
+    firstPracticeStepIdx = -1;
+    steps.forEach(function(st,i){
+      if(firstPracticeStepIdx<0 && st.kind==='q' && st.phase==='practice') firstPracticeStepIdx=i;
+      if(st.kind==='teach' && !(steps[i+1] && steps[i+1].kind==='q'))
+        console.error('session-shape: teach block at step '+i+' has no question after it — resume will stall here.');
+    });
+  }
+
+  function qIndex(stepIdx){
+    var n=0;
+    for(var k=0;k<stepIdx;k++){ if(steps[k].kind==='q') n++; }
+    return n;
+  }
+  function totalQuestions(){ return state.log.length; }
+
+  function prevQStep(idx){
+    for(var k=idx-1;k>=0;k--){ if(steps[k].kind==='q') return k; }
+    return -1;
+  }
+  function nextQStep(idx, maxExclusive){
+    for(var k=idx+1;k<maxExclusive;k++){ if(steps[k].kind==='q') return k; }
+    return -1;
+  }
+
+  function resumeFromAttempts(){
+    var lastByQ={};
+    (SESSION.attempts||[]).forEach(function(a){ lastByQ[a.questionId]=a; });
+    (SESSION.attempts||[]).forEach(function(a){
+      if(a.secondAngleShown) state.angleSeen[a.questionId]=true;
+    });
+    var oneShot = oneShotSession();
+    for(var i=0;i<steps.length;i++){
+      var st=steps[i];
+      if(st.kind==='teach'){
+        var nxt=steps[i+1], nxtQid=nxt && nxt.kind==='q' && (nxt.q.id || ('q_'+qIndex(i+1)));
+        if(!nxtQid || !lastByQ[nxtQid]) return i;
+        continue;
+      }
+      if(st.kind!=='q') continue;
+      var qi=qIndex(i), qid=st.q.id || ('q_'+qi);
+      var a=lastByQ[qid];
+      if(!a){ return i; }
+      var resolved = oneShot || a.correct || a.revealed || a.exhausted;
+      if(!resolved){
+        state.tries = a.tries || 0;
+        state.hintsShown = a.hintsUsed || 0;
+        return i;
+      }
+      state.log[qi] = a.revealed ? 'shown' : a.exhausted ? 'exhausted'
+                    : !a.correct ? 'wrong' : (a.tries===1 ? 'first' : 'retry');
+    }
+    return steps.length;
+  }
+
+  /* ── stage elements ──────────────────────────────────────────────── */
+  var dotsEl = document.getElementById('dots');
+  var topicNameEl = document.getElementById('topic-name');
+  var topicCounterEl = document.getElementById('topic-counter');
+  var stageSingleWrap = document.getElementById('stage-single');
+  var stageSplitWrap  = document.getElementById('stage-split');
+  var stageLeft   = document.getElementById('stage-left');
+  var stageHead   = document.getElementById('stage-head');
+  var stageSide   = document.getElementById('stage-side');
+  var stageAction = document.getElementById('stage-action');
+
+  // One column at every width: #stage-action nests under #stage-head inside stage-left, so
+  // the question card holds the title, the answer box and the clues beneath it, and
+  // whatever is left in #stage-side (second angle, golden rule, week) follows below.
+  function placeAction(){
+    if(stageSplitWrap.hidden) return;
+    if(stageAction.parentElement !== stageLeft) stageLeft.appendChild(stageAction);
+  }
+
+  function setTopicHeader(name){
+    topicNameEl.textContent = name || '';
+    var eye = document.getElementById('topic-eyebrow');
+    if(eye){
+      var kindLabel = { practice:'Practice', lesson:'Learn', check:'Check', retest:'Check' }[SESSION && SESSION.kind] || '';
+      var group = SESSION && SESSION.topicGroup ? String(SESSION.topicGroup).split(',')[0].trim() : '';
+      eye.textContent = [kindLabel, group].filter(Boolean).join(' · ');
+    }
+    var mark = document.getElementById('topic-mark');
+    if(mark && !mark.innerHTML) mark.innerHTML = icon('lessonColumns','ol-icon');
+  }
+  function setCounter(text){ if(topicCounterEl) topicCounterEl.textContent = text || ''; }
+
+  // Today's goal, in Ollie's own target icon — the one thing a child should
+  // be able to answer if asked "what are you learning today?". SESSION.goal
+  // is the field a future agent update can author directly; topicDescription
+  // is today's stand-in so this isn't empty until that lands.
+  function paintFooter(){
+    var el = document.getElementById('page-foot');
+    if(!el) return;
+    if(!SESSION){ el.innerHTML = ''; return; }
+    var goalText = SESSION.goal || SESSION.topicDescription || SESSION.topicName || '';
+    if(!goalText){ el.innerHTML = ''; return; }
+    el.innerHTML = icon('goalTarget', 'ol-icon') +
+      '<span><b>Today\'s goal:</b> '+esc(goalText)+'</span>';
+  }
+
+  // Child identity + streak — static chrome, painted once per session load
+  // (not per render(), since it never changes mid-session) right after
+  // SESSION is set. Cleared for a demo session (no real child, nothing to
+  // show) and left untouched by every other render() call.
+  function yearFromStage(stage){
+    var m = String(stage||'').match(/(?:Stage|Class|Year)\s*(\d+)/i);
+    return m ? ('Year '+m[1]) : '';
+  }
+  function paintChildChip(){
+    var streakEl = document.getElementById('streak');
+    var chipEl = document.getElementById('child-chip');
+    if(!SESSION || SESSION.demo){
+      if(streakEl) streakEl.innerHTML='';
+      if(chipEl) chipEl.innerHTML='';
+      return;
+    }
+    if(streakEl)
+      streakEl.innerHTML = SESSION.streak>0 ? (icon('streakFlame','')+SESSION.streak+'-day streak') : '';
+    if(chipEl){
+      if(SESSION.childName){
+        var first = SESSION.childName.trim().split(/\s+/)[0];
+        var initial = first.charAt(0).toUpperCase();
+        var yearLabel = yearFromStage(SESSION.childStage);
+        chipEl.innerHTML = '<div class="ol-avatar">'+esc(initial)+'</div>'+
+          '<div class="child-name-stack"><b>'+esc(first)+'</b>'+
+          (yearLabel ? '<span>'+esc(yearLabel)+'</span>' : '')+'</div>';
+      } else chipEl.innerHTML='';
+    }
+  }
+
+  // Macro step indicator ("① Look back ② Learn ③ Practice") — which major
+  // part of TODAY's session the child is in, distinct from the dots'
+  // per-question progress within one part. Only shown where there's a real
+  // multi-part journey to map: hidden entirely in the assessment register
+  // (a check/placement must read as one plain set of questions, never a
+  // staged journey — CLAUDE.md "must be indistinguishable from a practice
+  // session") and on screens with no session underway.
+  function macroStepsList(){
+    var list = [];
+    if(SESSION.feedback && SESSION.feedback.length) list.push({ key:'feedback', label:'Look back' });
+    // "Learn" is only a real lesson (teach.cycles). A warm-up in a practice
+    // session is not one — those questions belong with Practice.
+    if(SESSION.teach) list.push({ key:'learn', label:'Learn' });
+    list.push({ key:'practice', label:'Practice' });
+    return list;
+  }
+  function currentMacroKey(){
+    if(state.screen==='feedback') return 'feedback';
+    if(state.screen==='lesson') return 'learn';
+    var s = steps[state.i];
+    if(!s) return 'practice';
+    return s.phase==='teach' ? 'learn' : 'practice';
+  }
+  // Per-question stones. "Learn" is only the guided questions of a real
+  // lesson. Warm-up questions in a practice session are numbered into that
+  // same Practice row — the session has no lesson to put them under.
+  function progressStonesHtml(){
+    var learn = [], practice = [], qi = 0;
+    // On a teach step the guided question hasn't started, but it is the
+    // stone this part belongs to — the ring sits on it until it's answered.
+    var cur = -1;
+    if(steps[state.i] && steps[state.i].kind==='q') cur = qIndex(state.i);
+    else if(steps[state.i] && steps[state.i].kind==='teach'){
+      for(var k=state.i+1;k<steps.length;k++){
+        if(steps[k].kind==='q'){ cur = qIndex(k); break; }
+      }
+    }
+    steps.forEach(function(st){
+      if(st.kind!=='q') return;
+      var item = { qi: qi, phase: st.phase };
+      qi++;
+      if(st.phase==='teach') learn.push(item);
+      else practice.push(item);
+    });
+    function stone(item, n, asLearn){
+      var log = state.log[item.qi];
+      if(item.qi===cur) return '<span class="ol-qstone" data-state="current" aria-current="step">'+n+'</span>';
+      if(!log) return '<span class="ol-qstone">'+n+'</span>';
+      if(asLearn) return '<span class="ol-qstone" data-state="done">'+icon('check','ol-icon')+'</span>';
+      if(log==='first') return '<span class="ol-qstone" data-state="star">'+icon('star','ol-icon')+'</span>';
+      return '<span class="ol-qstone" data-state="helped">'+icon('check','ol-icon')+'</span>';
+    }
+    function group(label, items, asLearn){
+      return '<div class="ol-qprogress-group"><span class="ol-qprogress-label">'+esc(label)+'</span><span class="ol-qstones">'+
+        items.map(function(item, i){ return stone(item, i+1, asLearn); }).join('')+'</span></div>';
+    }
+    var html = '<div class="ol-qprogress">';
+    if(learn.length) html += group('Learn', learn, true);
+    if(learn.length && practice.length) html += '<span class="ol-qprogress-rule" aria-hidden="true"></span>';
+    if(practice.length){
+      var here = -1;
+      practice.forEach(function(p, i){ if(p.qi===cur) here = i; });
+      var label = here>=0 ? ('Practice · question '+(here+1)+' of '+practice.length) : 'Practice';
+      html += group(label, practice, false);
+    }
+    return html+'</div>';
+  }
+  function renderMacroSteps(){
+    var el = document.getElementById('macro-steps');
+    if(!el) return;
+    if(!SESSION || REGISTER==='assessment' ||
+       state.screen==='start' || state.screen==='close' || state.screen==='loading'){
+      el.innerHTML=''; return;
+    }
+    if(state.screen==='run' || state.screen==='lesson'){
+      // A teach walkthrough names its parts ("Comma rule"), which is what
+      // the header shows while that explanation is on screen. Question
+      // stones return as soon as a question is the current step.
+      var chips = state.screen==='run' ? learnCycleChipsHtml() : '';
+      el.innerHTML = chips || progressStonesHtml();
+      return;
+    }
+    var list = macroStepsList();
+    if(list.length<2){ el.innerHTML=''; return; }
+    var curKey = currentMacroKey(), curIdx=-1;
+    list.forEach(function(m,i){ if(m.key===curKey) curIdx=i; });
+    el.innerHTML = '<ol class="ol-steps">'+list.map(function(m,i){
+      var attrs = i===curIdx ? ' aria-current="step"' : (i<curIdx ? ' data-state="done"' : '');
+      var num = i<curIdx ? icon('check','ol-icon') : String(i+1);
+      return '<li class="ol-steps__item"'+attrs+'><span class="ol-steps__dot">'+num+'</span>'+esc(m.label)+'</li>';
+    }).join('')+'</ol>';
+  }
+
+  function renderDots(){
+    if(!dotsEl) return;
+    var phaseLabelEl = document.getElementById('phase-label');
+    var starsEl = document.getElementById('stars');
+    if(state.screen==='loading'||state.screen==='start'||state.screen==='close'){
+      dotsEl.innerHTML=''; if(phaseLabelEl) phaseLabelEl.textContent=''; if(starsEl) starsEl.innerHTML='';
+      return;
+    }
+    var cur = qIndex(state.i);
+    dotsEl.innerHTML = state.log.map(function(r,i){
+      var cls = 'w-8 h-1.5 rounded-full ';
+      if(r==='first') cls += 'bg-app-sage';
+      else if(r==='retry' || r==='wrong') cls += 'bg-app-peachBorder';
+      else if(i===cur) cls += 'bg-app-sage/70 ring-2 ring-app-sageLight';
+      else cls += 'bg-app-dot';
+      return '<span class="'+cls+'"></span>';
+    }).join('');
+    // A1/A5 — which phase the child is in right now, so the dots read as a
+    // map of the session rather than an anonymous progress bar.
+    if(phaseLabelEl){
+      var curStep = steps[state.i];
+      phaseLabelEl.textContent = curStep ? (PHASE_LABEL[curStep.phase] || '') : '';
+    }
+    // A2 — first-try stars earned so far this session.
+    if(starsEl){
+      var starCount = state.log.filter(function(r){ return r==='first'; }).length;
+      starsEl.innerHTML = starCount>0 ? (icon('star','') + starCount) : '';
+    }
+  }
+
+  // Single card wrapper every "single-column" screen (start, close, loading,
+  // feedback, lesson, review, error) renders into.
+  function singleCard(){
+    stageSingleWrap.hidden = false;
+    stageSplitWrap.hidden = true;
+    stageSingleWrap.innerHTML = '';
+    var card = h('<div class="enter session-card"></div>');
+    stageSingleWrap.appendChild(card);
+    return card;
+  }
+  // Opens the split layout for teach()/question() and clears all three slots.
+  function setSolo(on){
+    stageSplitWrap.classList.toggle('is-solo', !!on);
+  }
+  function openSplit(){
+    stageSingleWrap.hidden = true;
+    stageSplitWrap.hidden = false;
+    setSolo(false);
+    stageSplitWrap.classList.remove('ol-lookback');
+    stageSplitWrap.classList.remove('ol-start');
+    stageSplitWrap.classList.remove('ol-practice');
+    stageSplitWrap.classList.remove('ol-learn');
+    stageSplitWrap.classList.remove('is-correct');
+    stageHead.innerHTML = ''; stageSide.innerHTML = ''; stageAction.innerHTML = '';
+    placeAction();
+  }
+
+  function badge(text, warm){
+    return '<span class="q-badge enter inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase '+
+      (warm ? 'text-app-muted bg-app-grayBox' : 'text-app-muted bg-white border border-app-border') +
+      '"><span class="w-1.5 h-1.5 rounded-full '+(warm?'bg-app-muted':'bg-app-sage')+'"></span>'+esc(text)+'</span>';
+  }
+
+  var BTN_PRIMARY = 'inline-flex items-center justify-center gap-2 h-12 px-6 rounded-2xl bg-app-sage hover:bg-app-sageHover ' +
+    'text-white font-bold text-[15px] shadow-sm transition active:scale-[0.98]';
+  var BTN_SECONDARY = 'inline-flex items-center justify-center gap-2 h-12 px-5 rounded-2xl bg-app-grayBox hover:bg-app-grayHover ' +
+    'text-app-dark font-semibold text-[14px] transition active:scale-[0.98]';
+  var BTN_QUIET = 'text-app-muted hover:text-app-dark text-[13px] font-semibold underline-offset-2 hover:underline transition';
+
+  // Not a grid. The number renders as ONE string, the way a number actually
+  // is written ("305,020"), inside a single plain card. A column being
+  // talked about is coloured, lifted, and flagged with its name above it; a
+  // column that is NOT being talked about is just a plain digit — the only
+  // label on screen is the one a step is actually pointing at.
+  function pvHtml(cols, lit){
+    var onesIdx=-1;
+    cols.forEach(function(c,i){ if(/^ones$/i.test(c[0])) onesIdx=i; });
+    var decStart = onesIdx>=0 ? onesIdx+1 : cols.length;
+    var hasDigits = cols.some(function(c){ return c[1]; });
+
+    if(!hasDigits){
+      var leg='<div class="enter pv-legend">';
+      cols.forEach(function(c,i){
+        if(i>0 && i===decStart) leg+='<span class="text-app-muted font-bold">·</span>';
+        leg+='<span class="text-[11px] font-bold tracking-wide uppercase text-app-muted/90">'+esc(c[0])+'</span>';
+      });
+      return leg+'</div>';
+    }
+
+    var comma={};
+    if(decStart>0){
+      var p=decStart%3 || 3;
+      while(p<decStart){ comma[p]=true; p+=3; }
+    }
+    for(var q=decStart+3; q<cols.length; q+=3) comma[q]=true;
+
+    var few = lit.length>0 && lit.length<cols.length;
+
+    var out='<div class="enter pv-figure'+(lit.length?' pv-figure-tagged':'')+'">';
+    cols.forEach(function(c,i){
+      if(i===decStart && i>0) out+='<span class="pv-sep">.</span>';
+      else if(comma[i]) out+='<span class="pv-sep">,</span>';
+      var isLit=lit.indexOf(i)>=0;
+      if(isLit){
+        out+='<span class="pv-digit pv-lit" data-lit>'+
+          '<span class="pv-digit__label">'+esc(c[0])+'</span>'+esc(c[1]||'0')+'</span>';
+      } else {
+        out+='<span class="pv-digit'+(few?'':' pv-digit--plain')+'">'+esc(c[1]||'0')+'</span>';
+      }
+    });
+    return out+'</div>';
+  }
+
+  // The literal grid-table place-value chart — reserved for the optional
+  // "Show place value chart" escalation only, never the primary display.
+  // Highlights the SAME lit[] the primary view uses, nothing more: this is a
+  // deeper look at the same picture, not a new way to give the answer away.
+  // Short column abbreviations for the table header, matching the
+  // reference's own convention (H-TH / T-TH / TH / H / T / O). A naive
+  // first-letter scheme collides Thousands and Tens into the same 'T' —
+  // this is an explicit lookup for the fixed place-value vocabulary instead.
+  var PV_ABBR = {
+    'hundred-thousands':'H-TH', 'ten-thousands':'T-TH', 'thousands':'TH',
+    'hundreds':'H', 'tens':'T', 'ones':'O',
+    'tenths':'t', 'hundredths':'h', 'thousandths':'th'
+  };
+  function pvAbbr(label){
+    var k = String(label||'').toLowerCase();
+    return PV_ABBR[k] || String(label||'').slice(0,2).toUpperCase();
+  }
+  function pvTableHtml(cols, lit){
+    var head='', body='';
+    cols.forEach(function(c,i){
+      var on = lit.indexOf(i)>=0;
+      var cell = 'pv-cell' + (on ? ' pv-cell-on' : '');
+      head += '<div class="'+cell+'" title="'+esc(c[0]||'')+'">'+esc(pvAbbr(c[0]))+'</div>';
+      body += '<div class="'+cell+'">'+esc(c[1]||'0')+'</div>';
+    });
+    var colsStyle = 'style="grid-template-columns:repeat('+cols.length+',minmax(0,1fr))"';
+    return '<div class="pv-table">' +
+      '<div class="pv-table-head" '+colsStyle+'>'+head+'</div>' +
+      '<div class="pv-table-body" '+colsStyle+'>'+body+'</div>' +
+      '</div>';
+  }
+
+  function fractionBarsHtml(v){
+    var bars = Array.isArray(v.bars) ? v.bars : [];
+    if(!bars.length) return '';
+    var out='<div class="enter flex flex-col gap-3">';
+    bars.forEach(function(b){
+      var parts  = Math.max(1, parseInt(b.parts,10)  || 1);
+      var shaded = Math.min(parts, Math.max(0, parseInt(b.shaded,10) || 0));
+      out += '<div class="flex flex-col gap-1.5">';
+      if(b.label) out += '<span class="font-bold text-app-dark">'+esc(b.label)+'</span>';
+      out += '<div class="flex gap-0.5 w-full">';
+      for(var i=0;i<parts;i++) out += '<span class="flex-1 min-w-0 h-8 rounded border border-app-border '+(i<shaded?'bg-app-sage border-app-sage':'bg-app-grayBox')+'"></span>';
+      out += '</div></div>';
+    });
+    if(v.caption) out += '<div class="text-sm text-app-muted text-center mt-1">'+esc(v.caption)+'</div>';
+    return out+'</div>';
+  }
+
+  function visualHtml(v){
+    if(!v || !v.type) return '';
+    if(v.type==='placeValue')   return pvHtml(v.cols||[], v.lit||[]);
+    if(v.type==='fractionBars') return fractionBarsHtml(v);
+    if(v.type==='scene')        return sceneHtml(v);
+    return '';
+  }
+
+  // A scene is drawn by public/scene.js, the same module verify-session.js
+  // measures it with. If the script failed to load or the scene is invalid it
+  // draws nothing, like an unknown type — never half a picture.
+  function sceneHtml(v){
+    if(typeof SceneLib==='undefined') return '';
+    try { var s = SceneLib.html(v); return s ? '<div class="enter">'+s+'</div>' : ''; }
+    catch(e){ return ''; }
+  }
+
+  // Lets the question/teach renderer offer "Show place value chart" under
+  // whatever visual it already drew, reusing the same cols/lit — no new data.
+  // Appends the "Show place value chart" toggle INTO an existing card
+  // (helpCard — the same card the hints/placeholder live in), with a
+  // divider above it when that card already has content, matching the
+  // reference where the toggle sits inside the hint card, not as its own
+  // box. The expanded chart itself is a separate card, appended as
+  // helpCard's next sibling, since it is genuinely optional/extra content.
+  function appendChartToggle(sideCard, visual, key){
+    if(!visual || visual.type!=='placeValue' || !(visual.cols||[]).some(function(c){return c[1];})) return;
+    var hasContentAbove = sideCard.children.length>0;
+    var row = h('<div class="card-split'+(hasContentAbove?'':' is-first')+'"></div>');
+    var toggle = h('<button type="button" class="'+BTN_QUIET+' inline-flex items-center gap-1.5">'+
+      '<svg class="w-3.5 h-3.5 stroke-current fill-none shrink-0" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="15" y2="18"/></svg>'+
+      '<span>'+(state.chartOpen[key]?'Hide place value chart':'Show place value chart')+'</span></button>');
+    toggle.addEventListener('click', function(){ state.chartOpen[key]=!state.chartOpen[key]; render(); });
+    row.appendChild(toggle);
+    // "Help is always free" used to sit here, unattributed — dropped rather
+    // than attributed to Ollie: the sentiment already lives in his stuck
+    // lines, and a toggle row isn't a sentence he needs to say twice.
+    sideCard.appendChild(row);
+    if(state.chartOpen[key]){
+      var chart = h('<div class="enter side-card"></div>');
+      chart.appendChild(h('<div class="chart-label">Place value columns</div>'));
+      chart.appendChild(h(pvTableHtml(visual.cols, visual.lit||[])));
+      sideCard.parentElement.insertBefore(chart, sideCard.nextSibling);
+    }
+  }
+
+  /* ── screens ─────────────────────────────────────────────────────── */
+  // Draw the screen. Whatever it says, it says while drawing (see say / isNewScreen). A
+  // lead-in nothing picked up (a silent next screen) is spoken here, on its own.
+  function render(){
+    renderScreen();
+    if(leadIn){ var l = leadIn; leadIn = null; speaker.say(l); }
+  }
+  function renderScreen(){
+    renderDots();
+    renderMacroSteps();
+    paintFooter();
+    var mainEl = document.querySelector('.page-main');
+    var isStart = state.screen==='start' && !state.reviewing;
+    if(mainEl){
+      mainEl.classList.toggle('is-lookback', state.screen==='feedback' && !state.reviewing);
+      mainEl.classList.toggle('is-start', isStart);
+    }
+    var topicBrand = document.getElementById('brand-topic');
+    var startBrand = document.getElementById('brand-start');
+    if(topicBrand) topicBrand.hidden = isStart;
+    if(startBrand) startBrand.hidden = !isStart;
+    if(state.reviewing)           return reviewQuestion();
+    if(state.screen==='loading')  return loading();
+    if(state.screen==='unlock')   return unlock();
+    if(state.screen==='error')    return error(state.errorMsg);
+    if(state.screen==='feedback') return feedback();
+    if(state.screen==='lesson')   return lesson();
+    if(state.screen==='start')    return start();
+    if(state.screen==='close')    return close();
+    var s = steps[state.i];
+    if(!s){ state.screen='close'; return close(); }
+    setCounter('Question '+(qIndex(state.i)+1)+' of '+totalQuestions());
+    if(s.kind==='teach') return teach();
+    return question(s);
+  }
+
+  function loading(){
+    var card = singleCard();
+    card.appendChild(h('<div class="text-center py-10 text-app-muted font-semibold">Loading your session…</div>'));
+  }
+
+  function error(msg){
+    var card = singleCard();
+    card.appendChild(h('<div class="bg-app-peachBg border border-app-peachBorder rounded-xl p-4 flex flex-col gap-2">'+
+      '<b class="text-app-peachText">Something went wrong</b><div>'+esc(msg||'Could not load the session.')+'</div></div>'));
+    var b = h('<button type="button" class="'+BTN_PRIMARY+'">Try again</button>');
+    b.addEventListener('click', function(){ location.reload(); });
+    card.appendChild(b);
+  }
+
+  // Shown when the API rejects our key (401) — a first visit on a new device,
+  // or a rotated key. Deliberately a grown-up screen, not an Ollie one: this
+  // is the parent's job and nothing is wrong with the child or their work.
+  function unlock(){
+    var card = singleCard();
+    card.appendChild(h('<h1 class="text-center text-[22px] font-extrabold tracking-tight">One-time setup</h1>'));
+    card.appendChild(h('<p class="text-app-muted text-[14px] max-w-[34ch] mx-auto text-center">'+
+      'Ask a grown-up to enter the access key for this device. It only needs doing once.</p>'));
+    var inp = h('<input type="password" inputmode="text" autocomplete="off" spellcheck="false" '+
+      'class="w-full h-12 px-4 rounded-2xl border border-app-line text-[16px]" placeholder="Access key">');
+    var msg = h('<div class="text-app-peachText text-[13px] text-center" hidden></div>');
+    var go = h('<button type="button" class="'+BTN_PRIMARY+' w-full">Unlock</button>');
+    function submit(){
+      var v = (inp.value||'').trim();
+      if(!v){ inp.focus(); return; }
+      setTutorKey(v);
+      location.reload();
+    }
+    go.addEventListener('click', submit);
+    inp.addEventListener('keydown', function(e){ if(e.key==='Enter') submit(); });
+    if(tutorKey()){
+      msg.hidden = false;
+      msg.textContent = 'That key was not accepted. Please check it and try again.';
+    }
+    card.appendChild(inp); card.appendChild(msg); card.appendChild(go);
+    if(dotsEl) dotsEl.innerHTML='';
+    setTimeout(function(){ inp.focus(); }, 50);
+  }
+
+  // "Look back" — one item in focus at a time (matching the "LOOK BACK 1 OF
+  // 2" badge), not every card stacked at once. `lastTry`/`remember`/`visual`
+  // are optional structured fields (CLAUDE.md "Session shape"); an item
+  // authored before they existed has none of them and falls back to
+  // rendering its `body` blob exactly as it always has — nothing breaks on
+  // old stored feedback.
+  // Place-value diagram for look-back, drawn as digit boxes. A written
+  // digit is "given", a 0 is "zero" (the empty column), a blank is "empty".
+  // Same columns and labels as pvHtml — only the look-back screen uses this.
+  // Whole-number column names, rightmost first. Same names pvAbbr already uses.
+  var WHOLE_PLACES = ['ones','tens','hundreds','thousands','ten-thousands','hundred-thousands','millions'];
+  function placeLabels(n){
+    var labels = [];
+    for(var i=n-1; i>=0; i--) labels.push(WHOLE_PLACES[i] || '');
+    return labels;
+  }
+  function digitBoxes(cells, caption){
+    var n = cells.length;
+    var labels = placeLabels(n);
+    var html = '<div class="ol-bg-muted ol-rounded-xl ol-p-6 ol-lookback-panel"><div class="ol-digits ol-justify-center">';
+    cells.forEach(function(cell, i){
+      if(i>0 && (n-i)%3===0) html += '<span class="ol-digit-sep" aria-hidden="true">,</span>';
+      html += '<div class="ol-digit-col"><span class="ol-digit-col__label">'+esc(pvAbbr(labels[i]))+'</span>'+
+        '<span class="ol-digit ol-digit--'+cell.tone+'">'+esc(cell.ch)+'</span></div>';
+    });
+    html += '</div>';
+    if(caption) html += '<p class="ol-text-secondary ol-text-center ol-mb-0">'+esc(caption)+'</p>';
+    html += '</div>';
+    return html;
+  }
+  // A legacy feedback body is one HTML blob. Pull the "you wrote" line, any
+  // digit/blank pattern or number it already states, and the rule, and draw
+  // those as the same digit boxes and remember card the structured cards use.
+  function parseLegacyBody(bodyHtml){
+    var root = document.createElement('div');
+    root.innerHTML = bodyHtml || '';
+    var ruleEl = root.querySelector('.rule');
+    var rule = '';
+    if(ruleEl){
+      rule = (ruleEl.textContent || '').replace(/^[^A-Za-z0-9]+/, '').trim();
+      ruleEl.remove();
+    }
+    var html = root.innerHTML.replace(/<br\s*\/?>/gi, '\n');
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    var lines = (tmp.textContent || '').split('\n').map(function(s){
+      return s.replace(/\s+/g, ' ').trim();
+    }).filter(Boolean);
+    var wrote = null, verb = 'wrote';
+    if(lines.length && /^you (wrote|said)\b/i.test(lines[0])){
+      verb = /said/i.test(lines[0]) ? 'said' : 'wrote';
+      var wm = lines[0].match(/([0-9][0-9,]*)/);
+      if(wm) wrote = wm[1];
+      lines.shift();
+    }
+    var cells = null;
+    var patternLine = -1;
+    for(var i=0; i<lines.length; i++){
+      var pm = lines[i].match(/(?:^|:\s*)((?:\d|_)\s+(?:\d|_)\s+(?:\d|_)(?:\s+(?:\d|_))*)/);
+      if(pm){
+        patternLine = i;
+        cells = pm[1].trim().split(/\s+/).map(function(tok){
+          if(tok==='_' || tok==='0') return { ch: tok==='_' ? '0' : tok, tone: 'zero' };
+          return { ch: tok, tone: 'given' };
+        });
+        break;
+      }
+    }
+    if(!cells){
+      var joined = lines.join(' ');
+      var nums = joined.match(/\d{1,3}(?:,\d{3})+|\d{4,}/g);
+      var nth = joined.match(/(\d+)(?:st|nd|rd|th)\s+digit/i);
+      var answer = null;
+      var bolds = root.querySelectorAll('b');
+      for(var b=bolds.length-1; b>=0; b--){
+        var bt = (bolds[b].textContent || '').trim();
+        if(/^\d$/.test(bt)){ answer = bt; break; }
+      }
+      if(nums && nums.length && nth){
+        var digits = nums[nums.length-1].replace(/,/g, '');
+        var fromRight = parseInt(nth[1], 10);
+        cells = digits.split('').map(function(ch, idx){
+          var place = digits.length - idx;
+          var tone = place===fromRight ? 'target' : (ch==='0' ? 'zero' : 'dim');
+          if(place===fromRight && answer && ch!==answer) tone = ch==='0' ? 'zero' : 'dim';
+          return { ch: ch, tone: tone };
+        });
+      }
+    }
+    var captionLines = lines.filter(function(line, idx){ return idx!==patternLine; });
+    return { wrote: wrote, verb: verb, cells: cells, caption: captionLines.join(' '), rule: rule };
+  }
+
+  function lookbackDigits(v){
+    if(!v || v.type!=='placeValue') return '';
+    var cols = v.cols || [];
+    if(!cols.some(function(c){ return c[1]; })) return '';
+    var onesIdx=-1;
+    cols.forEach(function(c,i){ if(/^ones$/i.test(c[0])) onesIdx=i; });
+    var decStart = onesIdx>=0 ? onesIdx+1 : cols.length;
+    var comma={};
+    if(decStart>0){
+      var p=decStart%3 || 3;
+      while(p<decStart){ comma[p]=true; p+=3; }
+    }
+    for(var q=decStart+3; q<cols.length; q+=3) comma[q]=true;
+    var out='<div class="ol-digits ol-justify-center">';
+    cols.forEach(function(c,i){
+      if(i===decStart && i>0) out+='<span class="ol-digit-sep" aria-hidden="true">.</span>';
+      else if(comma[i]) out+='<span class="ol-digit-sep" aria-hidden="true">,</span>';
+      var d = (c[1]==null || c[1]==='') ? '' : String(c[1]);
+      var tone = d==='' ? 'ol-digit--empty' : (d==='0' ? 'ol-digit--zero' : 'ol-digit--given');
+      out+='<div class="ol-digit-col"><span class="ol-digit-col__label">'+esc(pvAbbr(c[0]))+'</span>'+
+        '<span class="ol-digit '+tone+'">'+esc(d)+'</span></div>';
+    });
+    out+='</div>';
+    if(v.caption) out+='<p class="ol-text-secondary ol-text-center ol-mb-0">'+esc(v.caption)+'</p>';
+    return '<div class="ol-bg-muted ol-rounded-xl ol-p-6 ol-lookback-panel">'+out+'</div>';
+  }
+
+  function feedback(){
+    openSplit();
+    setSolo(false);
+    var items = SESSION.feedback || [];
+    if(!items.length){
+      state.screen = SESSION.lessonContent ? 'lesson' : 'run';
+      if(state.screen==='run') state.i = RESUME_AT;
+      return render();
+    }
+    stageSplitWrap.classList.add('ol-lookback');
+    var seen = state.fbSeen;
+    var curIdx = -1;
+    for(var i=0;i<items.length;i++){ if(!seen[i]){ curIdx=i; break; } }
+    if(curIdx===-1) curIdx = items.length-1;   // defensive: everything already seen
+    var it = items[curIdx], total = items.length;
+
+    var card = h('<article class="ol-card"></article>');
+    card.appendChild(h(
+      '<div class="ol-flex ol-items-center ol-justify-between ol-wrap ol-gap-3">'+
+      '<span class="ol-pill">Look back '+(curIdx+1)+' of '+total+'</span>'+
+      (it.q ? '<span class="ol-text-secondary ol-weight-700">From '+esc(it.q)+'</span>' : '')+
+      '</div>'));
+    card.appendChild(h('<h1>'+esc(it.title||'')+'</h1>'));
+
+    // Literal, not generated: the child's own wrong answer and the question
+    // it was for, straight from their attempt record.
+    if(it.lastTry && it.lastTry.given!=null){
+      card.appendChild(h(
+        '<div class="ol-flex ol-items-center ol-gap-3 ol-bg-muted ol-rounded-xl ol-p-4">'+
+        icon('clock','ol-icon ol-text-secondary')+
+        '<span>Last time you wrote <b>'+esc(it.lastTry.given)+'</b>'+
+        (it.lastTry.question ? ' for '+esc(it.lastTry.question) : '')+'.</span></div>'));
+    }
+
+    var digits = it.visual ? lookbackDigits(it.visual) : '';
+    if(digits) card.appendChild(h(digits));
+    else if(it.visual){
+      var itVis = visualHtml(it.visual);
+      if(itVis) card.appendChild(h(itVis));
+    }
+
+    if(!it.lastTry && !it.remember){
+      // Legacy shape — body carries the "you wrote", the working, and the
+      // rule as one blob. Draw whatever number it already states as digit
+      // boxes, and lift the rule into the remember card.
+      var legacy = parseLegacyBody(it.body || '');
+      if(legacy.wrote){
+        card.appendChild(h(
+          '<div class="ol-flex ol-items-center ol-gap-3 ol-bg-muted ol-rounded-xl ol-p-4">'+
+          icon('clock','ol-icon ol-text-secondary')+
+          '<span>Last time you '+legacy.verb+' <b>'+esc(legacy.wrote)+'</b>.</span></div>'));
+      }
+      if(legacy.cells) card.appendChild(h(digitBoxes(legacy.cells, legacy.caption)));
+      else if(legacy.caption){
+        var legacyBox = h('<div class="ol-bg-muted ol-rounded-xl ol-p-6 fb-body"></div>');
+        legacyBox.textContent = legacy.caption;
+        card.appendChild(legacyBox);
+      }
+      if(legacy.rule){
+        card.appendChild(h(
+          '<div class="ol-rule-card">'+
+          icon('star','ol-icon ol-text-amber')+
+          '<div><div class="ol-rule-card__label">Remember</div>'+
+          '<p class="ol-rule-card__text ol-mb-0">'+esc(legacy.rule)+'</p></div></div>'));
+      }
+    } else {
+      if(it.body){
+        var bodyBox = h('<div class="fb-body"></div>');
+        bodyBox.innerHTML = it.body;
+        card.appendChild(bodyBox);
+      }
+      if(it.remember){
+        card.appendChild(h(
+          '<div class="ol-rule-card">'+
+          icon('star','ol-icon ol-text-amber')+
+          '<div><div class="ol-rule-card__label">Remember</div>'+
+          '<p class="ol-rule-card__text ol-mb-0">'+esc(it.remember)+'</p></div></div>'));
+      }
+    }
+
+    var go = h('<button type="button" class="ol-btn ol-btn--primary">Got it ✓</button>');
+    go.addEventListener('click', function(){
+      state.fbSeen[curIdx] = true;
+      if(curIdx+1>=items.length){
+        // Welcome already happened. The last card opens the work.
+        leadIn = 'feedback.done';
+        if(SESSION.lessonContent) state.screen = 'lesson';
+        else { state.i=RESUME_AT; state.screen='run'; }
+      }
+      render();
+    });
+    var actions = h('<div class="ol-flex ol-justify-end ol-wrap ol-gap-3"></div>');
+    actions.appendChild(go);
+    card.appendChild(actions);
+    stageHead.appendChild(card);
+
+    // Ollie speaks from his dock: the first item gets his look-back line, each next one
+    // its own. The list below is the map of the same items, one title each.
+    if(isNewScreen('feedback|'+curIdx)) say(curIdx===0 ? 'feedback' : 'feedback.item');
+
+    var listInner = '<div class="ol-rule-card__label ol-lookback-kicker">From last time</div>' + items.map(function(fi,i){
+      var isDone = !!seen[i], isCur = i===curIdx;
+      var stone = isDone ? 'ol-stone ol-stone--done' : isCur ? 'ol-stone ol-stone--current' : 'ol-stone';
+      var numContent = isDone ? icon('check','ol-icon') : String(i+1);
+      return '<div class="ol-flex ol-items-center ol-gap-3 ol-p-4'+(isCur?' ol-lookback-current ol-rounded-xl':'')+'">'+
+        '<span class="'+stone+'">'+numContent+'</span>'+
+        '<span class="ol-grow ol-min-w-0 '+(isCur?'ol-weight-800':'ol-text-tertiary ol-weight-700')+'">'+esc(fi.title||'')+'</span></div>';
+    }).join('');
+    stageSide.appendChild(h('<div class="ol-rounded-xl ol-p-6 ol-lookback-list">'+listInner+'</div>'));
+  }
+
+  function lesson(){
+    var card = singleCard();
+    card.appendChild(h(badge('New idea')));
+    // Legacy lessonContent sessions predate teach.cycles[]; Ollie is always the
+    // 'teaching' register here, whatever computeRegister() says.
+    if(isNewScreen('lesson')){ speaker.setRegister && speaker.setRegister('teaching'); say('open'); }
+    var box=h('<div class="bg-app-grayBox rounded-xl p-4 leading-relaxed lesson-body"></div>');
+    box.innerHTML = SESSION.lessonContent || '';
+    card.appendChild(box);
+    var b=h('<button type="button" class="'+BTN_PRIMARY+' w-full">Got it — let me try</button>');
+    b.addEventListener('click', function(){ state.screen='run'; state.i=RESUME_AT; render(); });
+    card.appendChild(b);
+  }
+
+  function start(){
+    openSplit();
+    stageSplitWrap.classList.add('ol-start');
+    var S = SESSION;
+    setTopicHeader(S.topicName);
+    setCounter('');
+    var dateEl = document.getElementById('start-date');
+    if(dateEl){
+      var d = new Date();
+      var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      dateEl.textContent = days[d.getDay()]+' '+d.getDate()+' '+months[d.getMonth()];
+    }
+
+    var card = h('<article class="ol-card"></article>');
+    var kicker = 'Today\'s session'+(S.sessionMinutes ? ' · about '+S.sessionMinutes+' minutes' : '');
+    card.appendChild(h('<span class="ol-pill">'+esc(kicker)+'</span>'));
+    // The authored greeting is the welcome. The blurb stays under it.
+    // Ollie says his own open line beside the card, so the greeting is not
+    // said twice.
+    card.appendChild(h('<h1>'+esc(S.greeting||'')+'</h1>'));
+    if(S.blurb) card.appendChild(h('<p class="ol-text-secondary">'+esc(S.blurb)+'</p>'));
+
+    var group = S.topicGroup ? String(S.topicGroup).split(',')[0].trim() : '';
+    card.appendChild(h(
+      '<div class="ol-start-topic">'+
+        '<span class="ol-start-topic-icon">'+icon('lessonColumns','ol-icon')+'</span>'+
+        '<div class="ol-min-w-0">'+
+          (group ? '<div class="ol-header__eyebrow">'+esc(group)+'</div>' : '')+
+          '<div class="ol-start-topic-name">'+esc(S.topicName||'')+'</div>'+
+          (S.topicDescription ? '<p class="ol-text-secondary ol-mb-0">'+esc(S.topicDescription)+'</p>' : '')+
+        '</div></div>'));
+
+    var plan = [];
+    var fbN = (S.feedback||[]).length;
+    var wuN = (S.warmup && S.warmup.items || []).length;
+    var prN = (S.practice||[]).length;
+    if(fbN) plan.push({ icon:'clock', tone:'amber', title:'Look back', note: fbN+' '+(fbN===1?'thing':'things')+' from last time' });
+    if(S.teach){
+      plan.push({ icon:'clueBulb', tone:'blue', title:'Learn', note: S.teach.title || 'A new idea' });
+    }
+    var practiceN = prN + (S.teach ? 0 : wuN);
+    if(practiceN) plan.push({ icon:'lessonBook', tone:'sage', title:'Practice', note: practiceN+' '+(practiceN===1?'question':'questions') });
+    if(plan.length){
+      card.appendChild(h('<div class="ol-header__eyebrow">The plan</div>'));
+      var row = h('<div class="ol-start-plan"></div>');
+      plan.forEach(function(p, i){
+        row.appendChild(h(
+          '<div class="ol-start-step">'+
+            '<span class="ol-start-step-icon" data-tone="'+p.tone+'">'+icon(p.icon,'ol-icon')+'</span>'+
+            '<div class="ol-header__eyebrow">Step '+(i+1)+'</div>'+
+            '<div class="ol-start-step-title">'+esc(p.title)+'</div>'+
+            '<p class="ol-text-secondary ol-mb-0">'+esc(p.note)+'</p>'+
+          '</div>'));
+      });
+      card.appendChild(row);
+    }
+
+    var actions = h('<div class="ol-flex ol-justify-end"></div>');
+    var b = h('<button type="button" class="ol-btn ol-btn--primary">Let\'s go '+icon('arrowRight','ol-icon')+'</button>');
+    b.addEventListener('click', function(){
+      // Browsers only allow sound after a tap, and this is the child's first. Ollie greets
+      // them, then the next screen's own line follows.
+      if(dock) dock.unlock();
+      leadIn = 'start';
+      var pending = (SESSION.feedback||[]).some(function(_, i){ return !state.fbSeen[i]; });
+      if(pending) state.screen = 'feedback';
+      else if(SESSION.lessonContent) state.screen = 'lesson';
+      else { state.screen='run'; state.i=RESUME_AT; }
+      render();
+    });
+    actions.appendChild(b);
+    card.appendChild(actions);
+    stageHead.appendChild(card);
+
+    var weekCard = weekCardHtml(S);
+    if(weekCard) stageSide.appendChild(h(weekCard));
+  }
+
+  // "This week" under Ollie. Days and the streak count come from finished
+  // sessions (SESSION.week / SESSION.streak). A day with no session stays
+  // empty — the card never borrows the design's sample streak.
+  function weekCardHtml(S){
+    if(!S || S.demo || !Array.isArray(S.week) || !S.week.length) return '';
+    var today = null;
+    S.week.forEach(function(d){ if(d.today) today = d; });
+    var line = '';
+    if(today && today.state!=='done'){
+      line = S.streak>0
+        ? ('Finish today\'s session to make it a '+(S.streak+1)+'-day streak!')
+        : 'Finish today\'s session to start a streak.';
+    } else if(S.streak>0){
+      line = 'Today\'s already done — that\'s a '+S.streak+'-day streak.';
+    }
+    var dots = S.week.map(function(d){
+      var mark = d.state==='done' ? icon('streakFlame','ol-icon') : '';
+      return '<li><span class="ol-week-dot" data-state="'+esc(d.state)+'" aria-hidden="true">'+mark+'</span>'+
+        '<span class="ol-week-label">'+esc(d.label)+'</span></li>';
+    }).join('');
+    return '<aside class="ol-week">'+
+      '<div class="ol-week-head">'+
+        '<span class="ol-header__eyebrow">This week</span>'+
+        (S.streak>0 ? '<span class="ol-week-streak">'+S.streak+'-day streak</span>' : '')+
+      '</div>'+
+      '<ol class="ol-week-days">'+dots+'</ol>'+
+      (line ? '<p>'+esc(line)+'</p>' : '')+
+    '</aside>';
+  }
+
+  // Header chips for a teach walkthrough: one per cycle, named from
+  // stepLabel when the lesson authored one. A single unnamed part has
+  // nothing to put in a chip, so the caller keeps the question stones.
+  function learnCycleChipsHtml(){
+    var block = steps[state.i];
+    if(!block || block.kind!=='teach') return '';
+    var cycles = [];
+    steps.forEach(function(st){ if(st.kind==='teach') cycles.push(st); });
+    var named = cycles.some(function(st){ return st.cycle && st.cycle.stepLabel; });
+    if(cycles.length<2 && !named) return '';
+    return '<ol class="ol-steps">'+cycles.map(function(st){
+      var i = st.cycleIndex;
+      var label = (st.cycle && st.cycle.stepLabel) || ('Part '+(i+1));
+      var cur = i===block.cycleIndex;
+      var done = i<block.cycleIndex;
+      var attrs = cur ? ' aria-current="step"' : (done ? ' data-state="done"' : '');
+      var num = done ? icon('check','ol-icon') : String(i+1);
+      return '<li class="ol-steps__item"'+attrs+'><span class="ol-steps__dot">'+num+'</span>'+esc(label)+'</li>';
+    }).join('')+'</ol>';
+  }
+
+  function teach(){
+    openSplit();
+    stageSplitWrap.classList.add('ol-learn');
+    var block=steps[state.i], cyc=block.cycle;
+    var sub=state.teachStep[state.i] || 0;
+    var st=cyc.steps[sub];
+    var last=(sub===cyc.steps.length-1);
+    var many=block.cycleCount>1;
+    var manySteps=cyc.steps.length>1;
+
+    setTopicHeader(block.title);
+    var card = h('<article class="ol-card"></article>');
+    // Part is the cycle. When this part has several beats, they are the
+    // numbered list under the title, so the pill stays on the part.
+    var partLabel = many ? ('Part '+(block.cycleIndex+1)+' of '+block.cycleCount) : 'New idea';
+    if(cyc.stepLabel) partLabel += ' · '+cyc.stepLabel;
+    card.appendChild(h('<span class="ol-pill">'+esc(partLabel)+'</span>'));
+
+    if(manySteps){
+      card.appendChild(h('<h1>'+esc(block.title||'')+'</h1>'));
+      if(cyc.conceptName) card.appendChild(h('<p class="ol-text-secondary">'+esc(cyc.conceptName)+'</p>'));
+    } else {
+      card.appendChild(h('<h1>'+esc(st.big||block.title||'')+'</h1>'));
+      if(st.note) card.appendChild(h('<p class="ol-text-secondary">'+esc(st.note)+'</p>'));
+      else if(cyc.conceptName) card.appendChild(h('<p class="ol-text-secondary">'+esc(cyc.conceptName)+'</p>'));
+    }
+
+    var stepVis = st.visual ? visualHtml(st.visual) : st.pv ? pvHtml(st.pv, st.lit||[]) : '';
+    if(stepVis) card.appendChild(h('<div class="ol-learn-visual">'+stepVis+'</div>'));
+
+    if(manySteps){
+      var wrap=h('<div class="ol-learn-steps"></div>');
+      cyc.steps.forEach(function(x,i){
+        var on = i===sub, past = i<sub;
+        var mark = past ? icon('check','ol-icon') : String(i+1);
+        wrap.appendChild(h(
+          '<div class="ol-learn-step" data-state="'+(on?'current':past?'done':'later')+'">'+
+          '<span class="ol-learn-step-num">'+mark+'</span>'+
+          '<div><b>'+esc(x.big)+'</b>'+
+            (i<=sub && x.note ? '<p>'+esc(x.note)+'</p>' : '')+
+          '</div></div>'));
+      });
+      card.appendChild(wrap);
+    }
+
+    // upNext previews the guided question on the last beat only. Earlier
+    // Next clicks stay inside this part.
+    var foot=h('<div class="ol-learn-foot"></div>');
+    if(last && cyc.upNext){
+      foot.appendChild(h('<p class="ol-learn-upnext">'+icon('clock','ol-icon')+'<span>Up next: '+esc(cyc.upNext)+'</span></p>'));
+    }
+    var b=h('<button type="button" class="ol-btn ol-btn--primary">'+(last?'Let me try one':'Next')+' '+icon('arrowRight','ol-icon')+'</button>');
+    b.addEventListener('click', function(){
+      if(last){ state.i++; state.tries=0; state.hintsShown=0; state.result=null; leadIn='teach.tryIt'; }
+      else state.teachStep[state.i]=sub+1;
+      render();
+    });
+    foot.appendChild(b);
+    card.appendChild(foot);
+    stageHead.appendChild(card);
+
+    // Ollie narrates every teach step. `st.ollie` is the authored line; a step with none
+    // falls back to a position-keyed bank line. He does not paraphrase the maths. The
+    // golden rule card is on every step of the part, but it is the takeaway, so it is
+    // SPOKEN once, on the last step, after the narration.
+    var returning = (state.i===state.resumeStep && sub===0);
+    var stepMoment = returning ? 'returning' : sub===0 ? 'teach.step.first' : last ? 'teach.step.last' : 'teach.step.mid';
+    if(returning) state.resumeStep = -1;
+    var rule = cyc.goldenRule && (cyc.goldenRule.title || cyc.goldenRule.body) ? cyc.goldenRule : null;
+    if(isNewScreen('teach|'+state.i+'|'+sub)){
+      var lines = [st.ollie ? {text:st.ollie, o:{mood:'point'}} : {moment:stepMoment}];
+      if(rule && last) [rule.title, rule.body].forEach(function(t){ if(t) lines.push({text:t, o:{mood:'point'}}); });
+      speakAll(lines);
+    }
+    if(rule){
+      stageSide.appendChild(h(
+        '<aside class="ol-rule">'+
+        '<div class="ol-rule-kicker">'+icon('star','ol-icon')+'<span>Ollie\'s golden rule</span></div>'+
+        (rule.title ? '<b>'+esc(rule.title)+'</b>' : '')+
+        (rule.body ? '<p>'+esc(rule.body)+'</p>' : '')+
+        '</aside>'));
+    }
+    setSolo(false);
+  }
+
+  function question(s){
+    openSplit();
+    setSolo(false);
+    stageSplitWrap.classList.add('ol-practice');
+    var q=s.q, qi=qIndex(state.i);
+    var qid = q.id || ('q_'+qi);
+    var slips={};
+    if(q.slips){
+      Object.keys(q.slips).forEach(function(k){
+        var v=q.slips[k];
+        slips[normalise(k)] = (v && typeof v==='object')
+          ? { code: v.code || null, say: v.say || '' }
+          : { code: null, say: String(v) };
+      });
+    }
+    var oneShot = oneShotSession();
+    var allowReveal = !(SESSION.uiMode && SESSION.uiMode.allowReveal === false);
+
+    if(state.result==='right') stageSplitWrap.classList.add('is-correct');
+    // "Practice 4 of 8" on the left of the card. The star or the try counter
+    // sits on the right. Warm-up questions stay unbadged.
+    var headTools = '';
+    if(state.result==='right' && state.tries===1){
+      headTools += '<span class="ol-star-chip">'+icon('star','ol-icon')+'+1 star · first try</span>';
+    }
+    if(state.tries>0 && !oneShot && (state.result==='wrong' || state.result===null)){
+      var tryCap = allowReveal ? 3 : 4;
+      var tryDots = '';
+      for(var ti=0; ti<tryCap; ti++) tryDots += '<span class="ol-tries__dot"'+(ti<state.tries?' data-state="used"':'')+'></span>';
+      headTools += '<span class="ol-tries">Try '+state.tries+' of '+tryCap+' '+tryDots+'</span>';
+    }
+    if(s.phase!=='warm' || headTools){
+      var badgeLabel = s.phaseTotal ? (s.label+' of '+s.phaseTotal) : s.label;
+      var pill = s.phase==='warm' ? '' : '<span class="ol-pill">'+esc(badgeLabel)+'</span>';
+      stageHead.appendChild(h('<div class="ol-qhead">'+pill+'<div class="ol-qhead-tools">'+headTools+'</div></div>'));
+    }
+    // The "a couple you already know" intro used to be an unattributed
+    // subtitle here. It's Ollie's line now — he says it in his own card,
+    // not the page narrating over his shoulder (docs/mascot.md §2).
+    var bare = !/[a-z]/i.test(q.ask) && q.ask.indexOf('?')===-1;
+    stageHead.appendChild(h('<h1 class="enter q-title">'+esc(q.ask)+(bare?' = ?':'')+'</h1>'));
+    // E1 — recallText/showRecallFrom: an authored spaced-repetition banner
+    // that CLAUDE.md documents but the page never rendered. Shown from
+    // the question index the author set onward, for the rest of the
+    // session, independent of right/wrong state.
+    if(SESSION.recallText && qi>=(typeof SESSION.showRecallFrom==='number'?SESSION.showRecallFrom:999)){
+      stageHead.appendChild(h(
+        '<div class="enter text-[12.5px] font-semibold text-app-sage bg-app-sageLight/50 border border-app-sage/30 rounded-xl px-3 py-2">'+
+        esc(SESSION.recallText)+'</div>'));
+    }
+    var qVis = q.visual ? visualHtml(q.visual) : '';
+    if(qVis) stageHead.appendChild(h(qVis));
+    // "Show place value chart" lives in the right column, under Ollie and
+    // the hints card — see the end of this function, where it's appended
+    // last so it sits below whatever else stageSide already holds.
+
+    function appendBackLink(container){
+      if(!(qi>0 && !oneShot)) return;
+      // Practice and lesson (teaching) stay on the question in front of the
+      // child. That look-back link was what sat in the empty middle of a
+      // wide screen. Check and retest still allow it.
+      var kind = SESSION.kind;
+      if(kind === 'practice' || kind === 'lesson') return;
+      if(kind !== 'check' && kind !== 'retest' && (s.phase === 'practice' || s.phase === 'teach')) return;
+      var backIdx = prevQStep(state.i);
+      if(backIdx<0) return;
+      var backBtn=h('<button type="button" class="'+BTN_QUIET+'">← Earlier questions</button>');
+      backBtn.addEventListener('click', function(){ state.reviewing=true; state.reviewStep=backIdx; render(); });
+      container.appendChild(h('<div class="review-back"></div>')).appendChild(backBtn);
+    }
+
+    // Resolved questions: Ollie stands beside the card, and the only control
+    // left is Next. Scoring is unchanged — a reveal still ends the question.
+    function nextButton(){
+      var b=h('<button type="button" class="ol-btn ol-btn--primary">Next question '+icon('arrowRight','ol-icon')+'</button>');
+      b.addEventListener('click', next);
+      var foot=h('<div class="ol-qfoot"></div>');
+      foot.appendChild(b);
+      stageAction.appendChild(foot);
+      appendBackLink(stageAction);
+    }
+    // The clue track for this question (public/ollie-kit OllieClues). It lives across
+    // re-draws of the same question — the child's clues are state — and is rebuilt for the
+    // next one. Ollie speaks through it, so he only reacts to what the child does.
+    var hints = q.hints || [];
+    var track = trackFor(q, qid, hints);
+    track.onShowMe = function(){ revealAnswer(); };
+    function cluesShown(){ return track.hasClues ? track.clues.state().shown : state.hintsShown; }
+    // What the grader and the next look-back read: how much help this question took.
+    function helpFields(){
+      var st = track.hasClues ? track.clues.state() : { shown:state.hintsShown, usedHelp:state.hintsShown>0, showingMe:false };
+      return { hintsUsed: st.shown, usedHelp: !!st.usedHelp, cluesUsed: st.shown, showedMe: !!st.showingMe };
+    }
+
+    if(state.result==='moveon'){
+      if(state.lastGiven) stageHead.appendChild(h('<p class="ol-text-secondary">You put '+esc(state.lastGiven)+'.</p>'));
+      nextButton();
+      return;
+    }
+    if(state.result==='shown'){
+      var steer=hints.slice(-1)[0]||'';
+      stageHead.appendChild(h(
+        '<div class="ol-yousaid"><div><div class="ol-header__eyebrow">The answer</div>'+
+        '<p class="ol-yousaid-line">'+esc(q.answer)+'</p>'+
+        (steer ? '<p class="ol-text-secondary">'+esc(steer)+'</p>' : '')+'</div></div>'));
+      // Worked visual stays scoring-neutral: the question still ends here,
+      // exactly as a reveal always has. The child is not asked to retype it.
+      if(q.workedVisual){
+        var wvHtml = visualHtml(q.workedVisual);
+        if(wvHtml) stageHead.appendChild(h('<div class="ol-worked">'+wvHtml+'</div>'));
+      }
+      nextButton();
+      return;
+    }
+    if(state.result==='exhausted'){
+      if(state.lastGiven) stageHead.appendChild(h('<p class="ol-text-secondary">You put '+esc(state.lastGiven)+'.</p>'));
+      nextButton();
+      return;
+    }
+    if(state.result==='right'){
+      stageHead.appendChild(h(
+        '<div class="ol-yousaid">'+
+          '<span class="ol-yousaid-mark">'+icon('check','ol-icon')+'</span>'+
+          '<div><div class="ol-header__eyebrow">You said</div>'+
+          '<p class="ol-yousaid-line">'+esc(q.answer)+'. That\'s right!</p></div></div>'));
+      // An authored visual reinforcing WHY the answer is right. Enrichment
+      // only — it never changes the mark.
+      if(q.correctVisual){
+        var cvHtml = visualHtml(q.correctVisual);
+        if(cvHtml) stageHead.appendChild(h('<div class="ol-worked">'+cvHtml+'</div>'));
+      }
+      // Today so far: answered / first-try stars / still to go, from state.log.
+      var answeredSoFar = state.log.filter(function(r){ return r!==null; }).length;
+      var starsSoFar = state.log.filter(function(r){ return r==='first'; }).length;
+      var toGo = totalQuestions() - answeredSoFar;
+      stageSide.appendChild(h(
+        '<aside class="ol-today">'+
+          '<div class="ol-header__eyebrow">Today so far</div>'+
+          '<div class="ol-today-grid">'+
+            '<div><b>'+answeredSoFar+'</b><span>questions</span></div>'+
+            '<div><b class="ol-today-stars">'+starsSoFar+'</b><span>first-try stars</span></div>'+
+            '<div><b>'+Math.max(0,toGo)+'</b><span>to go</span></div>'+
+          '</div></aside>'));
+      nextButton();
+      return;
+    }
+
+    // Amber once a wrong answer is back, pre-filled so they can correct it. The clues sit
+    // under the answer box, in the same card, so the child can re-read them while typing.
+    var isWrong = state.result==='wrong';
+    var given = state.lastGiven||'';
+    var slip = isWrong ? (slips[normalise(given)] || slips[given] || null) : null;
+    stageAction.appendChild(h('<div class="ol-answer-label">Your answer</div>'));
+    var inp=h('<input type="text" inputmode="decimal" autocomplete="off" id="ans" aria-label="Your answer" placeholder="Type your number" '+
+      'class="ol-answer"'+(isWrong?' data-state="retry"':'')+'>');
+    if(isWrong) inp.value = state.lastGiven || '';
+    var go =h('<button type="button" class="ol-btn ol-btn--primary">'+
+      (isWrong ? ('Try again '+icon('replay','ol-icon')) : ('Check '+icon('check','ol-icon')))+'</button>');
+    var ansRow=h('<div class="ol-answer-row"></div>');
+    ansRow.appendChild(inp); ansRow.appendChild(go);
+    stageAction.appendChild(ansRow);
+    // The explanation of a predicted slip is shown, not spoken: a second spoken line would
+    // cut off Ollie's reaction to the wrong try.
+    if(slip && slip.say){
+      stageAction.appendChild(h('<div class="ol-slip">'+icon('clueBulb','ol-icon')+'<span>'+esc(slip.say)+'</span></div>'));
+    }
+    if(track.hasClues) stageAction.appendChild(track.host);
+
+    if(isWrong && s.guided && s.cycle && s.cycle.secondAngle){
+      state.angleSeen[qid]=true;
+      var saInner = '<div class="ol-header__eyebrow">Another way to see it</div>';
+      (s.cycle.secondAngle.steps||[]).forEach(function(x){
+        var v = x.visual ? visualHtml(x.visual) : (x.pv ? pvHtml(x.pv, x.lit||[]) : '');
+        saInner += '<p class="ol-angle-step"><b>'+esc(x.big)+'</b>'+
+          (x.note?'<span>'+esc(x.note)+'</span>':'')+'</p>';
+        if(v) saInner += v;
+      });
+      stageSide.appendChild(h('<div class="ol-angle">'+saInner+'</div>'));
+    }
+
+    // Opener: a NEW question speaks (or stays silent) — a redraw after an answer does not.
+    // Ollie reacts to answers; he does not narrate every question.
+    if(!isWrong && state.tries===0 && isNewScreen('q|'+state.i)){
+      var total = totalQuestions();
+      var opener = null;
+      if(state.i===state.resumeStep){ opener='returning'; state.resumeStep=-1; }
+      else if(s.phase==='warm' && state.i===0) opener='warmup';
+      else if(s.phase==='practice' && firstPracticeStepIdx>0 && state.i===firstPracticeStepIdx) opener='transition';
+      else if(!oneShot && total>=6 && !state.halfwayShown && qi===Math.floor(total/2)){ opener='halfway'; state.halfwayShown=true; }
+      var items = [];
+      if(opener) items.push({moment:opener});
+      // First question of a block: practice and teaching say how the clues work; an
+      // assessment just says "take your time".
+      var firstOfBlock = s.phase==='practice' && state.i===firstPracticeStepIdx;
+      if(firstOfBlock) items.push({moment: REGISTER==='assessment' ? 'fresh' : 'hintNote'});
+      else if(qi===total-1 && total>=3 && !opener) items.push({moment:'lastQuestion'});
+      else if(!items.length && q.ollie && q.ollie.fresh) items.push({moment:'fresh'});
+      if(items.length) speakAll(items);
+    }
+
+    var chartHost = h('<div class="ol-chart-host"></div>');
+    stageSide.appendChild(chartHost);
+    if(q.visual && q.visual.type==='placeValue' &&
+       (q.visual.cols||[]).some(function(c){ return c[1]; })){
+      appendChartToggle(chartHost, q.visual, 'q:'+qid);
+    }
+    if(!chartHost.childNodes.length) chartHost.remove();
+
+    function revealAnswer(){
+      var hf = helpFields();
+      postAttempt({
+        questionId: qid, secondAngleShown: !!state.angleSeen[qid],
+        given: state.lastGiven, correct: false,
+        tries: state.tries, hintsUsed: hf.hintsUsed, usedHelp: hf.usedHelp, cluesUsed: hf.cluesUsed, showedMe: true,
+        slipCode: null, revealed: true, msTaken: 0
+      });
+      state.result='shown';
+      state.log[qi]='shown';
+      render();
+    }
+    function moveOnButton(){
+      var eb=h('<button type="button" class="ol-btn ol-btn--secondary">Move on</button>');
+      eb.addEventListener('click', function(){
+        postAttempt({
+          questionId: qid, secondAngleShown: !!state.angleSeen[qid],
+          given: state.lastGiven, correct: false,
+          tries: state.tries, hintsUsed: cluesShown(),
+          slipCode: null, exhausted: true, msTaken: 0
+        });
+        state.result='exhausted';
+        state.log[qi]='exhausted';
+        render();
+        speaker.say('exhausted');
+      });
+      return eb;
+    }
+    // A question with no clues has nothing to run out of, so its "Show me how" stays a
+    // button the child chooses, from the third try — as it always was.
+    if(!track.hasClues && state.tries>=2 && allowReveal && !oneShot){
+      var sb=h('<button type="button" class="ol-btn ol-btn--secondary">Show me how</button>');
+      sb.addEventListener('click', function(){ speaker.say('showme.start'); revealAnswer(); });
+      stageAction.appendChild(sb);
+    }
+    if(state.tries>=4 && !allowReveal) stageAction.appendChild(moveOnButton());
+    appendBackLink(stageAction);
+
+    var qStart=Date.now();
+    function submit(){
+      var v=inp.value;
+      if(normalise(v)===null){ inp.focus(); return; }
+      var ms=Date.now()-qStart;
+      state.tries++;
+      var isCorrect=correct(v, q.answer);
+      var matched=slips[normalise(v)] || null;
+      var hf = helpFields();
+      postAttempt({
+        questionId: qid, secondAngleShown: !!state.angleSeen[qid],
+        given: v,
+        correct: isCorrect,
+        tries: state.tries,
+        hintsUsed: hf.hintsUsed, usedHelp: hf.usedHelp, cluesUsed: hf.cluesUsed, showedMe: hf.showedMe,
+        slipCode: matched ? matched.code : null,
+        msTaken: ms
+      });
+      // Streak tracking for Ollie's 'streak'/'comeback' moments — any
+      // non-first-try result breaks a first-try streak (docs/mascot.md §4).
+      var tryNo = state.tries;
+      if(isCorrect && tryNo===1) state.streak++;
+      else state.streak=0;
+
+      if(oneShot){
+        state.lastGiven=v;
+        state.result='moveon';
+        if(state.log[qi]===null) state.log[qi] = isCorrect ? (tryNo===1?'first':'retry') : 'wrong';
+        render();
+        speaker.say('moveon');
+      } else if(isCorrect){
+        state.result='right';
+        if(state.log[qi]===null) state.log[qi] = tryNo===1 ? 'first' : 'retry';
+        render();
+        // right.first becomes streak after three or five first-tries in a row, and a
+        // second-try answer is a comeback; the clue track picks right.first / recovered.
+        speaker.remap = function(m){
+          if(m==='right.first' && (state.streak===3 || state.streak===5) && state.streakShown<2){ state.streakShown++; return 'streak'; }
+          if(m==='right.recovered' && tryNo===2) return 'comeback';
+          return m;
+        };
+        if(track.hasClues || REGISTER==='assessment') track.clues.correct();
+        else speaker.say(tryNo===1 ? 'right.first' : tryNo===2 ? 'comeback' : 'right.recovered');
+        speaker.remap = null;
+      } else {
+        state.lastGiven=v;
+        state.result='wrong';
+        if(state.log[qi]===null) state.log[qi]='retry';
+        render();
+        if(track.hasClues || REGISTER==='assessment') track.clues.wrongTry();
+        else speaker.say(state.tries>=3 ? 'wrong.stuck' : state.tries===2 ? 'wrong.again' : 'wrong.first');
+      }
+      setTimeout(focusAns,0);
+    }
+    go.addEventListener('click', submit);
+    inp.addEventListener('keydown', function(e){ if(e.key==='Enter') submit(); });
+    setTimeout(focusAns,0);
+  }
+
+  // The clue track for a question, kept while the same question is on screen. A question
+  // with no authored clues has no track to run (OllieClues would offer "Show me how" on
+  // the second wrong try), so the page falls back to speaking the moments itself.
+  var clueTrack = null;   // restored from the attempt record after a reload (see trackFor)
+  function trackFor(q, qid, hints){
+    if(clueTrack && clueTrack.qid===qid) return clueTrack;
+    if(clueTrack) clueTrack.clues.destroy();
+    var host = document.createElement('div');
+    host.className = 'ollie-clues';
+    var t = { qid:qid, host:host, hasClues: hints.length>0 && REGISTER!=='assessment', onShowMe:null, clues:null };
+    speaker.setQuestion(q);
+    t.clues = OllieClues.create({
+      container: host, clues: hints, dock: speaker, register: REGISTER,
+      onShowMe: function(){ if(t.onShowMe) t.onShowMe(); }
+    });
+    // A reload mid-question: the attempts say how many tries and clues the child had. Replay
+    // them into the new track without a sound, so the clues are where they left them.
+    if(t.hasClues && state.tries>0 && speaker.quietly){
+      speaker.quietly(function(){
+        for(var k=0; k<Math.min(state.tries, hints.length+1); k++) t.clues.wrongTry();
+        while(t.clues.state().shown < Math.min(state.hintsShown, hints.length)) t.clues.help();
+      });
+    }
+    // A diagram written for a clue (q.hintVisuals) goes under that clue's text. The kit
+    // draws the clue box; this adds the picture whenever the box is redrawn.
+    new MutationObserver(function(){
+      var box = host.querySelector('.ollie-clue');
+      if(!box || box.querySelector('.ol-clue-visual')) return;
+      var vis = (q.hintVisuals||[])[Number(box.getAttribute('data-clue'))];
+      var html = vis ? visualHtml(vis) : '';
+      if(html) box.appendChild(h('<div class="ol-clue-visual">'+html+'</div>'));
+    }).observe(host, { childList:true });
+    clueTrack = t;
+    return t;
+  }
+
+  function focusAns(){
+    var a=document.getElementById('ans');
+    if(!a) return;
+    a.focus();
+    if(a.scrollIntoView) a.scrollIntoView({block:'center', behavior:'smooth'});
+  }
+
+  function next(){
+    state.i++; state.tries=0; state.hintsShown=0; state.result=null; state.lastGiven='';
+    if(state.i>=steps.length){ state.screen='close'; }
+    speaker.stop();   // a reaction to the last answer must not talk over the next question
+    render();
+  }
+
+  function reviewQuestion(){
+    var card = singleCard();
+    var stepIdx = state.reviewStep;
+    var s = steps[stepIdx], q = s.q, qi = qIndex(stepIdx);
+    var qid = q.id || ('q_'+qi);
+    var atts = (SESSION.attempts||[]).filter(function(a){ return a.questionId===qid; });
+    var resolved = atts.some(function(a){ return a.correct; });
+
+    card.appendChild(h(badge(s.label)));
+    var bare = !/[a-z]/i.test(q.ask) && q.ask.indexOf('?')===-1;
+    card.appendChild(h('<h1 class="text-[24px] font-extrabold tracking-tight">'+esc(q.ask)+(bare?' = ?':'')+'</h1>'));
+    var revVis = q.visual ? visualHtml(q.visual) : '';
+    if(revVis) card.appendChild(h(revVis));
+
+    var hist = h('<div class="bg-app-grayBox rounded-xl p-3.5 flex flex-col gap-1.5 text-[14px]"></div>');
+    if(atts.length){
+      atts.forEach(function(a){
+        var cls = a.correct ? 'text-app-sage' : (a.revealed || a.exhausted) ? 'text-app-muted' : 'text-app-peachText';
+        var label = a.correct ? 'Correct' : a.revealed ? 'Shown the answer' : a.exhausted ? 'Moved on' : 'Not yet';
+        hist.appendChild(h('<div><span class="font-bold '+cls+'">'+label+'</span> — put <b>'+esc(a.given)+'</b></div>'));
+      });
+    } else {
+      hist.appendChild(h('<div><span class="text-app-muted font-bold">Not answered yet</span></div>'));
+    }
+    card.appendChild(hist);
+
+    if(!resolved){
+      var inp=h('<input type="text" inputmode="decimal" autocomplete="off" id="ans" aria-label="Your answer" placeholder="?" '+
+        'class="q-placeholder h-12 flex-1 min-w-0 rounded-xl bg-app-grayBox text-center font-extrabold text-[20px] border-2 border-app-border focus:outline-none focus:shadow-none focus:border-app-peachBorder">');
+      var go=h('<button type="button" class="'+BTN_PRIMARY+'">Check</button>');
+      var row=h('<div class="cluster"></div>');
+      row.appendChild(inp); row.appendChild(go);
+      card.appendChild(row);
+      var submit=function(){
+        var given=(inp.value||'').trim();
+        if(!given) return;
+        var ok = normalise(given)===normalise(q.answer);
+        postAttempt({ questionId: qid, given: given, correct: ok, tries: atts.length+1,
+                      hintsUsed:0, slipCode: null, msTaken: 0 });
+        render();
+      };
+      go.addEventListener('click', submit);
+      inp.addEventListener('keydown', function(e){ if(e.key==='Enter') submit(); });
+      setTimeout(focusAns,0);
+    }
+
+    var nav=h('<div class="flex items-center gap-4"></div>');
+    var p = prevQStep(stepIdx);
+    if(p>=0){
+      var pb=h('<button type="button" class="'+BTN_QUIET+'">← Earlier</button>');
+      pb.addEventListener('click', function(){ state.reviewStep=p; render(); });
+      nav.appendChild(pb);
+    }
+    var n = nextQStep(stepIdx, state.i);
+    if(n>=0){
+      var nb=h('<button type="button" class="'+BTN_QUIET+'">Later →</button>');
+      nb.addEventListener('click', function(){ state.reviewStep=n; render(); });
+      nav.appendChild(nb);
+    }
+    if(nav.children.length) card.appendChild(nav);
+
+    var cont=h('<button type="button" class="'+BTN_PRIMARY+' w-full">Continue where I left off</button>');
+    cont.addEventListener('click', function(){ state.reviewing=false; render(); });
+    card.appendChild(cont);
+  }
+
+  // E6 — a one-line reflection built from state.log, not authored: the
+  // "tutor remembers what just happened" feeling, from data the page
+  // already has. Never touches verdicts/progression — purely a close-screen
+  // sentence, same spirit as the completion pills already shown below it.
+  function closeReflection(first, retry, shown, exhausted, total){
+    if(total===0) return '';
+    if(first===total) return 'Every single one, first try — that\'s brilliant.';
+    if(shown+exhausted===0 && first/total>=0.8) return 'Most of those were first-try — a strong session.';
+    if(retry>first) return 'You stuck with the tricky ones — that\'s what counts.';
+    if(shown+exhausted>0) return 'Some tough ones in there today. Showing up for them matters.';
+    return '';
+  }
+
+  function close(){
+    var card = singleCard();
+    var first=state.log.filter(function(r){ return r==='first'; }).length;
+    var retry=state.log.filter(function(r){ return r==='retry'; }).length;
+    var shown=state.log.filter(function(r){ return r==='shown'; }).length;
+    var exhausted=state.log.filter(function(r){ return r==='exhausted'; }).length;
+    var total=state.log.length;
+    var c = SESSION.close || {};
+    card.appendChild(h('<div class="self-center w-24 h-24 rounded-full bg-app-sageLight flex items-center justify-center text-4xl">🎈</div>'));
+    card.appendChild(h('<h1 class="text-center text-[26px] font-extrabold tracking-tight">All done for today</h1>'));
+    // The authored close.line / close.next and a reflection computed from this session's
+    // own log, as one plain block. Ollie says his goodbye, then the authored lines; a
+    // perfect session gets a cheer first.
+    var reflection = SESSION.kind!=='placement' ? closeReflection(first,retry,shown,exhausted,total) : '';
+    var closeBody = [c.line, c.next, reflection].filter(Boolean).join(' ');
+    if(closeBody) card.appendChild(h('<p class="text-center text-app-muted text-[15px] font-semibold">'+esc(closeBody)+'</p>'));
+    if(isNewScreen('close')){
+      var bye = [];
+      if(total>0 && first===total && SESSION.kind!=='placement') bye.push({moment:'celebrate'});
+      bye.push({moment:'close'});
+      [c.line, c.next].forEach(function(t){ if(t) bye.push({text:t}); });
+      speakAll(bye);
+    }
+    if(SESSION.kind !== 'placement'){
+      card.appendChild(h('<div class="flex gap-2 flex-wrap justify-center">'+
+        '<span class="text-[13px] font-semibold text-app-muted bg-app-grayBox border border-app-border rounded-full px-3 py-1.5">'+first+' straight away</span>'+
+        (retry?'<span class="text-[13px] font-semibold text-app-muted bg-app-grayBox border border-app-border rounded-full px-3 py-1.5">'+retry+' on the second go</span>':'')+
+        '</div>'));
+    }
+
+    // Hidden unless something did not save. The screen above is built in the
+    // browser, so without this a failed save looked exactly like a good one.
+    var note = h('<div class="bg-app-peachBg border border-app-peachBorder rounded-xl p-4 flex flex-col gap-2" hidden></div>');
+    card.appendChild(note);
+    function checkSaved(){
+      if(!sendQueue.length){ note.hidden = true; return; }
+      note.hidden = false;
+      note.innerHTML = '<b class="text-app-peachText">Your work has not saved yet</b>'+
+        '<div>Please show this to a grown-up, and keep this page open — nothing is lost yet.</div>';
+      var again = h('<button type="button" class="'+BTN_PRIMARY+'">Try saving again</button>');
+      again.addEventListener('click', function(){ again.disabled = true; flushQueue().then(checkSaved); });
+      note.appendChild(again);
+    }
+    postFinish({ first:first, retry:retry, shown:shown, exhausted:exhausted,
+                 total:total, msTaken:Date.now()-state.startedAt }).then(checkSaved);
+  }
+
+  function renderNothingQueued(info){
+    var card = singleCard();
+    var name = info.childName ? info.childName.split(' ')[0] : 'there';
+    // E4 — Ollie, not an unattributed emoji+paragraph, on what can be the
+    // child's loneliest screen: nothing to do and no one saying why.
+    card.appendChild(h('<h1 class="text-center text-[22px] font-extrabold tracking-tight">Nothing new yet, '+esc(name)+'!</h1>'));
+    card.appendChild(h('<p class="text-center text-app-muted text-[15px] font-semibold">Today\'s maths hasn\'t been set up yet. Check back a bit later.</p>'));
+    say('nothingQueued');
+    // There used to be a "Practise again" button here. It linked to ?redo=<id>, which
+    // nothing read, so it reloaded this same screen. Re-opening a finished session
+    // needs its own design (a graded session must not take new answers).
+    if(dotsEl) dotsEl.innerHTML='';
+    paintFooter();
+  }
+
+  // One Ollie per page, bottom-left (public/ollie-kit). Mounted once the session is known,
+  // because his register and the child's first name come from it. The name goes in only
+  // when it is real, and never in an assessment (the kit's lines enforce that too).
+  function mountOllie(session){
+    if(!window.OllieDock || !window.OllieVoice || !window.OllieLines) return;
+    var first = (!session.demo && session.childName) ? String(session.childName).trim().split(/\s+/)[0] : '';
+    var register = session.nothingQueued ? 'practice' : REGISTER;
+    try {
+      dock = OllieDock.mount({
+        register: register,
+        name: register==='assessment' ? '' : first,
+        voice: OllieVoice.voiceMode(session.childAge),
+        idleAfterMs: 0                       // ollie-voice.js runs the nudge, with a recording
+      });
+      speaker = OllieVoice.attach(dock, { register: register, name: first, idleAfterMs: 45000 });
+      speaker.canIdle = function(){ return state.screen==='run' && !state.reviewing; };
+    } catch(e){ if(window.console) console.error('Ollie did not load:', e); }
+  }
+
+  /* ── boot ─────────────────────────────────────────────────────────── */
+  // Icons load in parallel with the session fetch — both must land before
+  // the first render, so icon() never has to return '' on the first paint.
+  Promise.all([
+    loadIcons(),
+    OllieVoice.init(),
+    apiFetch('/api/sessions/next').then(function(r){
+      // 401 is not an error to show the child — this device just needs its
+      // key once (see unlock()). A 503 means the server has no keys set at
+      // all, which is a grown-up problem too, so say so rather than blaming
+      // the connection.
+      if(r.status===401) { var e=new Error('unlock'); e.unlock=true; throw e; }
+      if(r.status===503) throw new Error('The server is not set up yet. A grown-up needs to finish configuring it.');
+      if(!r.ok) throw new Error('Server returned '+r.status);
+      return r.json();
+    })
+  ])
+    .then(function(results){
+      var session = results[2];
+      OllieVoice.setSession(session.audio, apiFetch);
+      if(!session.nothingQueued){ SESSION = session; REGISTER = computeRegister(SESSION); }
+      mountOllie(session);
+      if(session.nothingQueued){ renderNothingQueued(session); return; }
+      if(SESSION.demo){
+        document.getElementById('demo-banner').hidden = false;
+      }
+      buildSteps(SESSION);
+      setTopicHeader(SESSION.topicName);
+      paintChildChip();
+      RESUME_AT = resumeFromAttempts();
+      // 0 means "nothing answered yet", not "resume at the first step" — storing it made
+      // the "You're back! Your spot is saved." line fire on question 1 of every NEW session.
+      state.resumeStep = RESUME_AT > 0 ? RESUME_AT : -1;
+      // The welcome is the front door. Look back, the lesson card and the
+      // questions come after Let's go. A reload that already has answers
+      // skips the door and resumes at the question.
+      state.screen = RESUME_AT>0 ? 'run' : 'start';
+      if(state.screen==='run') state.i = RESUME_AT;
+      render();
+      OllieVoice.prefetchBank();
+    })
+    .catch(function(err){
+      if(err && err.unlock){ state.screen='unlock'; render(); return; }
+      state.screen='error';
+      state.errorMsg = err.message || 'Could not connect to the server.';
+      render();
+    });
+
+})();
+</script>
+</body>
+</html>

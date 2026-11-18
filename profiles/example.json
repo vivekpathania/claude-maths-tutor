@@ -1,0 +1,28 @@
+{
+  "_note": "SCHEMA SAMPLE ONLY. Topic names here are placeholders, not a real Cambridge list. Never save this file. Real profiles are written by the `curriculum` agent — see .claude/agents/curriculum.md.",
+  "child": { "id": "example-child", "name": "Example", "age": 10, "stage": "Stage 5", "board": "Cambridge Primary" },
+  "schoolFocus": "optional: what the school is covering this month",
+  "settings": {
+    "sessionMinutes": 15,
+    "questionsPerSession": 8,
+    "diagnosticSittings": 4,
+    "reason": "Age 10: short daily sessions; diagnostic spread over several sittings to limit fatigue."
+  },
+  "research": {
+    "status": "verified",
+    "sourceUrl": "https://example.org/official-framework",
+    "retrievedOn": "2026-10-03",
+    "notes": "What was read, and any gaps or doubts. Say plainly which parts were confirmed against the source and which were recalled."
+  },
+  "_groups": "The teaching family a topic belongs to. `strand` alone is too coarse to be useful — a primary stage puts most topics under 'Number'. 3-8 topics per group.",
+  "groups": [
+    { "id": "place-value", "name": "Place value and rounding", "strand": "Number", "order": 1 },
+    { "id": "fractions", "name": "Fractions", "strand": "Number", "order": 2 }
+  ],
+  "_topics": "`prereqs` lists DIRECT prerequisites only — the chain a parent sees is walked transitively, so listing grandparents makes it noisy. A prerequisite is a real dependency ('could a child who never did P still learn T?'), not merely what is taught before it.",
+  "topics": [
+    { "id": "place-value", "name": "Place value", "strand": "Number", "group": "place-value", "order": 1, "prereqs": [], "description": "…", "sourceUrl": "https://example.org/p1", "schoolCovered": true },
+    { "id": "equivalent-fractions", "name": "Equivalent fractions", "strand": "Number", "group": "fractions", "order": 2, "prereqs": [], "description": "…", "sourceUrl": "https://example.org/p2", "schoolCovered": false },
+    { "id": "add-fractions", "name": "Adding fractions", "strand": "Number", "group": "fractions", "order": 3, "prereqs": ["equivalent-fractions"], "description": "…", "sourceUrl": "https://example.org/p3", "schoolCovered": true }
+  ]
+}

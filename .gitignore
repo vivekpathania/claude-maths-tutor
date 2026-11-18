@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Grading decision files — local working output + audit trail of the
+# pipeline (one real child's data), not source code. Never commit these.
+grading/*.json
+!grading/example.json
+
+# Built session files — local working output from the teacher/author agent
+# before it's queued. Never commit these.
+sessions/*.json
+
+# Child profiles (contain personal data)
+profiles/*.json
+!profiles/example.json
+
+# Voice tooling (tools/voice/): its own dependencies and model cache, which are
+# hundreds of MB and must never be committed or deployed.
+tools/voice/node_modules/
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp

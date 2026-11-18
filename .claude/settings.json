@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node scripts/fetch-latest.js)",
+      "Bash(node scripts/verify-session.js *)",
+      "Bash(node scripts/save-grading.js grading/*.json)",
+      "Bash(node scripts/save-curriculum.js profiles/*.json)",
+      "Bash(node scripts/save-curriculum.js profiles/*.json --dry)",
+      "Bash(node scripts/save-curriculum.js profiles/*.json --force)",
+      "Read(grading/**)",
+      "Write(grading/**)",
+      "Read(profiles/**)",
+      "Write(profiles/**)",
+      "WebSearch",
+      "WebFetch"
+    ],
+    "deny": []
+  }
+}
