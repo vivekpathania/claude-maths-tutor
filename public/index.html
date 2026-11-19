@@ -1452,7 +1452,12 @@ body{min-height:100svh;min-height:var(--vvh,100svh)}
     var given = state.lastGiven||'';
     var slip = isWrong ? (slips[normalise(given)] || slips[given] || null) : null;
     stageAction.appendChild(h('<div class="ol-answer-label">Your answer</div>'));
-    var inp=h('<input type="text" inputmode="decimal" autocomplete="off" id="ans" aria-label="Your answer" placeholder="Type your number" '+
+    // A word answer ("equilateral", "isosceles") needs letters. inputmode="decimal"
+    // hands an iPad a number pad with no letters on it at all, so the child cannot
+    // type the answer; the placeholder then asks for the wrong thing on top of that.
+    var wordAnswer = /[a-z]/i.test(String(q.answer == null ? '' : q.answer));
+    var inp=h('<input type="text" inputmode="'+(wordAnswer?'text':'decimal')+'" autocomplete="off" id="ans" aria-label="Your answer" '+
+      'placeholder="'+(wordAnswer?'Type your answer':'Type your number')+'" '+
       'class="ol-answer"'+(isWrong?' data-state="retry"':'')+'>');
     if(isWrong) inp.value = state.lastGiven || '';
     var go =h('<button type="button" class="ol-btn ol-btn--primary">'+
