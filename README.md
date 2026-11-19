@@ -10,6 +10,22 @@ database. There is no multi-tenant mode and no hosted service.
 
 ---
 
+## What it looks like
+
+| The child's page | The parent's dashboard |
+|---|---|
+| [![The child's session page](docs/images/session.jpg)](docs/images/session.jpg) | [![The parent's dashboard](docs/images/dashboard.jpg)](docs/images/dashboard.jpg) |
+
+A wrong answer never ends the question. Coach Ollie responds, the clues unlock,
+and the next one opens by itself if the child is still stuck — so every question
+ends in an answer rather than a dead end.
+
+![Coach Ollie opening a clue after a wrong answer](docs/images/help-ladder.jpg)
+
+*(Screenshots show the built-in demo child, not a real one.)*
+
+---
+
 ## See it working first
 
 You do not need a child, a curriculum or an API key to look around — but you do
