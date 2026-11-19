@@ -150,8 +150,8 @@ the trap, and its guided question is the one that would expose it.
 
 **Every step needs an `ollie` line, `secondAngle` steps too.** `verify-session.js` refuses a step without one.
 
-The child never reads `note` directly — Ollie says it, in his own card, in
-his own voice. `steps[].ollie` is what he says on that step, and it is
+The child never reads `note` directly — Ollie says it, in her own card, in
+her own voice. `steps[].ollie` is what she says on that step, and it is
 **not a restatement of `note`**: `note` is the precise formulation, `ollie`
 is the intuition that makes it land. Write them as two different sentences
 or you will write the same one twice.
@@ -168,7 +168,7 @@ can: a step with none falls back to a generic bank line keyed on position
 step's idea.
 
 **These lines are the longest continuous stretch of Ollie's voice in the
-product, so they set whether he sounds like a tutor or a caption track.** Open
+product, so they set whether she sounds like a tutor or a caption track.** Open
 `public/ollie-lines.js` and match its energy: short, varied cadence, one
 concrete image carried rather than a new metaphor per step, no exclamation
 stacking.
@@ -407,7 +407,7 @@ example — not the same explanation again, slower.
 Read `public/ollie-lines.js` once before you start. It is the voice, already
 written and already reviewed, and your lines render interleaved with it — a
 lesson whose authored narration is flatter than the bank lines around it makes
-Ollie sound like he loses interest the moment the maths starts.
+Ollie sound like she loses interest the moment the maths starts.
 
 ## Before you hand back
 

@@ -79,8 +79,8 @@
    * opts.size   px, default 104
    * opts.mood   default 'wave'
    * opts.label  if given, Ollie is announced as an image with this label;
-   *             otherwise he is decorative (aria-hidden), which is right
-   *             when he sits inside a labelled button.
+   *             otherwise she is decorative (aria-hidden), which is right
+   *             when she sits inside a labelled button.
    */
   function markup(opts) {
     opts = opts || {};
@@ -116,7 +116,7 @@
     };
   }
 
-  /* create(opts) — build Ollie in the browser and return his controller. */
+  /* create(opts) — build Ollie in the browser and return her controller. */
   function create(opts) {
     var holder = document.createElement('div');
     holder.innerHTML = markup(opts);

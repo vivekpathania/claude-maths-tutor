@@ -59,7 +59,7 @@ It does not invent work.
 
 One layout at every width: a single centred column (`main.ollie-content`, at most 1000px)
 and nothing fixed to the bottom except the Ollie **dock** (`public/ollie-kit`, mounted once
-in `mountOllie()`; wide screens leave a 340px rail for him, narrower ones a strip along
+in `mountOllie()`; wide screens leave a 340px rail for her, narrower ones a strip along
 the bottom). Today's goal sits at the top of the content, not in a footer. Toasts, if any
 are added, go top-centre. `#stage-action` is always nested under `#stage-head`, so the
 question card holds the title, the answer box and the clues; `#stage-side` holds only

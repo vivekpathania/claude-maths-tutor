@@ -33,10 +33,10 @@ about.
 
 ## Voice — this is Ollie speaking
 
-The card renders inside Ollie's own card, in his voice, delivered by the same
+The card renders inside Ollie's own card, in her voice, delivered by the same
 tutor who was there when the child got it wrong. There is no neutral page voice
 (`docs/mascot.md` §1), so the card holds to the §6 voice standard like anything
-else he says: first person, warm, specific, never babyish, never a lecture,
+else she says: first person, warm, specific, never babyish, never a lecture,
 never generic praise. Short.
 
 **Read `public/ollie-lines.js` before writing a card.** It is the voice already

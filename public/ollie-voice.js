@@ -22,7 +22,7 @@
   var api = null;
   var dock = null, Lines = null, register = 'practice', name = '', question = null;
   var chainToken = 0, quiet = false;
-  var muted = false, rec = [];   // rec: what he said on THIS screen, for the speaker button
+  var muted = false, rec = [];   // rec: what she said on THIS screen, for the speaker button
   var MUTE_KEY = 'ollie.muted';
   var ICON_ON = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 10v4h4l5 4V6L8 10z"/><path d="M16.5 9a4 4 0 0 1 0 6M19 6.5a7.5 7.5 0 0 1 0 11"/></svg>';
   var ICON_OFF = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 10v4h4l5 4V6L8 10z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
@@ -154,7 +154,7 @@
       next(); next(); next(); next();
     },
 
-    // Younger children hear him by default; from 12 he is captions only (docs/mascot.md §6).
+    // Younger children hear her by default; from 12 she is captions only (docs/mascot.md §6).
     voiceMode: function (age) { return age != null && age > 11 ? 'none' : 'audio-only'; },
 
     audioFor: audioFor,
@@ -168,7 +168,7 @@
       dock = d; Lines = window.OllieLines;
       register = o.register || 'practice'; name = o.name || '';
       watchIdle(o.idleAfterMs == null ? 45000 : o.idleAfterMs);
-      // He never speaks without his bubble: captions are always on, and "quiet" is a mute
+      // She never speaks without her bubble: captions are always on, and "quiet" is a mute
       // button instead (the bubble stays, the sound goes).
       d.setCaptions(true);
       try { muted = localStorage.getItem(MUTE_KEY) === '1'; } catch (e) { muted = false; }
@@ -195,7 +195,7 @@
         if (!e.target.closest || !e.target.closest('.ollie-dock__ollie, [data-action="replay"]')) return;
         e.stopImmediatePropagation(); speaker.replay();
       }, true);
-      // The dock lights up while he speaks (ollie.css has no style for that; theme.css does).
+      // The dock lights up while she speaks (ollie.css has no style for that; theme.css does).
       var svg = d.el.querySelector('svg[data-talking]');
       if (svg && window.MutationObserver) {
         new MutationObserver(function () { d.el.classList.toggle('is-speaking', svg.getAttribute('data-talking') === 'true'); })
@@ -249,7 +249,7 @@
     var mood = o.mood || (Lines.mood ? Lines.mood(register, moment) : 'neutral');
     if (o.append) {
       // A bank line, then the authored text (a clue). Two recordings that already exist, not
-      // one new recording per pairing; the clue box is highlighted while he reads the clue.
+      // one new recording per pairing; the clue box is highlighted while she reads the clue.
       speaker.chain([{ text: line, o: { mood: mood } }, { text: o.append, o: { mood: mood, readingEl: o.readingEl } }]);
       return;
     }
@@ -263,7 +263,7 @@
     canIdle: null,                                           // the page says when a nudge makes sense
     say: function (moment, o) { if (quiet) return; chainToken++; rec = []; sayNow(moment, o); },
     sayText: function (text, o) { if (quiet) return; chainToken++; rec = []; sayText(text, o); },
-    // Replaying earlier state (a reload mid-question) must not make him speak.
+    // Replaying earlier state (a reload mid-question) must not make her speak.
     quietly: function (fn) { quiet = true; try { fn(); } finally { quiet = false; } },
     // Speak the first now; each next one when the one before has finished.
     // Any other line, or stop(), cancels the rest.
@@ -289,7 +289,7 @@
     stop: function () { chainToken++; if (dock) { dock.stop(); hideBubble(); } },
     // A new question or step: forget the old screen's lines and clear a bubble left over from them.
     newScreen: function () { rec = []; if (dock && !dock.isSpeaking()) hideBubble(); },
-    // The speaker button: this screen's lines again, or a plain nudge if he said nothing here.
+    // The speaker button: this screen's lines again, or a plain nudge if she said nothing here.
     replay: function () {
       if (!dock) return;
       if (!rec.length) { chainToken++; sayNow('fresh'); return; }

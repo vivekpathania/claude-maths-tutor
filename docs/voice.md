@@ -1,14 +1,14 @@
 # Ollie's voice
 
 Read this when you are working on audio for Coach Ollie: rendering speech, the
-Listen button, or the phase-2 live voice. The voice *text* (what he says, in what
+Listen button, or the phase-2 live voice. The voice *text* (what she says, in what
 register) is `docs/mascot.md`; this file is how it becomes sound.
 
 **Status:** the rendered-Kokoro approach is chosen and built: `speech.js`, the render tool,
 the bank's recordings, the teacher-written lines (rendered into the keyed store by
 `save-session.js` after a save; `node render.js session <file>` by hand), and the Ollie
-**dock** (below). Ollie lives bottom-left on every child page, a speech bubble above him
-fades by itself, and his lines play as they happen. Browsers need one touch before sound,
+**dock** (below). Ollie lives bottom-left on every child page, a speech bubble above her
+fades by itself, and her lines play as they happen. Browsers need one touch before sound,
 so nothing speaks until the child taps "Let's go". Verified in a desktop browser (bank
 clip, then a session clue fetched with the child key, with the clue box highlighted);
 **not yet on an iPad** (silent switch, the shared-element unlock). The voice is
@@ -36,9 +36,9 @@ as-is and never edited. Three things its options cannot do are done in `public/o
    rule). Any other line cancels the rest. The dock's own idle nudge is off (`idleAfterMs: 0`);
    the speaker runs it, with a recording, on question and teach screens only.
 
-Ollie reacts to the child, he does not narrate every screen: a new screen, question or teach
+Ollie reacts to the child, she does not narrate every screen: a new screen, question or teach
 step may open with a line (`isNewScreen` in `index.html`); a redraw after an answer does not.
-After an answer he reacts through the clue track.
+After an answer she reacts through the clue track.
 
 ## The design
 
@@ -80,10 +80,10 @@ only after the first touch** (iOS forbids earlier). On by default for age 11 and
 only from 12; there is no header switch any more — the dock's speaker button replays this screen's lines
 (`speaker.newScreen()` forgets the last screen's), and a mute button replaces the kit's captions
 button: the bubble is always on and always shown with the line, only the sound goes. The dock
-lights a warm spotlight behind him (`.is-speaking`) while he talks. When he reads text that is already on
+lights a warm spotlight behind her (`.is-speaking`) while she talks. When she reads text that is already on
 screen (a clue, boxed and tagged "Ollie is reading this") the bubble is skipped; the replay button is a
 circular arrow, the mute button a speaker (amber with a cross when muted). With the on-screen keyboard open the dock is hidden, so
-that line is silent too — he never speaks without a bubble. Any failure is silent: the lesson never blocks on
+that line is silent too — she never speaks without a bubble. Any failure is silent: the lesson never blocks on
 audio and `save-session` never blocks on rendering (it warns and saves text-only).
 
 **What gets spoken** (a real lesson, day 2: 115 lines, ~10 min of speech in all):
@@ -146,7 +146,7 @@ minutes for the bank), and commit `public/audio`.
 
 Kokoro British voices available: `bm_george`, `bm_lewis`, `bm_fable`, `bm_daniel`
 (male), `bf_emma`, `bf_isabella`, `bf_alice`, `bf_lily` (female). The first four were
-rendered. Ollie is "he" throughout these docs.
+rendered. Ollie is "she" throughout these docs.
 
 **Not yet known — needs ears:** which voice is Ollie; whether the iPad's own
 `speechSynthesis` voice is good enough to skip rendering entirely; whether the

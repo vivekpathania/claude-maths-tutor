@@ -226,7 +226,7 @@ app.delete('/api/sessions/:id', async (req, res) => {
     if (!s) return res.status(404).json({ error: 'No such session' });
     if (s.status !== 'pending')
       return res.status(409).json({
-        error: `That session is "${s.status}", not queued. Only a session he has not done yet can be discarded.` });
+        error: `That session is "${s.status}", not queued. Only a session they have not done yet can be discarded.` });
     await db.collection('sessions').deleteOne({ _id: req.params.id });
     res.json({ ok: true, discarded: req.params.id, topicId: s.topicId || null });
   } catch (e) { console.error(e); res.status(500).json({ error: e.message }); }
@@ -234,7 +234,7 @@ app.delete('/api/sessions/:id', async (req, res) => {
 
 // POST /api/children/:childId/topics/:topicId/reteach — the parent asks for a fresh lesson.
 // Marks the topic (topicStatus.reteach, which the grader reads and which a graded lesson
-// clears), puts it first in the queue and throws away the session queued for him, since
+// clears), puts it first in the queue and throws away the session queued for them, since
 // that one was built for the old plan. Refused while anything is waiting to be graded:
 // the grade decides what comes next (same rule as the queue).
 app.post('/api/children/:childId/topics/:topicId/reteach', async (req, res) => {

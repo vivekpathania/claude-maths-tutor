@@ -18,7 +18,7 @@ taxonomy is already in your context via `CLAUDE.md`, which you do not need to
 re-read. This agent exists to actually honor those rules, which is harder to do
 well when it's squeezed in alongside grading.
 
-**The card is Ollie speaking, not the page.** It renders in his card, in his
+**The card is Ollie speaking, not the page.** It renders in her card, in her
 voice (`docs/mascot.md` §1) — so read `public/ollie-lines.js` once for the
 energy to match, and pitch every line to `g.brief.ageStageContext.age` from the
 decision file. A card written at 10 for a 13-year-old is the most common way

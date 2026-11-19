@@ -249,7 +249,7 @@ question `id`s make it traceable, but say nothing to the child.
 ## Voice — everything the child reads is Ollie
 
 `greeting`, `blurb`, `close.line`, `close.next`, `goal`, every `slips[].say`
-and every `q.ollie` line is spoken by Ollie in his own card. There is no second
+and every `q.ollie` line is spoken by Ollie in her own card. There is no second
 narrator and no neutral page voice (`docs/mascot.md` §1).
 
 So all of it obeys §6: first person, two sentences at most, warm without being

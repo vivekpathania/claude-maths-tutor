@@ -28,7 +28,7 @@ while they do it.
 
 **Every sentence addressed to the child comes from Ollie.** Teaching, practice,
 check, the greeting, yesterday's feedback, the nudge when they're stuck — all of
-it is him, in first person, in his card. There is no second narrator.
+it is her, in first person, in her card. There is no second narrator.
 
 This is the rule the rest of the document serves, and today the page breaks it
 in five places (§2).
@@ -42,9 +42,9 @@ sentence, it is Ollie's; if it is a label on a thing you press, it is a control.
 "Ollie will share clues if you need them." Nobody introduces Ollie but Ollie:
 "I'll share a clue if you need one." A lint rule enforces this (§8).
 
-### Two sources of his words — same mouth, different provenance
+### Two sources of her words — same mouth, different provenance
 
-Making Ollie the only voice does **not** mean Ollie improvises the maths. His
+Making Ollie the only voice does **not** mean Ollie improvises the maths. Her
 words come from two places, and the distinction is about verification, not
 about who is speaking:
 
@@ -53,7 +53,7 @@ about who is speaking:
 | **Bank** (`public/ollie-lines.js`) | Reactions, encouragement, framing, transitions — the chrome. Says nothing about the maths. | Once, in the repo | Review + lint (§8) |
 | **Authored** (session JSON) | `slip.say`, `hints`, teach-step narration, the golden rule, `greeting`, `close`, the feedback card. The actual teaching. | `teacher` / `author` / `feedback` agents, per session | `verify-session.js` + the `verifier` agent |
 
-Both render inside Ollie's card, in his voice. The child experiences one tutor.
+Both render inside Ollie's card, in her voice. The child experiences one tutor.
 The system keeps its existing discipline that nothing unverified says anything
 about the maths.
 
@@ -69,7 +69,7 @@ These exist in `public/index.html` today and must all become Ollie:
 | `Hints unlock if you get stuck` | `:803` | Header of that same placeholder box — folds into the line above. |
 | `Take your time — mistakes help your brain learn!` | `:823` | Unattributed sentence pinned under the action column. → Ollie's `fresh` bank. |
 | `A couple you already know, to get going.` | `:654` | Unattributed warm-up subtitle. → Ollie's `open` / first-warm-up line. |
-| `Help is always free` | `:477` | Unattributed reassurance in the chart-toggle row. → Ollie's, or dropped — the sentiment already lives in his stuck lines. |
+| `Help is always free` | `:477` | Unattributed reassurance in the chart-toggle row. → Ollie's, or dropped — the sentiment already lives in her stuck lines. |
 | The whole **feedback screen** | `:519` | Yesterday's card is a screen of prose with no speaker. Ollie delivers it. |
 | `greeting` / `blurb` on the start screen | `:579-580` | Authored copy with no speaker. Ollie delivers it. |
 
@@ -81,11 +81,11 @@ chrome — it does not exist in the current page and must not be added.
 
 ## 3. Registers — how much Ollie is allowed to be
 
-Ollie is present in every session type. What changes is what he is *allowed to
+Ollie is present in every session type. What changes is what she is *allowed to
 talk about*. Derived from **`uiMode`, never from `kind` string-matching** — the
 same rule the rest of the page follows (CLAUDE.md, "Session shape").
 
-| Register | Chosen when | Badge | What he may do |
+| Register | Chosen when | Badge | What she may do |
 |---|---|---|---|
 | `teaching` | the session has a `teach` block | `Your 1-on-1 Tutor` | Full voice. Narrates the lesson, frames slips and hints, delivers the second angle, offers the answer. |
 | `practice` | `retryPolicy: "multi"` and `allowReveal: true`, no `teach` | `<Topic> Buddy` | Warm but lighter. Frames hints, offers the answer, says less between questions. |
@@ -108,14 +108,14 @@ outside a sentence.
 
 ### The assessment rule is structural, not stylistic
 
-**This matters more now that Ollie is the only voice**, because he is the only
-thing on screen still talking during a check — and the pull to let him be
+**This matters more now that Ollie is the only voice**, because she is the only
+thing on screen still talking during a check — and the pull to let her be
 helpful is strongest exactly where help is forbidden.
 
 A check's slips are authored with `say: ""` on purpose: the code is captured for
 diagnosis and **nothing is shown**, because a check measures what the child can
 do unaided. If Ollie reacts to a wrong check answer with "have another look at
-your columns", he has quietly become a hint channel and `cleanScore` stops
+your columns", she has quietly become a hint channel and `cleanScore` stops
 measuring the thing the grader advances on. That is a correctness bug in the
 progression system wearing a friendly face.
 
@@ -124,7 +124,7 @@ object is **built without** `slipSay`, `hintText`, `answer` and `concept` —
 those keys are absent, so a line that tried to use them renders empty rather
 than leaking. Make it impossible, not discouraged.
 
-He still speaks. He just speaks about effort.
+She still speaks. She just speaks about effort.
 
 ---
 
@@ -151,7 +151,7 @@ He still speaks. He just speaks about effort.
 | Moment | Why it matters |
 |---|---|
 | `open` | **The first thing the child ever sees has no companion on it.** Ollie introduces the session and delivers the authored `greeting`/`blurb`. |
-| `feedback` | Yesterday's card, in his voice. The child should hear the same tutor who was there when they got it wrong. |
+| `feedback` | Yesterday's card, in her voice. The child should hear the same tutor who was there when they got it wrong. |
 | `teach.step` | See §5. |
 | `close` | Ollie delivers the authored `close.line`/`close.next`. |
 | `returning` | Reload-resume. Currently silent, which reads like a crash recovered rather than a tutor waiting. |
@@ -178,12 +178,12 @@ it.
 
 ## 5. Teaching — Ollie narrates the lesson
 
-**Revised twice.** The teaching mockup first settled that Ollie narrates the idea in his own
-words alongside the heading and visual. He now does that from his dock (bottom-left, a bubble that
+**Revised twice.** The teaching mockup first settled that Ollie narrates the idea in her own
+words alongside the heading and visual. She now does that from her dock (bottom-left, a bubble that
 fades; the kit is `public/ollie-kit/`, see `docs/voice.md` "How the page speaks"), not from a
 right-hand column: the content is one centred column and the register badges
-(`Your 1-on-1 Tutor`, `Practice Buddy`) are gone. The rule below still holds — he narrates the
-idea in his own words, he does not paraphrase it.
+(`Your 1-on-1 Tutor`, `Practice Buddy`) are gone. The rule below still holds — she narrates the
+idea in her own words, she does not paraphrase it.
 
 `teach()` currently hides the side column outright, reasoning in a comment that
 there is "no authored commentary for a teach step beyond its own `note`, and
@@ -211,11 +211,11 @@ writes and the verifier gates, exactly like `note` and `hints`.
 }
 ```
 
-- **`steps[].ollie`** — what he says on that step. Not a restatement of `note`:
+- **`steps[].ollie`** — what she says on that step. Not a restatement of `note`:
   `note` is the precise formulation, `ollie` is the intuition that makes it
   land. The teacher agent must be told this explicitly or it will write the
   same sentence twice.
-- **`cycle.goldenRule`** — the takeaway card under his narration ("Ollie's
+- **`cycle.goldenRule`** — the takeaway card under her narration ("Ollie's
   golden rule"). One rule per cycle, the thing to carry away.
 
 **This is the only part of the plan with real blast radius.** It touches
@@ -234,7 +234,7 @@ missing `ollie`, and only blocks once the teacher agent reliably writes it.
 is the worked reference — it is the voice, already written, already reviewed. If
 you are the `teacher`, `author` or `feedback` agent writing anything the child
 reads, open that file and match its energy. A session whose authored lines are
-flatter than the bank lines around them makes Ollie sound like he loses interest
+flatter than the bank lines around them makes Ollie sound like she loses interest
 the moment the maths starts.
 
 Ollie is a warm, unhurried adult who is on the child's side and is not impressed
@@ -244,7 +244,7 @@ or disappointed by any particular answer.
 
 - **Two sentences, maximum.** One is usually better. Fragments are good:
   `"Spot on!"`, `"Nailed it."`, `"Got it, nailed it."`
-- **First person, always.** Never "Ollie will…". He is speaking, not being
+- **First person, always.** Never "Ollie will…". She is speaking, not being
   described. Lint-enforced (§8).
 - **Vary the cadence.** The bank's `right.first` runs from `"Yes!"` to
   `"Right first time — well done."` on purpose. Six lines of identical length
@@ -255,17 +255,17 @@ or disappointed by any particular answer.
 - **Praise the effort, not the cleverness.** Never "you're so smart" — it makes
   the next wrong answer mean something about *them*.
 - **Never shame a wrong answer, a skip, or a reveal.** Standing policy
-  (CLAUDE.md, "Avoidance"), and it binds Ollie hardest because he is the voice
+  (CLAUDE.md, "Avoidance"), and it binds Ollie hardest because she is the voice
   at the moment of failing.
 - **Concrete imagery over abstraction, where the age allows it.** `"Think of
   the dot as a little fence"`, `"This one's a tough nut"`. One image, carried —
   not a new metaphor per sentence.
 - **One exclamation mark at most**, no stacking, no emoji beyond the existing
   ✓/🌟 chrome.
-- **He never claims memory he does not have.** No "you did this yesterday"
-  except in the feedback card, which is handed to him.
-- **He never says the answer** outside `revealed`.
-- **He uses the child's first name sparingly** — `open`, `close`, `feedback`,
+- **She never claims memory she does not have.** No "you did this yesterday"
+  except in the feedback card, which is handed to her.
+- **She never says the answer** outside `revealed`.
+- **She uses the child's first name sparingly** — `open`, `close`, `feedback`,
   `streak`, `comeback` only. A mascot that says your name every screen sounds
   like a form letter.
 
@@ -298,7 +298,7 @@ everything else.
 - **`author`** — `q.ollie.{fresh,wrong,right}` replaces a bank line, so it has
   to be at least as good as the one it displaces. If it isn't, omit it and let
   the bank speak.
-- **`feedback`** — the card is Ollie's, delivered in his card, about something
+- **`feedback`** — the card is Ollie's, delivered in her card, about something
   that went wrong yesterday. Warmth and specificity matter more here than
   anywhere. See `docs/feedback-style.md`.
 
@@ -321,7 +321,7 @@ browser/node export pattern, so a lint script can load it in node and the
 parent dashboard can reuse the voice later.
 
 Not inline in `index.html`: the bank is a few hundred lines of copy and the page
-is already long. Not in the session JSON: that would make his *reactions*
+is already long. Not in the session JSON: that would make her *reactions*
 agent-generated per session. Authored content already lives there (§1); the
 bank is reviewed-once repo content, same standing as today's `WELCOME` and
 `FIRST_TRY`.
@@ -364,7 +364,7 @@ Runs first in `npm test`. Refuses:
 
 1. Any `assessment` line containing an interpolation slot. (`{name}` is fine in the
    other registers: the dock passes the first name, only when it is real.)
-2. Any line containing `"Ollie"` — he never refers to himself in the third
+2. Any line containing `"Ollie"` — she never refers to herself in the third
    person (§1). This one also runs over **authored** session text:
    `slip.say`, `hints`, `steps[].ollie`, `greeting`, `close`, feedback cards
    (the authored half is in `verify-session.js`).
@@ -451,7 +451,7 @@ the refactor first is what makes audio small later.
    the refactor that makes everything after it small.
 3. **Absorb the competing voices** (§2): delete `:803-804`, `:823`, `:654`,
    `:477`; their content moves into Ollie's banks.
-4. `right.first` becomes an Ollie moment; `wrong.stuck` becomes his offer —
+4. `right.first` becomes an Ollie moment; `wrong.stuck` becomes her offer —
    *"Want me to help you with this one? I'll show you how it works."* — above
    the existing reveal button, which keeps its label.
 5. `open`, `close`, `returning`, and the `feedback` screen get Ollie.
@@ -464,8 +464,8 @@ the refactor first is what makes audio small later.
 11. `.claude/agents/teacher.md` + `author.md`: Ollie frames your `slip.say`, so
     write the slip as **content** ("You moved the digits right — that is
     dividing"), not as **reaction** ("Oops, not quite!"). Several existing slips
-    are written as reactions and will read doubled-up under his framing.
+    are written as reactions and will read doubled-up under her framing.
 12. The row for this file in CLAUDE.md's reference table.
 
 Steps 1–5 deliver the single voice. 7 delivers the teaching mockup. The rest is
-what turns him from an error handler into a companion.
+what turns her from an error handler into a companion.

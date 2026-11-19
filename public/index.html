@@ -749,8 +749,8 @@ body{min-height:100svh;min-height:var(--vvh,100svh)}
     toggle.addEventListener('click', function(){ state.chartOpen[key]=!state.chartOpen[key]; render(); });
     row.appendChild(toggle);
     // "Help is always free" used to sit here, unattributed — dropped rather
-    // than attributed to Ollie: the sentiment already lives in his stuck
-    // lines, and a toggle row isn't a sentence he needs to say twice.
+    // than attributed to Ollie: the sentiment already lives in her stuck
+    // lines, and a toggle row isn't a sentence she needs to say twice.
     sideCard.appendChild(row);
     if(state.chartOpen[key]){
       var chart = h('<div class="enter side-card"></div>');
@@ -1055,7 +1055,7 @@ body{min-height:100svh;min-height:var(--vvh,100svh)}
     card.appendChild(actions);
     stageHead.appendChild(card);
 
-    // Ollie speaks from his dock: the first item gets his look-back line, each next one
+    // Ollie speaks from her dock: the first item gets her look-back line, each next one
     // its own. The list below is the map of the same items, one title each.
     if(isNewScreen('feedback|'+curIdx)) say(curIdx===0 ? 'feedback' : 'feedback.item');
 
@@ -1102,7 +1102,7 @@ body{min-height:100svh;min-height:var(--vvh,100svh)}
     var kicker = 'Today\'s session'+(S.sessionMinutes ? ' · about '+S.sessionMinutes+' minutes' : '');
     card.appendChild(h('<span class="ol-pill">'+esc(kicker)+'</span>'));
     // The authored greeting is the welcome. The blurb stays under it.
-    // Ollie says his own open line beside the card, so the greeting is not
+    // Ollie says her own open line beside the card, so the greeting is not
     // said twice.
     card.appendChild(h('<h1>'+esc(S.greeting||'')+'</h1>'));
     if(S.blurb) card.appendChild(h('<p class="ol-text-secondary">'+esc(S.blurb)+'</p>'));
@@ -1276,7 +1276,7 @@ body{min-height:100svh;min-height:var(--vvh,100svh)}
     stageHead.appendChild(card);
 
     // Ollie narrates every teach step. `st.ollie` is the authored line; a step with none
-    // falls back to a position-keyed bank line. He does not paraphrase the maths. The
+    // falls back to a position-keyed bank line. She does not paraphrase the maths. The
     // golden rule card is on every step of the part, but it is the takeaway, so it is
     // SPOKEN once, on the last step, after the narration.
     var returning = (state.i===state.resumeStep && sub===0);
@@ -1336,8 +1336,8 @@ body{min-height:100svh;min-height:var(--vvh,100svh)}
       stageHead.appendChild(h('<div class="ol-qhead">'+pill+'<div class="ol-qhead-tools">'+headTools+'</div></div>'));
     }
     // The "a couple you already know" intro used to be an unattributed
-    // subtitle here. It's Ollie's line now — he says it in his own card,
-    // not the page narrating over his shoulder (docs/mascot.md §2).
+    // subtitle here. It's Ollie's line now — she says it in her own card,
+    // not the page narrating over her shoulder (docs/mascot.md §2).
     var bare = !/[a-z]/i.test(q.ask) && q.ask.indexOf('?')===-1;
     stageHead.appendChild(h('<h1 class="enter q-title">'+esc(q.ask)+(bare?' = ?':'')+'</h1>'));
     // E1 — recallText/showRecallFrom: an authored spaced-repetition banner
@@ -1382,7 +1382,7 @@ body{min-height:100svh;min-height:var(--vvh,100svh)}
     }
     // The clue track for this question (public/ollie-kit OllieClues). It lives across
     // re-draws of the same question — the child's clues are state — and is rebuilt for the
-    // next one. Ollie speaks through it, so he only reacts to what the child does.
+    // next one. Ollie speaks through it, so she only reacts to what the child does.
     var hints = q.hints || [];
     var track = trackFor(q, qid, hints);
     track.onShowMe = function(){ revealAnswer(); };
@@ -1485,7 +1485,7 @@ body{min-height:100svh;min-height:var(--vvh,100svh)}
     }
 
     // Opener: a NEW question speaks (or stays silent) — a redraw after an answer does not.
-    // Ollie reacts to answers; he does not narrate every question.
+    // Ollie reacts to answers; she does not narrate every question.
     if(!isWrong && state.tries===0 && isNewScreen('q|'+state.i)){
       var total = totalQuestions();
       var opener = null;
@@ -1749,7 +1749,7 @@ body{min-height:100svh;min-height:var(--vvh,100svh)}
     card.appendChild(h('<div class="self-center w-24 h-24 rounded-full bg-app-sageLight flex items-center justify-center text-4xl">🎈</div>'));
     card.appendChild(h('<h1 class="text-center text-[26px] font-extrabold tracking-tight">All done for today</h1>'));
     // The authored close.line / close.next and a reflection computed from this session's
-    // own log, as one plain block. Ollie says his goodbye, then the authored lines; a
+    // own log, as one plain block. Ollie says her goodbye, then the authored lines; a
     // perfect session gets a cheer first.
     var reflection = SESSION.kind!=='placement' ? closeReflection(first,retry,shown,exhausted,total) : '';
     var closeBody = [c.line, c.next, reflection].filter(Boolean).join(' ');
@@ -1801,7 +1801,7 @@ body{min-height:100svh;min-height:var(--vvh,100svh)}
   }
 
   // One Ollie per page, bottom-left (public/ollie-kit). Mounted once the session is known,
-  // because his register and the child's first name come from it. The name goes in only
+  // because her register and the child's first name come from it. The name goes in only
   // when it is real, and never in an assessment (the kit's lines enforce that too).
   function mountOllie(session){
     if(!window.OllieDock || !window.OllieVoice || !window.OllieLines) return;

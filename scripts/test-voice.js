@@ -209,7 +209,7 @@ t('ollie-voice.js hands the dock ONE audio element (iPad plays later clips only 
 });
 t('a clue is spoken as a bank line then the clue itself — two recordings, never a new one per pairing', () =>
   truthy(/speaker\.chain\(\[\{ text: line/.test(ov), 'append is not chained'));
-t('he never speaks without his bubble: captions forced on, mute instead, no sound while the dock is hidden', () => {
+t('she never speaks without her bubble: captions forced on, mute instead, no sound while the dock is hidden', () => {
   truthy(/setCaptions\(true\)/.test(ov), 'captions are not forced on');
   truthy(/data-action', 'mute'/.test(ov) && /muted \|\| hidden \? null/.test(ov), 'no mute / hidden-dock silence');
   truthy(/data-action="captions"\]\{display:none\}/.test(css), 'the kit captions button is still shown');

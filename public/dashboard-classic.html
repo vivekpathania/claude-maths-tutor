@@ -19,7 +19,7 @@
   /* set aside by the parent — its own hue, never the muted grey "mid-topic,
      no level yet" tone those used to share and get confused with */
   --paused:#6f8fb3;
-  /* the topic he's actually working on right now — its own vivid green,
+  /* the topic they are actually working on right now — its own vivid green,
      deliberately brighter than the muted --master so the two never blur */
   --current:#3ecf7e;
   --display:'Archivo',system-ui,sans-serif;
@@ -340,7 +340,7 @@ section.view{display:flex;flex-direction:column;gap:26px}
         <ol class="help-flow">
           <li>Your child does a session on their own page — each answer saves straight to the database as they go.</li>
           <li>Finishing marks it <b>submitted</b>, waiting to be graded.</li>
-          <li>Running <code>/grade</code> fetches that session and hands it to the <b>grader</b> — it marks every answer, diagnoses the wrong ones, and decides the verdict and what should happen next, reading his whole history on the topic, not just this one session.</li>
+          <li>Running <code>/grade</code> fetches that session and hands it to the <b>grader</b> — it marks every answer, diagnoses the wrong ones, and decides the verdict and what should happen next, reading the whole history on the topic, not just this one session.</li>
           <li>That grading is saved immediately — marks, feedback, and progress are never left waiting on what gets built next.</li>
           <li>The next session gets built: a full step-by-step <b>lesson</b> when something needs re-teaching, otherwise a <b>practice</b>, <b>check</b> or <b>retest</b> session at the right level.</li>
           <li>It's checked two ways — an automatic answer-key check, then an independent cold re-solve — before it's queued. A clean pass queues it automatically; anything doubtful (or a backtrack to an earlier topic) is held for review first.</li>
@@ -350,11 +350,11 @@ section.view{display:flex;flex-direction:column;gap:26px}
       <div>
         <h3>Commands</h3>
         <div class="help-cmds">
-          <div class="help-cmd"><code>/grade</code> Grade whatever he's submitted and queue what's next — the everyday command.</div>
+          <div class="help-cmd"><code>/grade</code> Grade whatever has been submitted and queue what's next — the everyday command.</div>
           <div class="help-cmd"><code>/next-session</code> Build the next session when nothing is waiting to be graded (first session, or after a gap).</div>
           <div class="help-cmd"><code>/status</code> Read-only progress check — no changes made.</div>
           <div class="help-cmd"><code>/setup-child</code> Research the curriculum and set up a child's profile and topic list.</div>
-          <div class="help-cmd"><code>/run</code> Start the local dev server for this dashboard and his session page.</div>
+          <div class="help-cmd"><code>/run</code> Start the local dev server for this dashboard and the child's session page.</div>
           <div class="help-cmd"><code>/reset-child</code> Dev/testing only — wipes sessions and progress for a clean re-test, keeps the approved topic list.</div>
         </div>
       </div>
@@ -409,6 +409,18 @@ function apiFetch(url, opts){
 }
 var DATA = null;   // { child, sessions, topics }
 function childName(){ var n = DATA && DATA.child && DATA.child.name; return n ? String(n).split(' ')[0] : 'your child'; }
+/* Pronouns for the child — see dashboard.html for the same helpers. they/them
+   is the default, and the only safe one when the profile does not say. */
+function PR(){
+  var p = DATA && DATA.child && DATA.child.pronouns;
+  return (p && p.subject) ? p : { subject:'they', object:'them', possessive:'their', plural:true };
+}
+function su(){ return PR().subject; }
+function Su(){ var w = su(); return w.charAt(0).toUpperCase() + w.slice(1); }
+function ob(){ return PR().object; }
+function po(){ return PR().possessive; }
+function Po(){ var w = po(); return w.charAt(0).toUpperCase() + w.slice(1); }
+function V(sing, plur){ return PR().plural ? plur : sing; }
 
 /* ── helpers ─────────────────────────────────────────────────────── */
 function esc(s){ return String(s||'').replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
@@ -552,10 +564,10 @@ function buildTopics(child, sessions){
     // the next session already queued — that is the normal case mid-topic.
     // `lv` is the level (or null); `st` is only what is happening right now.
     if(waiting){
-      st='awaitingGrading';                  // he did it; it needs /grade
+      st='awaitingGrading';                  // done; it needs /grade
       last = waiting.finishedAt || waiting.date || '';
     } else if(pending){
-      st='inProgress';                       // queued, he has not done it yet
+      st='inProgress';                       // queued, not done yet
       last = pending.createdAt || '';
     } else if(paused){
       st='paused';
@@ -595,7 +607,7 @@ function buildTopics(child, sessions){
 }
 
 // The topic the detail panel shows when nothing is explicitly selected —
-// whatever is actually active (waiting to be graded or queued for him), else
+// whatever is actually active (waiting to be graded or queued), else
 // the next unmastered topic in queue order, else just the first topic.
 function findCurrentTopic(topics, sessions){
   var waitingSess = sessions.find(function(s){ return s.status==='submitted'; });
@@ -654,7 +666,7 @@ var WARN_ICON = '<svg class="lg-icon" width="12" height="12" viewBox="0 0 12 12"
   '<circle cx="6" cy="8.6" r="0.7" fill="currentColor"/></svg>';
 
 // The parent's Teach-fully/Check-first choice — a magnifying glass (check
-// what he knows first) vs. an open book (teach it from scratch).
+// what they already know) vs. an open book (teach it from scratch).
 var MODE_ICON = {
   check: '<svg class="lg-icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">'+
     '<circle cx="5" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="1.7"/>'+
@@ -860,7 +872,7 @@ function renderDashboard(topics, sessions, finSessions){
           ' question'+(asked===1?'':'s')+'. Nothing is scored until you grade it.</p>'+
         (waitingSess.uiMode?'<p class="sm dim" style="margin:7px 0 0">'+esc(describeAccess(waitingSess.uiMode))+'</p>':'')+
         '<p class="sm dim" style="margin:7px 0 0">Run <b class="mono">/grade</b> in Claude Code to mark it, '+
-          'write his feedback, and queue the next one.</p>'+
+          'write ' + po() + ' feedback, and queue the next one.</p>'+
       '</div>'+
       '<div class="ring">'+
         '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="var(--surface-2)" stroke-width="9"/>'+
@@ -868,7 +880,7 @@ function renderDashboard(topics, sessions, finSessions){
         '<div class="ring-in"><b>'+right+'/'+(ids.length||asked)+'</b><span>unmarked</span></div>'+
       '</div>'+
       (revealed?'<div class="verdict"><div class="lead">'+revealed+' question'+(revealed===1?'':'s')+
-        ' needed the answer showing</div><div class="means">He could not get there with the hints. '+
+        ' needed the answer showing</div><div class="means">' + Su() + ' could not get there with the hints. '+
         'These are the ones to re-teach.</div></div>':'')+
       '</div>');
     heroDiv.appendChild(heroCard1);
@@ -883,11 +895,11 @@ function renderDashboard(topics, sessions, finSessions){
         '<h2>'+esc(focusTopic.n)+'</h2>'+
         '<div class="hero-meta">'+
           (focusTopic.lv?'<span class="pill '+PILL[focusTopic.lv]+'">'+LABEL[focusTopic.lv]+'</span>':'')+
-          '<span class="pill p-progress">Ready for him</span>'+
+          '<span class="pill p-progress">Ready for ' + ob() + '</span>'+
           stagePill(pendingSess)+
           '<span class="sm dim">'+esc(focusTopic.s)+' · '+esc(KIND_LABEL[pendingSess.kind]||pendingSess.kind||'session')+'</span></div>'+
         '<p class="sm" style="margin:11px 0 0">'+countQuestions(pendingSess)+
-          ' questions waiting. Nothing to do until he has done them.</p>'+
+          ' questions waiting. Nothing to do until ' + su() + ' ' + V('has','have') + ' done them.</p>'+
         (pendingSess.uiMode?'<p class="sm dim" style="margin:7px 0 0">'+esc(describeAccess(pendingSess.uiMode))+'</p>':'')+
       '</div>'+
       (prevSc?'<div class="ring" title="'+prevSc.right+'/'+prevSc.of+' done, '+cleanOf(prevSc)+'/'+prevSc.of+' unaided">'+
@@ -1005,9 +1017,9 @@ function renderDashboard(topics, sessions, finSessions){
     obDiv.innerHTML='<div class="eyebrow">Progress so far</div>';
     obDiv.appendChild(el('<div class="card allclear">'+
       (byStatus.pending
-        ? 'Nothing finished yet — his first session is queued and waiting for him.'
+        ? 'Nothing finished yet — ' + po() + ' first session is queued and waiting for ' + ob() + '.'
         : 'Nothing finished yet.')+
-      '<br><span class="sm">Scores, streaks and trends will show up here once he\'s done one.</span></div>'));
+      '<br><span class="sm">Scores, streaks and trends will show up here once ' + su() + V('\u2019s','\u2019ve') + ' done one.</span></div>'));
     v.appendChild(obDiv);
   } else {
 
@@ -1054,7 +1066,7 @@ function renderDashboard(topics, sessions, finSessions){
     '<div class="strip-num"><b>'+perWeek+'</b><span>sessions / week</span></div>'+
     (masteryChecks?'<div class="strip-num"><b style="color:var(--master)">'+passed+'/'+masteryChecks+'</b><span>checks passed</span></div>':'')+
     (byStatus.submitted?'<div class="strip-num"><b style="color:var(--process)">'+byStatus.submitted+'</b><span>needs grading now</span></div>':'')+
-    (byStatus.pending?'<div class="strip-num"><b style="color:var(--accent)">'+byStatus.pending+'</b><span>queued for him</span></div>':'')+
+    (byStatus.pending?'<div class="strip-num"><b style="color:var(--accent)">'+byStatus.pending+'</b><span>queued for ' + ob() + '</span></div>':'')+
     '</div></div>'));
   v.appendChild(countsDiv);
 
@@ -1106,7 +1118,7 @@ function renderDashboard(topics, sessions, finSessions){
 
   // TIME TREND — how long sessions are actually taking, against the
   // parent's own budget. The per-session stat line answers "how did THIS
-  // one go"; this answers "is he using his time, or finishing well under
+  // one go"; this answers "is the time being used, or finishing well under
   // it" — which is exactly what the grader's own growth rule reads before
   // it will raise the question count (see CLAUDE.md "Session size").
   var timeSessions = finSessions.slice()
@@ -1282,9 +1294,9 @@ function buildLastSessionSummary(s){
 function questionMap(s){ return SessionShape.questionMap(s); }
 
 // The full "what the grader said" report for one graded session — a plain,
-// adult-readable breakdown of what he nailed outright, what took a nudge
-// (a hint, a retry, or more than one go) even though he got there, and what
-// he genuinely couldn't do — all with the real question text, never just an
+// adult-readable breakdown of what was nailed outright, what took a nudge
+// (a hint, a retry, or more than one go) even though they got there, and what
+// they genuinely couldn't do — all with the real question text, never just an
 // id like "p1". Scans every attempt per question, not just the final one, so
 // a reveal or a hint buried earlier in the history still shows up even if a
 // later retry fixed the mark.
@@ -1336,7 +1348,7 @@ function buildLastSessionDetail(s, topicName, tight){
   });
 
   // The grader's plain-English read on what this means — the thing a parent
-  // actually wants ("he's solid on X, still trips on Y"), not a score recap.
+  // actually wants ("solid on X, still trips on Y"), not a score recap.
   // Older graded sessions won't have it (written before this field existed);
   // fall back to the mechanical score+pattern line for those.
   var summaryText = s.parentSummary || buildLastSessionSummary(s);
@@ -1354,7 +1366,7 @@ function buildLastSessionDetail(s, topicName, tight){
     : '';
 
   // How the teaching landed, cycle by cycle. This is the only view that
-  // shows WHAT he was learning rather than how many he got right — each row
+  // shows WHAT they were learning rather than how many they got right — each row
   // is one explanation and whether it worked.
   var teaching=teachingOf(s);
   var teachBlock = teaching
@@ -1455,15 +1467,15 @@ function renderMastery(topics, sessions, finSessions){
   keyDiv.innerHTML='<div class="eyebrow">Status guide</div>'+
     '<div class="legend-compact">'+
 
-      '<div class="legend-group"><div class="legend-group-label">His level on this topic</div><div class="legend-group-chips">'+
+      '<div class="legend-group"><div class="legend-group-label">' + Po() + ' level on this topic</div><div class="legend-group-chips">'+
         '<span class="lg-chip" title="Scored 80% or better on a final check, without hints. Retested every few weeks so it does not fade."><span class="pill p-master">Master</span>80%+, unaided</span>'+
-        '<span class="lg-chip" title="Finished the topic but landed under 80%. He can do it, not yet reliably."><span class="pill p-developing">Developing</span>under 80%</span>'+
+        '<span class="lg-chip" title="Finished the topic but landed under 80%. ' + Su() + ' can do it, not yet reliably."><span class="pill p-developing">Developing</span>under 80%</span>'+
         '<span class="lg-chip" title="Well under 80%. Needs teaching again before moving on."><span class="pill p-beginner">Beginner</span>needs re-teaching</span>'+
       '</div></div>'+
 
-      '<div class="legend-group"><div class="legend-group-label">Waiting on you or him</div><div class="legend-group-chips">'+
-        '<span class="lg-chip" title="He has done the work; it has no level until you run /grade."><span class="pill p-waiting">Needs grading</span>run /grade</span>'+
-        '<span class="lg-chip" title="A session is waiting for him to sit down and do."><span class="pill p-progress">Queued</span>ready to do</span>'+
+      '<div class="legend-group"><div class="legend-group-label">Waiting on you or ' + ob() + '</div><div class="legend-group-chips">'+
+        '<span class="lg-chip" title="' + Su() + ' ' + V('has','have') + ' done the work; it has no level until you run /grade."><span class="pill p-waiting">Needs grading</span>run /grade</span>'+
+        '<span class="lg-chip" title="A session is waiting for ' + ob() + ' to sit down and do."><span class="pill p-progress">Queued</span>ready to do</span>'+
       '</div></div>'+
 
       '<div class="legend-group"><div class="legend-group-label">Where the topic stands</div><div class="legend-group-chips">'+
@@ -1585,11 +1597,11 @@ function renderMastery(topics, sessions, finSessions){
       // Two separate facts, two separate slots. Top-right is WHERE the topic
       // stands — Paused / Underway (graded work, no level yet) / Not started
       // — independent of whether anything is currently pending on it. Bottom-
-      // right is an ACTION for the parent — Queued (ready for him) / Needs
+      // right is an ACTION for the parent — Queued (ready for them) / Needs
       // grading — which can be true at any stage (a Developing topic with an
       // ungraded session is still "Developing", just also awaiting /grade).
       //
-      // "Underway" means he is still actively working this topic — anything
+      // "Underway" means they are still actively working this topic — anything
       // short of Master, once it has been touched at all. A Developing topic
       // mid-practice is just as "underway" as one with no level yet; Master
       // is the only level that's actually finished, so it's the only one
@@ -1657,12 +1669,12 @@ var PHASE_LABEL = { placement:'Placement', lesson:'Lesson', practice:'Practice',
 function describeAccess(m){
   if(!m) return '';
   if(m.retryPolicy==='oneShot')
-    return 'One try per question, no hints — a placement, to see what he already knows unaided.';
+    return 'One try per question, no hints — a placement, to see what ' + su() + ' already ' + V('knows','know') + ' unaided.';
   if(m.hintsMax===0 && !m.allowReveal)
     return 'No help on this one — a check, to confirm it has really stuck.';
   if(m.hintsMax>0)
     return 'Up to '+m.hintsMax+' hint'+(m.hintsMax===1?'':'s')+' per question'+
-      (m.allowReveal?', with "show me how" if he is truly stuck.':'.');
+      (m.allowReveal?', with "show me how" if ' + su() + ' ' + V('is','are') + ' truly stuck.':'.');
   return 'Standard practice support.';
 }
 
@@ -1798,7 +1810,7 @@ function openDetail(t, slot, topics, defaultTopic, fromClick){
 
   var why={
     master:'Scored 80%+ on a final check without hints.',
-    developing:'Finished, but under 80% — he can do it, not yet reliably.',
+    developing:'Finished, but under 80% — ' + su() + ' can do it, not yet reliably.',
     beginner:'Well under 80%. Needs teaching again.'
   }[t.lv]||'';
 
@@ -1830,12 +1842,12 @@ function openDetail(t, slot, topics, defaultTopic, fromClick){
   var notReady = !t.lv && !t.runs && !t.paused && t.st!=='inProgress' && t.st!=='awaitingGrading' && unmetPrereqs.length;
 
   var nextUp = t.st==='awaitingGrading' ? 'Run <b class="mono">/grade</b> to mark the finished session.'
-             : t.st==='inProgress'      ? 'A session is queued and waiting for him.'
+             : t.st==='inProgress'      ? 'A session is queued and waiting for ' + ob() + '.'
              : t.paused                 ? 'Paused — nothing happens here until you resume it.'
              : t.lv==='master'          ? 'Done. It will come back as a recall check in a few weeks.'
              : t.lv                     ? 'More practice, then a final check to confirm it has stuck.'
              : notReady                 ? 'Not reached yet — comes up once the topics above are done.'
-             : t.school                 ? 'Starts with a check to see what he already knows.'
+             : t.school                 ? 'Starts with a check to see what ' + su() + ' already ' + V('knows','know') + '.'
              : 'Starts with a lesson, then practice.';
 
   // Recurring error types across this topic's whole history — the thing the
@@ -1846,12 +1858,12 @@ function openDetail(t, slot, topics, defaultTopic, fromClick){
     errKeys.slice(0,4).map(function(k){ return esc(SLIP_LABEL[k]||k)+' ×'+(errProfile[k].count||0); }).join(', ')+'</div>' : '';
 
   // The grader's full writeup for the most recently graded session — marks,
-  // what went wrong, the pattern it found, and the feedback he actually saw.
+  // what went wrong, the pattern it found, and the feedback they actually saw.
   var lastGraded=sessions.filter(function(s){ return s.status==='graded'; }).slice(-1)[0];
   var lastSessionHtml=lastGraded ? buildLastSessionDetail(lastGraded, 'Last session') : '';
 
   // Controls, right where the parent is already reading the topic's history.
-  // Exactly one topic can be "active" (queued for him or waiting to be
+  // Exactly one topic can be "active" (queued for them or waiting to be
   // graded) at a time — that one only offers Pause. Every other topic offers
   // a force-Start instead, which pauses whatever is active and takes its place.
   var queueIds=(DATA.child.curriculum&&DATA.child.curriculum.topicQueue)||[];
@@ -1865,7 +1877,7 @@ function openDetail(t, slot, topics, defaultTopic, fromClick){
   var ctrls;
   if(active){
     var pauseWhy=frozen ? 'Waiting to be graded — run /grade first'
-               : 'Set aside, and discard the session already built for him';
+               : 'Set aside, and discard the session already built for ' + ob() + '';
     ctrls='<div class="q-acts" style="margin:2px 0 4px">'+
       '<button class="ic w" data-act="pause" title="'+esc(pauseWhy)+'"'+(frozen?' disabled':'')+'>Pause</button>'+
       '</div><div class="xs faint" id="q-msg"></div>';
@@ -1892,7 +1904,7 @@ function openDetail(t, slot, topics, defaultTopic, fromClick){
     var blockedNote = (anyFrozen && startBtn)
       ? '<div class="xs" style="color:var(--developing);margin-top:3px">'+
           'Start is unavailable until <b>'+esc(frozenTopic ? frozenTopic.n : 'the finished session')+
-          '</b> is graded — he has already done that session. Run <b class="mono">/grade</b>, then come back.'+
+          '</b> is graded — ' + su() + ' ' + V('has','have') + ' already done that session. Run <b class="mono">/grade</b>, then come back.'+
         '</div>'
       : '';
     ctrls='<div class="q-acts" style="margin:2px 0 4px;flex-wrap:wrap">'+startBtn+toggle+
@@ -1951,7 +1963,7 @@ function openDetail(t, slot, topics, defaultTopic, fromClick){
       var ids=queueIds.slice();
       if(act==='pause'){
         if(t.pending && !confirm('Pause "'+t.n+'"?\n\n'+
-            'The session already built for him will be thrown away. '+
+            'The session already built for ' + ob() + ' will be thrown away. '+
             'Anything already graded is kept, and you can resume the topic later.')) return;
         var pi=ids.indexOf(t.id);
         if(pi!==-1) ids.splice(pi,1);
@@ -2010,7 +2022,7 @@ function openDetail(t, slot, topics, defaultTopic, fromClick){
           x.className = (isCheck===school) ? ('active '+(isCheck?'is-check':'is-teach')) : '';
         });
         if(nextEl) nextEl.innerHTML = school
-          ? 'Starts with a check to see what he already knows.'
+          ? 'Starts with a check to see what ' + su() + ' already ' + V('knows','know') + '.'
           : 'Starts with a lesson, then practice.';
         // The tile grid carries the same mode text — keep it in step, since
         // we are deliberately not re-rendering. This toggle only ever shows
@@ -2079,7 +2091,7 @@ function openDetail(t, slot, topics, defaultTopic, fromClick){
       .then(function(){
         if(!DATA.child.settings) DATA.child.settings = {};
         DATA.child.settings.sessionMinutes = wantMinutes;
-        if(msg){ msg.textContent='Saved. Applies to the next session he gets.'; msg.style.color='var(--master)'; }
+        if(msg){ msg.textContent='Saved. Applies to the next session ' + su() + ' ' + V('gets','get') + '.'; msg.style.color='var(--master)'; }
       })
       .catch(function(e){
         curMinutes = was;

@@ -101,22 +101,27 @@ Output as `diagnosis: [{ questionId, errorType }]` — wrong answers only.
 This is the one piece of this whole pipeline the parent actually reads about
 *what happened*, not the child. Write `parentSummary`: 1-3 plain-English
 sentences, no jargon, no question ids ("p1", "p7" mean nothing to a parent).
-Say what he's solid on and what pattern of struggle showed up — not a score
+Say what they are solid on and what pattern of struggle showed up — not a score
 recap (the dashboard already shows the number), the *why* behind it. Ground
 it in the real questions and the real history (`sessionHistory`,
 `errorProfile`), not just this session in isolation — if the same pattern
-repeated from a prior session, say so ("same as last time, he's...").
+repeated from a prior session, say so ("same as last time, they're...").
+
+**Write it in this child's pronouns** — `child.pronouns`, defaulting to
+they/them when the profile does not say. This is stored prose the dashboard
+renders as-is; it cannot be re-templated later, so a wrong pronoun here is one
+the parent reads every day. The same goes for `teachingProfile.note`.
 
 This is the same insight that drives `brief.dominantError.description` and
 `brief.instructions` — write it once, in parent language, and let those two
 fields reuse it rather than re-deriving a different story.
 
-Bad (score recap, no insight): "He got 8 out of 8, one question needed the
+Bad (score recap, no insight): "They got 8 out of 8, one question needed the
 answer shown."
-Good (the actual pattern): "He's solid continuing a sequence forward or
-backward, including crossing zero. He still hesitates on two things: a fresh
+Good (the actual pattern): "They're solid continuing a sequence forward or
+backward, including crossing zero. They still hesitate on two things: a fresh
 'continue the pattern' question right after being taught it, and worded
-questions asking for a specific term — he wants to jump to the end instead of
+questions asking for a specific term — they want to jump to the end instead of
 listing each step."
 
 If the session was clean with no pattern worth naming, say that plainly and
@@ -127,13 +132,13 @@ briefly — don't manufacture a concern that isn't there.
 The dashboard shows each topic as a short card, in a parent's words. Write two
 fields about **the topic as it stands now** (not just this session):
 
-- `topicNote` — 1-2 plain sentences, under 220 characters: how he is getting on
-  with this topic across its history. e.g. "He found the first lesson hard, then
+- `topicNote` — 1-2 plain sentences, under 220 characters: how they are getting on
+  with this topic across its history. e.g. "They found the first lesson hard, then
   got every practice question right first time." No ids, no jargon, no score recap.
 - `topicWatch` — one sentence, under 220 characters, naming the single thing to
   keep an eye on (what is still untested or weakest), or `""` when there is
   nothing worth flagging. e.g. "Checking sides and corners as two separate things
-  on the same triangle. He found this hardest and it hasn't been tested since."
+  on the same triangle. They found this hardest and it hasn't been tested since."
 
 Both replace the previous ones, so re-read them and update, don't repeat. Omit
 `topicNote` only if you truly have nothing new; the old one is then kept.
@@ -198,7 +203,7 @@ Walk this logic, using the **real history**, not a fixed script:
     first-try, per the two-numbers rule in Step 3) with zero reveals; two such
     sessions in a row (or one at ≥90% clean with zero hints used at all) →
     move to `check` instead of another practice level. A high completion but
-    low clean score (he got there, but needed hints or retries to do it) holds
+    low clean score (they got there, but needed hints or retries to do it) holds
     the level — that is exactly the case this distinction exists to catch.
     Slow or regressing trend → hold the level, or drop one, rather than
     advancing on schedule.
@@ -350,7 +355,7 @@ has repeatedly failed to land, and the `note` should say what to try
 instead. Guided outcomes **never move the verdict**; they move this.
 
 The note is prose a human reads. "Needs the second angle on anything with
-regrouping; fine once he sees a diagram" is useful. "Doing well" is not.
+regrouping; fine once they see a diagram" is useful. "Doing well" is not.
 
 **Hard limit: 600 characters, enforced by `save-grading.js` — it refuses the
 whole file if `note` is over, not just that field.** Count before you
@@ -414,7 +419,7 @@ Write **one JSON file** to the path you were given:
       "wordProblemComfort": "low|mixed|good",
       "entryStyle":         "needs-definition-first|learns-from-example|mixed"
     },
-    "note": "<=600 chars — how he reacts, what to do differently next lesson"
+    "note": "<=600 chars — how they react, what to do differently next lesson"
   } | undefined
 }
 ```

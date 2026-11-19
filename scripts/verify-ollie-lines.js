@@ -5,7 +5,7 @@
 //
 // Cheap, and exactly the failures that would otherwise reach a child silently:
 //   1. an assessment line with a {name} slot (a check never uses the name)
-//   2. a line that says "Ollie" (he speaks in the first person, always)
+//   2. a line that says "Ollie" (she speaks in the first person, always)
 //   3. a (register, moment) pair the page asks for that has no line
 //   4. a line over 140 characters or with more than three sentences
 //   5. the same line twice in one moment's list (a shuffle bag with duplicates repeats)

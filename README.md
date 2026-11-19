@@ -155,8 +155,8 @@ npm start        # http://localhost:3000
 
 ### 6. Coach Ollie's voice (optional)
 
-The child's page works without it — Ollie shows his speech bubble silently.
-To give him a recorded voice:
+The child's page works without it — Ollie shows her speech bubble silently.
+To give her a recorded voice:
 
 ```bash
 cd tools/voice && npm install

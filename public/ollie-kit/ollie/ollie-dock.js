@@ -8,14 +8,14 @@
  *                     340px rail free (add class "ollie-content" to <main>).
  *   below 1200px      a strip along the bottom; the page keeps room for it.
  *   keyboard open     on touch devices the strip hides and Ollie speaks by
- *                     voice only, so he never covers the answer box.
+ *                     voice only, so she never covers the answer box.
  *
  * Behaviour:
- *   - The bubble appears when Ollie speaks and fades a moment after he
+ *   - The bubble appears when Ollie speaks and fades a moment after she
  *     finishes. No buttons inside it.
  *   - The speaker button (or tapping Ollie) replays the last line.
  *   - The captions button turns the bubble off for children who only listen.
- *   - A new line always stops the current one; Ollie never talks over himself.
+ *   - A new line always stops the current one; Ollie never talks over herself.
  *   - Typing or tapping resets the "still with me?" idle nudge.
  *
  *   var dock = OllieDock.mount({ register: 'practice', name: 'Sam' });
@@ -35,7 +35,7 @@
   var PREF_KEY = 'ollie.captions';
   var MS_PER_CHAR = 55;        // estimate when no audio length is known
   var MIN_VISIBLE = 3500;      // bubble never shorter than this
-  var LINGER_AFTER = 1500;     // bubble stays this long after he stops
+  var LINGER_AFTER = 1500;     // bubble stays this long after she stops
 
   function readPref(fallback) {
     try { var v = localStorage.getItem(PREF_KEY); return v === null ? fallback : v === '1'; }

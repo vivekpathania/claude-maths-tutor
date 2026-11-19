@@ -1,6 +1,6 @@
 # Coach Ollie kit
 
-Everything for Ollie on the child's page: the animated character, the dock with his speech bubble, the clue area under the answer box, his line bank, and still images.
+Everything for Ollie on the child's page: the animated character, the dock with her speech bubble, the clue area under the answer box, her line bank, and still images.
 
 Open `demo.html` in a browser to see it all working. It uses the browser's built-in voice for speech.
 
@@ -8,8 +8,8 @@ Open `demo.html` in a browser to see it all working. It uses the browser's built
 
 | File | What it is |
 |---|---|
-| `ollie/ollie-character.js` | Ollie as one inline SVG. Sets his mood and talking state. |
-| `ollie/ollie-dock.js` | His home on the page: speech bubble, voice, captions, replay, idle nudge. |
+| `ollie/ollie-character.js` | Ollie as one inline SVG. Sets her mood and talking state. |
+| `ollie/ollie-dock.js` | Her home on the page: speech bubble, voice, captions, replay, idle nudge. |
 | `ollie/ollie-clues.js` | The clue area under the answer box and the rules for when help appears. |
 | `ollie/ollie-lines.js` | The line bank. Clue lines now say the clue is under the answer box. |
 | `ollie/ollie.css` | All of Ollie's animation, the dock, the bubble and the clue styles. |
@@ -98,7 +98,7 @@ The rules, built in:
 | `cheer` | Both wings up, happy eyes | Two hops, wings flap |
 | `neutral` | Wings down | Small lean |
 
-He is never fully still. He bobs gently, blinks, looks left and right now and then, tilts his head and ruffles his wings, each on its own timing. While he talks, his beak moves and his body sways gently. When the device asks for reduced motion, he stays still; voice and captions are unchanged.
+She is never fully still. She bobs gently, blinks, looks left and right now and then, tilts her head and ruffles her wings, each on its own timing. While she talks, her beak moves and her body sways gently. When the device asks for reduced motion, she stays still; voice and captions are unchanged.
 
 ## Colours
 

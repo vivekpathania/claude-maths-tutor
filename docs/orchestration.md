@@ -36,7 +36,7 @@ session.
    output path. It marks the session, diagnoses every wrong answer, decides
    the verdict and the next stage (reading the *entire* `topicStatus` history,
    not just this session), writes a structured brief for whatever comes next,
-   writes a plain-English `parentSummary` of what he's solid on and what
+   writes a plain-English `parentSummary` of what they are solid on and what
    pattern of struggle showed up (this is what the parent-facing dashboard
    shows — not question ids, not a raw score), and decides whether a feedback
    card is even needed (`needsFeedback`) — but does not write the card's

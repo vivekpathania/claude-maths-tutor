@@ -7,6 +7,9 @@ report, and save once I approve. Arguments: $ARGUMENTS
 
 1. **Ask me, in one short message** (skip anything already in the arguments):
    - child's name, age, stage/grade, board (e.g. Cambridge Primary)
+   - their pronouns (he/him, she/her, they/them) — the dashboard writes a
+     sentence about them on every line, and gets it wrong by default
+     otherwise. If I do not answer, use they/them and say so.
    - **session length** — 15, 30, 45 or 60 minutes. Explain plainly what this
      actually is: a ceiling each session may spend, not a number of questions
      it must fill — the `grader` agent decides the real size of each session
@@ -36,7 +39,7 @@ report, and save once I approve. Arguments: $ARGUMENTS
      sure the draft is labelled `model-knowledge` where I will see it.
 
    Do not skip this. A recalled topic list is the difference between
-   teaching his actual syllabus and teaching a plausible guess at it, and
+   teaching their actual syllabus and teaching a plausible guess at it, and
    the only cheap moment to fix that is before anything is saved.
 
 4. **Launch the `curriculum-reviewer` agent** on the same file, once the

@@ -1,5 +1,5 @@
 /* ollie-lines.js — Coach Ollie's line bank: the single voice on the child's
- * page. See docs/mascot.md §1 for why he is the only speaker, and §6 for the
+ * page. See docs/mascot.md §1 for why she is the only speaker, and §6 for the
  * voice standard every line here must follow.
  *
  * Loaded two ways, same file, same pattern as session-shape.js:
@@ -9,11 +9,11 @@
  * This is chrome: reviewed-once repo content that says nothing about the
  * maths. The actual teaching (slip.say, hints, a lesson's walkthrough) is
  * authored per session and handed to Ollie to deliver — never written here.
- * See docs/mascot.md §1 "Two sources of his words".
+ * See docs/mascot.md §1 "Two sources of her words".
  *
  * ---------------------------------------------------------------------------
  * VOICE FOR THE NEW UI
- * Ollie is now a large character with a speech bubble, so his lines carry
+ * Ollie is now a large character with a speech bubble, so her lines carry
  * more of the screen. Every line should:
  *   - sound warm and a little playful, like a friendly coach, not a system;
  *   - praise effort and strategy, never "clever" or "easy";
@@ -43,7 +43,7 @@
  * CLUES
  * clue.* and wrong.again lines say where the clue is (under the answer box).
  * The clue text itself is authored per question and appended by the caller,
- * so Ollie reads it aloud and the bubble matches what he says.
+ * so Ollie reads it aloud and the bubble matches what she says.
  *
  * MOODS
  * mood(register, moment) returns which Ollie SVG to show next to the line:
@@ -432,7 +432,7 @@
     }
   };
 
-  // Which Ollie SVG goes with each moment. Assessment keeps him calm: he
+  // Which Ollie SVG goes with each moment. Assessment keeps her calm: she
   // never cheers or looks concerned about a single question there.
   var MOODS = {
     _default: {

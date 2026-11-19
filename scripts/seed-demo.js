@@ -12,7 +12,7 @@
 // — they exist to give the dashboard something to draw. A real child's first
 // session comes from /setup-child then /next-session.
 //
-// The demo has no rendered audio, so Coach Ollie shows his speech bubble
+// The demo has no rendered audio, so Coach Ollie shows her speech bubble
 // without sound. That is the same fallback a real session gets before
 // `node tools/voice/render.js` has run (docs/voice.md).
 
@@ -393,6 +393,9 @@ async function main() {
 
   await setDoc(`children/${ID}`, {
     id: ID, name: NAME, age: 10, stage: 'Stage 5', board: 'Example board',
+    // Optional. Left off a profile, the dashboard says they/them, which is the
+    // only safe default when nobody has said.
+    pronouns: { subject: 'he', object: 'him', possessive: 'his', plural: false },
     settings: { sessionMinutes: 30, questionsPerSession: 8 },
     schoolFocus: '',
   });

@@ -214,7 +214,7 @@ A `cycle` — teach a bit, then the child works on that bit:
   "conceptName": "A digit's worth is the digit times its column",
   "steps": [ { "big": "...", "note": "...", "visual": {...},
                "ollie": "..." } ],                  // REQUIRED — what Ollie says on this step,
-                                                      // in his own words (docs/mascot.md §5). A
+                                                      // in her own words (docs/mascot.md §5). A
                                                       // step with none is refused on save.
   "q": { "id": "g1", ... },                         // exactly one, id required
   "secondAngle": { "steps": [ ... ] },              // shown only on a wrong answer
@@ -461,10 +461,22 @@ first and a maths gap second.
 ## The child's profile
 
 Read `children/{childId}` (fetched by `grader`/`fetch-latest.js`). Key fields:
-`name`, `age`, `stage`, `board`, and `settings` (`sessionMinutes`,
+`name`, `age`, `stage`, `board`, `pronouns`, and `settings` (`sessionMinutes`,
 `questionsPerSession`). Address the child by name; pitch language to their
 age. A 7-year-old and a 12-year-old need very different voices and difficulty
 curves.
+
+**`pronouns`** — `{ subject, object, possessive, plural }`, e.g.
+`{ "subject": "she", "object": "her", "possessive": "her", "plural": false }`.
+The dashboards read it; **a profile without it gets they/them**, which is the
+only safe default when nobody has said. `plural` picks the verb form, so
+`they` gets "they *have* finished" rather than "they *has*".
+
+Anything an agent writes *as prose* — `parentSummary`, `teachingProfile.note`,
+a feedback card — is stored text the dashboard cannot re-template later, so
+**write it in this child's pronouns**. Falling back to "he" because most
+examples read that way is how the whole dashboard came to call every child a
+boy.
 
 ## Topic queue
 

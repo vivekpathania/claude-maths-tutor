@@ -283,6 +283,20 @@ function dLong(d){ return d.getDate() + ' ' + MONTHS_LONG[d.getMonth()]; }
 function ago(n){ return n <= 0 ? 'today' : n === 1 ? 'yesterday' : n + ' days ago'; }
 function plural(n, one, many){ return n + ' ' + (n === 1 ? one : (many || one + 's')); }
 function first(){ var n = D && D.child && D.child.name; return n ? String(n).split(' ')[0] : 'your child'; }
+
+/* Pronouns for the child. A profile may set them; they/them is the default,
+   and the only safe answer when nobody has said. V() picks the verb form,
+   because "they" takes the plural one: "Is he practising" / "Are they practising". */
+function PR(){
+  var p = D && D.child && D.child.pronouns;
+  return (p && p.subject) ? p : { subject:'they', object:'them', possessive:'their', plural:true };
+}
+function su(){ return PR().subject; }                       // he / she / they
+function Su(){ var w = su(); return w.charAt(0).toUpperCase() + w.slice(1); }
+function ob(){ return PR().object; }                        // him / her / them
+function po(){ return PR().possessive; }                    // his / her / their
+function Po(){ var w = po(); return w.charAt(0).toUpperCase() + w.slice(1); }
+function V(sing, plur){ return PR().plural ? plur : sing; } // has/have, is/are, gets/get
 var KIND = { lesson:'Lesson', practice:'Practice', check:'Check', retest:'Check', placement:'Quick check' };
 var KIND_LC = { lesson:'lesson', practice:'practice', check:'check', retest:'check', placement:'quick check' };
 
@@ -316,7 +330,7 @@ function build(data){
   graded.forEach(function(s){ s._stat = sessionStat(s, histBy[s.id]); var t = byId[s.topicId]; if(t) t.graded.push(s); });
   topics.forEach(function(t){ t.graded.sort(function(a, b){ return a._when - b._when; }); });
 
-  // The topic he is on now: whatever has a session waiting or queued, else the first started, unmastered topic in the queue.
+  // The topic they are on now: whatever has a session waiting or queued, else the first started, unmastered topic in the queue.
   var live = sessions.find(function(s){ return s.status === 'submitted'; }) || sessions.find(function(s){ return s.status === 'pending'; });
   var currentId = live && byId[live.topicId] ? live.topicId : (queue.filter(function(id){ return byId[id] && byId[id].started && byId[id].state !== 'mastered'; })[0] || null);
   return { currentId:currentId, child:child, sessions:sessions, topics:topics, byId:byId, queue:queue, done:done, graded:graded,
@@ -351,19 +365,19 @@ function lastGraded(t){ return t.graded.length ? t.graded[t.graded.length - 1] :
 function fallbackNote(t){
   var g = lastGraded(t); if(!g) return 'Not much to report yet.';
   var s = g._stat;
-  if(g.kind === 'lesson' && s.shown) return 'He finished the lesson with ' + s.clean + ' out of ' + s.total + ' and needed Ollie to show him ' + plural(s.shown, 'answer') + '.';
-  if(s.clean === s.total) return 'He got every question right first time in his last session.';
-  return 'He got ' + s.clean + ' out of ' + s.total + ' right first time in his last session.';
+  if(g.kind === 'lesson' && s.shown) return Su() + ' finished the lesson with ' + s.clean + ' out of ' + s.total + ' and needed Ollie to show ' + ob() + ' ' + plural(s.shown, 'answer') + '.';
+  if(s.clean === s.total) return Su() + ' got every question right first time in ' + po() + ' last session.';
+  return Su() + ' got ' + s.clean + ' out of ' + s.total + ' right first time in ' + po() + ' last session.';
 }
 function nextLine(t){
-  if(t.waiting) return 'His last session is waiting to be graded.';
+  if(t.waiting) return Po() + ' last session is waiting to be graded.';
   var p = t.pending;
   if(p){
-    if(p.kind === 'lesson') return 'A lesson is ready for him.';
-    if(p.kind === 'check' || p.kind === 'retest' || p.kind === 'placement') return 'A short check is ready for him.';
-    return plural(questionCount(p), 'practice question') + (questionCount(p) === 1 ? ' is' : ' are') + ' ready for him.';
+    if(p.kind === 'lesson') return 'A lesson is ready for ' + ob() + '.';
+    if(p.kind === 'check' || p.kind === 'retest' || p.kind === 'placement') return 'A short check is ready for ' + ob() + '.';
+    return plural(questionCount(p), 'practice question') + (questionCount(p) === 1 ? ' is' : ' are') + ' ready for ' + ob() + '.';
   }
-  if(t.paused && t.state !== 'mastered') return t.state === 'reteach' ? 'It’s paused. Another lesson would help before he moves on.' : 'It’s paused.';
+  if(t.paused && t.state !== 'mastered') return t.state === 'reteach' ? 'It’s paused. Another lesson would help before ' + su() + ' ' + V('moves','move') + ' on.' : 'It’s paused.';
   if(t.ts && t.ts.reteach) return 'A fresh lesson is next.';
   return 'The next session gets built after grading.';
 }
@@ -393,7 +407,7 @@ function lineChart(sessions, opts){
     var l2 = opts.small ? (KIND[s.kind] || '') : (clip(s.topicName || '', 20) + ', ' + (KIND_LC[s.kind] || ''));
     out += '<text x="' + p.x + '" y="' + (base + 40) + '" text-anchor="middle" font-size="11.5" fill="#4F473E">' + esc(l2) + '</text>' +
       '<text x="' + p.x + '" y="' + (base + 56) + '" text-anchor="middle" font-size="11.5" font-weight="700" fill="' + (st.shown ? '#8A4513' : '#4F473E') + '">' +
-      (st.shown ? 'Ollie showed him ' + st.shown : 'No help needed') + '</text>';
+      (st.shown ? 'Ollie showed ' + ob() + ' ' + st.shown : 'No help needed') + '</text>';
   });
   return out + '</svg>';
 }
@@ -406,9 +420,9 @@ function viewOverview(){
   var n28 = done.filter(function(s){ return daysBetween(s._when, today) < 28; }).length;
   var n7 = done.filter(function(s){ return daysBetween(s._when, today) < 7; }).length;
 
-  // 1 — is he practising
+  // 1 — are they practising
   var c1;
-  if(!lastDone) c1 = ['info', 'Not yet', 'He hasn’t done a session yet.'];
+  if(!lastDone) c1 = ['info', 'Not yet', Su() + ' ' + V('hasn’t','haven’t') + ' done a session yet.'];
   else {
     var head = since <= 2 ? (n7 >= 2 ? 'Yes, regularly' : 'Yes, recently') : since <= 7 ? 'A little' : 'Not lately';
     c1 = [since <= 2 ? 'ok' : 'warn', head, plural(n28, 'session') + ' in the last 4 weeks, the last one ' + ago(since) + '.'];
@@ -421,7 +435,7 @@ function viewOverview(){
     if(t && t.graded.length >= 2){
       var f = t.graded[0], l = t.graded[t.graded.length - 1], diff = pctOf(l._stat) - pctOf(f._stat);
       var h2 = diff >= 15 ? ['ok', 'Yes, it’s improving'] : diff > -15 ? ['info', 'Holding steady'] : ['warn', 'Not yet'];
-      c2 = [h2[0], h2[1], 'On ' + t.name + ' he went from ' + f._stat.clean + ' out of ' + f._stat.total +
+      c2 = [h2[0], h2[1], 'On ' + t.name + ' ' + su() + ' went from ' + f._stat.clean + ' out of ' + f._stat.total +
         ' to ' + l._stat.clean + ' out of ' + l._stat.total + ', ' + (l._stat.shown || l._stat.clean < l._stat.total ? 'with some help' : 'with no help') + '.'];
       break;
     }
@@ -429,30 +443,30 @@ function viewOverview(){
 
   // 3 — what can I do
   var c3, pt = D.pending && D.byId[D.pending.topicId];
-  if(D.waiting) c3 = ['Run /grade', 'He has finished a session and it’s waiting to be graded.'];
-  else if(D.pending) c3 = [since === null || since >= 3 ? 'Sit with him for 5 minutes' : 'Nothing needed, he’s on track',
-    (D.pending.kind === 'lesson' ? 'A lesson' : plural(questionCount(D.pending), 'practice question')) + (pt ? ' on ' + pt.name : '') + (D.pending.kind === 'lesson' ? ' is' : questionCount(D.pending) === 1 ? ' is' : ' are') + ' waiting for him.'];
-  else c3 = ['Run /next-session', 'No session is queued for him yet.'];
+  if(D.waiting) c3 = ['Run /grade', Su() + ' ' + V('has','have') + ' finished a session and it’s waiting to be graded.'];
+  else if(D.pending) c3 = [since === null || since >= 3 ? 'Sit with ' + ob() + ' for 5 minutes' : 'Nothing needed, ' + su() + V('’s','’re') + ' on track',
+    (D.pending.kind === 'lesson' ? 'A lesson' : plural(questionCount(D.pending), 'practice question')) + (pt ? ' on ' + pt.name : '') + (D.pending.kind === 'lesson' ? ' is' : questionCount(D.pending) === 1 ? ' is' : ' are') + ' waiting for ' + ob() + '.'];
+  else c3 = ['Run /next-session', 'No session is queued for ' + ob() + ' yet.'];
 
   var html = '<div class="page-head"><h1>Here’s how ' + esc(name) + ' is doing</h1><div class="aside">' + WEEKDAYS[today.getDay()] + ' ' + dLong(today) + '</div></div>' +
     '<div class="grid3">' +
-      qcard('Is he practising?', c1[0], c1[1], c1[2]) + qcard('Is it working?', c2[0], c2[1], c2[2]) + qcard('What can I do?', 'info', c3[0], c3[1]) + '</div>';
+      qcard('Is ' + first() + ' practising?', c1[0], c1[1], c1[2]) + qcard('Is it working?', c2[0], c2[1], c2[2]) + qcard('What can I do?', 'info', c3[0], c3[1]) + '</div>';
 
   // chart + calendar
   var cg = D.graded.slice(-6);
   html += '<div class="grid2"><section class="card chart"><h2>Right first time, session by session</h2>' +
-    '<p class="muted">Questions he got right on his first try, without a clue.</p>' +
+    '<p class="muted">Questions ' + su() + ' got right on ' + po() + ' first try, without a clue.</p>' +
     (cg.length ? lineChart(cg) : '<p class="muted" style="margin-top:16px">Nothing graded yet.</p>') + '</section>' +
     '<section class="card"><h2>Practice, last 4 weeks</h2><p class="muted">' + calSummary(n28, since) + '</p>' + calendar(done, today) +
       '<div class="stat-row"><div class="stat"><b>' + (Math.round(n28 / 4 * 10) / 10) + '</b><span>sessions a week on average</span></div>' +
-      (lastDone ? '<div class="stat ' + (since <= 2 ? 'good' : 'warn') + '"><b>' + (since <= 0 ? 'Today' : since + (since === 1 ? ' day' : ' days')) + '</b><span>' + (since <= 0 ? 'he practised' : 'since his last session') + '</span></div>' : '') +
+      (lastDone ? '<div class="stat ' + (since <= 2 ? 'good' : 'warn') + '"><b>' + (since <= 0 ? 'Today' : since + (since === 1 ? ' day' : ' days')) + '</b><span>' + (since <= 0 ? su() + ' practised' : 'since ' + po() + ' last session') + '</span></div>' : '') +
       '</div></section></div>';
 
   // working on + note
   var active = D.topics.filter(function(t){ return t.started && t.state !== 'mastered'; })
     .sort(function(a, b){ return (b.id === D.currentId) - (a.id === D.currentId) || (lastTime(b) - lastTime(a)); }).slice(0, 2);
-  var notePart = '<section><div class="sec-head"><h2>Ollie’s note on his last session</h2></div>' + ollieNote() + '</section>';
-  html += '<div class="grid2"><section><div class="sec-head"><h2>What he’s working on</h2><a href="#/topics">All ' + D.topics.length + ' topics</a></div>' +
+  var notePart = '<section><div class="sec-head"><h2>Ollie’s note on ' + po() + ' last session</h2></div>' + ollieNote() + '</section>';
+  html += '<div class="grid2"><section><div class="sec-head"><h2>What ' + first() + ' is working on</h2><a href="#/topics">All ' + D.topics.length + ' topics</a></div>' +
     (active.length ? '<div class="tcards">' + active.map(topicCard).join('') + '</div>' : '<div class="card"><p class="muted">No topic has been started yet. Pick one on the Topics page.</p></div>') + '</section>' + notePart + '</div>';
 
   // recent sessions
@@ -475,7 +489,7 @@ function happened(s){
   var st = s._stat;
   if(st.clean === st.total && st.total) return 'All right first time, no clues';
   var quick = st.minutes != null && st.minutes < 3 && st.total >= 6 ? 'Went through it quickly. ' : '';
-  if(st.shown) return quick + 'Ollie showed him how on ' + st.shown + '.';
+  if(st.shown) return quick + 'Ollie showed ' + ob() + ' how on ' + st.shown + '.';
   return st.clean / (st.total || 1) >= .8 ? 'Nearly all right first time.' : quick + 'Needed a few clues along the way.';
 }
 function calendar(done, today){
@@ -496,7 +510,7 @@ function calendar(done, today){
 }
 function ollieNote(){
   var g = D.graded[D.graded.length - 1];
-  if(!g) return '<div class="card"><p class="muted">Ollie’s note appears here after his first graded session.</p></div>';
+  if(!g) return '<div class="card"><p class="muted">Ollie’s note appears here after ' + po() + ' first graded session.</p></div>';
   return '<div class="card"><div class="note-head"><img src="/ollie-kit/assets/ollie-avatar.svg" alt=""><span>' + esc(g.topicName || '') + ' ' + (KIND_LC[g.kind] || '') + ', ' + dLong(g._when) + '</span></div>' +
     '<p class="note-body">' + esc(g.parentSummary || happened(g)) + '</p></div>';
 }
@@ -516,7 +530,7 @@ function topicCard(t){
 function viewTopics(){
   var strands = []; D.topics.forEach(function(t){ if(strands.indexOf(t.strand) === -1) strands.push(t.strand); });
   var started = D.topics.filter(function(t){ return t.started; }).sort(function(a, b){ return (b.id === D.currentId) - (a.id === D.currentId); });
-  var html = '<div class="page-head"><div><h1>Topics this year</h1><p class="sub">A topic is mastered when he gets 80% right first time, on his own, in a check-up session.</p></div>' +
+  var html = '<div class="page-head"><div><h1>Topics this year</h1><p class="sub">A topic is mastered when ' + su() + ' ' + V('gets','get') + ' 80% right first time, on ' + po() + ' own, in a check-up session.</p></div>' +
     '<div class="aside"><b style="font-family:var(--display);font-size:19px">' + started.length + ' of ' + D.topics.length + ' started</b></div></div>';
 
   html += '<section class="card" style="margin-bottom:24px"><h2>Where each strand stands</h2><p class="muted" style="margin-bottom:8px">One box per topic.</p>';
@@ -565,7 +579,7 @@ function sessionRows(t){
       '<span class="r ' + (st ? (st.clean === st.total ? 'good' : 'warn') : 'wait') + '">' + (st ? st.clean + ' out of ' + st.total : 'Waiting') + '</span></div>';
   });
   if(t.pending) rows.push('<div class="srow"><span class="d">Waiting</span><div class="t"><b>' + (KIND[t.pending.kind] || '') + '</b><p>' +
-    (t.pending.kind === 'lesson' ? 'A lesson is' : plural(questionCount(t.pending), 'question') + (questionCount(t.pending) === 1 ? ' is' : ' are')) + ' ready for him.</p></div><span class="r wait">Not done yet</span></div>');
+    (t.pending.kind === 'lesson' ? 'A lesson is' : plural(questionCount(t.pending), 'question') + (questionCount(t.pending) === 1 ? ' is' : ' are')) + ' ready for ' + ob() + '.</p></div><span class="r wait">Not done yet</span></div>');
   return rows.join('');
 }
 function viewTopic(id){
@@ -573,19 +587,19 @@ function viewTopic(id){
   return t.started ? viewStarted(t) : viewNew(t);
 }
 function viewStarted(t){
-  var g = lastGraded(t), st = g && g._stat, ready = t.pending ? (t.pending.kind === 'lesson' ? 'A lesson ready for him' : plural(questionCount(t.pending), 'practice question') + ' ready for him') : '';
+  var g = lastGraded(t), st = g && g._stat, ready = t.pending ? (t.pending.kind === 'lesson' ? 'A lesson ready for ' + ob() + '' : plural(questionCount(t.pending), 'practice question') + ' ready for ' + ob() + '') : '';
   var cur = t.state === 'mastered' ? 'mastered' : t.state === 'reteach' ? 'reteach' : 'getting';
   function stateBox(k, h, sub){ return '<div class="state' + (cur === k ? ' cur ' + k : '') + '"><b>' + h + '</b><span>' + sub + '</span></div>'; }
   var html = '<a class="back" href="#/topics">‹ All topics</a><p class="eyebrow">' + esc(t.strand + (t.groupName ? ', ' + t.groupName.toLowerCase() : '')) + '</p>' +
     '<div class="page-head" style="margin-top:2px"><div><h1>' + esc(t.name) + '</h1><p class="sub">' + esc(t.description) + '</p></div>' + (ready ? '<span class="pill getting">' + esc(ready) + '</span>' : '') + '</div>';
   html += '<div class="split"><div class="stack">' +
-    '<section class="card"><h2>Where he is</h2><div class="states">' +
+    '<section class="card"><h2>Where ' + first() + ' is</h2><div class="states">' +
       stateBox('reteach', 'Needs re-teaching', 'Struggling, needs another lesson') + stateBox('getting', 'Getting there', 'Can do it, not reliably yet') +
-      stateBox('mastered', 'Mastered', 'Can do it on his own, at 80% or more in a check-up') + '</div>' +
-      '<p class="muted" style="font-size:15px">' + (st ? 'He got ' + st.clean + ' out of ' + st.total + ' right first time in his last ' + (KIND_LC[g.kind] || 'session') + '. ' : '') +
-      'To count as mastered he needs 80% or more on his own in a check-up session.</p></section>' +
+      stateBox('mastered', 'Mastered', 'Can do it on ' + po() + ' own, at 80% or more in a check-up') + '</div>' +
+      '<p class="muted" style="font-size:15px">' + (st ? Su() + ' got ' + st.clean + ' out of ' + st.total + ' right first time in ' + po() + ' last ' + (KIND_LC[g.kind] || 'session') + '. ' : '') +
+      'To count as mastered ' + su() + ' ' + V('needs','need') + ' 80% or more on ' + po() + ' own in a check-up session.</p></section>' +
     (t.graded.length ? '<section class="card chart"><h2>Right first time in this topic</h2><p class="muted">Each session on ' + esc(t.name) + '.</p>' + lineChart(t.graded.slice(-6), { small:true, h:270 }) + '</section>' : '') +
-    '<section class="card"><h2>His sessions</h2>' + (sessionRows(t) || '<p class="muted">None yet.</p>') + '</section></div>' +
+    '<section class="card"><h2>' + Po() + ' sessions</h2>' + (sessionRows(t) || '<p class="muted">None yet.</p>') + '</section></div>' +
     '<div class="stack">' +
     ((t.ts && t.ts.parentWatch) ? '<section class="card eye"><h3>Keep an eye on</h3><p style="font-size:15px">' + esc(t.ts.parentWatch) + '</p></section>' : '') +
     '<section class="side-card"><h3>Settings for this topic</h3><div class="muted" style="margin-bottom:8px;font-weight:700">Session length</div>' + minutesSeg() +
@@ -601,19 +615,19 @@ function viewNew(t){
   html += '<div class="split"><div class="stack">';
   if(chain.length){
     var best = chain[0];
-    html += '<section class="card" style="border-color:#F0D3B4"><h2>Before he starts</h2><p class="muted">This topic builds on ' + chain.length + (chain.length === 1 ? ' other' : ' others') + ' he hasn’t finished yet.</p>' +
+    html += '<section class="card" style="border-color:#F0D3B4"><h2>Before ' + first() + ' starts</h2><p class="muted">This topic builds on ' + chain.length + (chain.length === 1 ? ' other' : ' others') + ' ' + su() + ' ' + V('hasn’t','haven’t') + ' finished yet.</p>' +
       chain.map(function(p){ return '<div class="prereq"><b>' + esc(p.name) + '</b>' + pillFor(p) + '<a class="link" href="#/topic/' + encodeURIComponent(p.id) + '">See topic</a></div>'; }).join('') +
-      '<div class="banner">Best next step: start ' + esc(best.name) + ' first. To try this topic now anyway, choose “Check what he knows first” below.</div></section>';
+      '<div class="banner">Best next step: start ' + esc(best.name) + ' first. To try this topic now anyway, choose “Check what ' + su() + ' ' + V('knows','know') + ' first” below.</div></section>';
   }
   html += '<section class="card"><h2>Start this topic</h2><div class="field-label" style="margin-top:12px">How should Ollie begin?</div>' +
-    '<label class="opt' + (t.school ? '' : ' sel') + '"><input type="radio" name="how" value="teach"' + (t.school ? '' : ' checked') + '><span><b>Teach it from the start</b><span>Ollie teaches the idea step by step, then he practises. Best for something new.</span></span></label>' +
-    '<label class="opt' + (t.school ? ' sel' : '') + '"><input type="radio" name="how" value="check"' + (t.school ? ' checked' : '') + '><span><b>Check what he knows first</b><span>A short set of questions with no help, to see what he already knows. Best if school has covered it.</span></span></label>' +
+    '<label class="opt' + (t.school ? '' : ' sel') + '"><input type="radio" name="how" value="teach"' + (t.school ? '' : ' checked') + '><span><b>Teach it from the start</b><span>Ollie teaches the idea step by step, then ' + su() + ' ' + V('practises','practise') + '. Best for something new.</span></span></label>' +
+    '<label class="opt' + (t.school ? ' sel' : '') + '"><input type="radio" name="how" value="check"' + (t.school ? ' checked' : '') + '><span><b>Check what ' + su() + ' ' + V('knows','know') + ' first</b><span>A short set of questions with no help, to see what ' + su() + ' already ' + V('knows','know') + '. Best if school has covered it.</span></span></label>' +
     '<div class="field-label">How long should each session be?</div>' + minutesSeg() +
-    '<div class="start-row"><button class="btn" data-act="start" data-id="' + esc(t.id) + '">Start this topic</button><span>It will be waiting for ' + esc(first()) + ' next time he opens Ollie.</span></div></section></div>' +
+    '<div class="start-row"><button class="btn" data-act="start" data-id="' + esc(t.id) + '">Start this topic</button><span>It will be waiting for ' + esc(first()) + ' next time ' + su() + ' ' + V('opens','open') + ' Ollie.</span></div></section></div>' +
     '<div class="stack"><section class="card"><h3>What happens when you start</h3><ol class="steps">' +
-      '<li><i>1</i><span>Ollie gets the first session ready.</span></li><li><i>2</i><span>' + esc(first()) + ' finds it waiting next time he opens Ollie.</span></li>' +
+      '<li><i>1</i><span>Ollie gets the first session ready.</span></li><li><i>2</i><span>' + esc(first()) + ' finds it waiting next time ' + su() + ' ' + V('opens','open') + ' Ollie.</span></li>' +
       '<li><i>3</i><span>You’ll see how it went here and on the overview.</span></li></ol></section>' +
-    '<section class="card"><h3>His sessions</h3><p class="muted" style="margin-top:8px">None yet. They’ll appear here once he starts.</p></section></div></div>';
+    '<section class="card"><h3>' + Po() + ' sessions</h3><p class="muted" style="margin-top:8px">None yet. They’ll appear here once ' + su() + ' ' + V('starts','start') + '.</p></section></div></div>';
   return html;
 }
 
@@ -631,7 +645,7 @@ function act(kind, id, btn){
   function fail(e){ if(btn) btn.disabled = false; toast(e.message, true); }
   if(btn) btn.disabled = true;
   if(kind === 'pause'){
-    if(!confirm('Pause "' + t.name + '"?\n\nThe session already built for him will be thrown away. Anything already graded is kept, and you can resume it later.')){ btn.disabled = false; return; }
+    if(!confirm('Pause "' + t.name + '"?\n\nThe session already built for ' + ob() + ' will be thrown away. Anything already graded is kept, and you can resume it later.')){ btn.disabled = false; return; }
     var q = D.queue.filter(function(x){ return x !== id; });
     (t.pending ? send('/api/sessions/' + encodeURIComponent(t.pending.id), 'DELETE') : Promise.resolve())
       .then(function(){ return send('/api/curriculum/' + CHILD_ID, 'PATCH', { topicQueue:q }); })
@@ -640,7 +654,7 @@ function act(kind, id, btn){
     send('/api/curriculum/' + CHILD_ID, 'PATCH', { topicQueue: queueInsertAt(id) })
       .then(function(){ return refresh(function(){ toast('Resumed.'); }); }).catch(fail);
   } else if(kind === 'reteach'){
-    if(!confirm('Re-teach "' + t.name + '" from the start?\n\nAny session already built for him is thrown away, and the next one will be a fresh lesson. His past results are kept.')){ btn.disabled = false; return; }
+    if(!confirm('Re-teach "' + t.name + '" from the start?\n\nAny session already built for ' + ob() + ' is thrown away, and the next one will be a fresh lesson. ' + Po() + ' past results are kept.')){ btn.disabled = false; return; }
     send('/api/children/' + CHILD_ID + '/topics/' + encodeURIComponent(id) + '/reteach', 'POST')
       .then(function(){ return refresh(function(){ toast('Done. The next session Ollie builds will be a fresh lesson (run /next-session).'); }); }).catch(fail);
   } else if(kind === 'start'){
@@ -664,7 +678,7 @@ function wire(){
     var v = +b.dataset.min, was = (D.child.settings && D.child.settings.sessionMinutes) || 15; if(v === was) return;
     D.child.settings = D.child.settings || {}; D.child.settings.sessionMinutes = v;
     m.querySelectorAll('[data-min]').forEach(function(x){ x.setAttribute('aria-pressed', +x.dataset.min === v); });
-    send('/api/children/' + CHILD_ID, 'PATCH', { settings:{ sessionMinutes:v } }).then(function(){ toast('Saved. It applies to the next session he gets.'); })
+    send('/api/children/' + CHILD_ID, 'PATCH', { settings:{ sessionMinutes:v } }).then(function(){ toast('Saved. It applies to the next session ' + su() + ' ' + V('gets','get') + '.'); })
       .catch(function(e){ D.child.settings.sessionMinutes = was; m.querySelectorAll('[data-min]').forEach(function(x){ x.setAttribute('aria-pressed', +x.dataset.min === was); }); toast(e.message, true); });
   }); });
   m.querySelectorAll('.opt input').forEach(function(i){ i.addEventListener('change', function(){

@@ -158,7 +158,7 @@ function checkOllieLine(text, where, out) {
   const s = String(text == null ? '' : text).trim();
   if (!s) return;
   if (/\bOllie\b/.test(s))
-    out.errors.push({ where, msg: `Refers to Ollie in the third person ("${s}") — he speaks in first person, always (docs/mascot.md §1).` });
+    out.errors.push({ where, msg: `Refers to Ollie in the third person ("${s}") — she speaks in first person, always (docs/mascot.md §1).` });
   if (s.length > OLLIE_MAX_CHARS)
     out.errors.push({ where, msg: `Ollie line is ${s.length} chars, over the ${OLLIE_MAX_CHARS}-char limit (docs/mascot.md §6/§8) — tighten it.` });
 }
