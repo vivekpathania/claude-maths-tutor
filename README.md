@@ -12,15 +12,21 @@ database. There is no multi-tenant mode and no hosted service.
 
 ## What it looks like
 
-| The child's page | The parent's dashboard |
-|---|---|
-| [![The child's session page](docs/images/session.jpg)](docs/images/session.jpg) | [![The parent's dashboard](docs/images/dashboard.jpg)](docs/images/dashboard.jpg) |
+**The child's page.** One question at a time, no score in their face, Coach
+Ollie alongside.
 
-A wrong answer never ends the question. Coach Ollie responds, the clues unlock,
-and the next one opens by itself if the child is still stuck — so every question
-ends in an answer rather than a dead end.
+![The child's session page](docs/images/session.jpg)
+
+**A wrong answer never ends the question.** Ollie names the specific mistake,
+the clues unlock, and the next one opens by itself if the child is still
+stuck — so every question ends in an answer rather than a dead end.
 
 ![Coach Ollie opening a clue after a wrong answer](docs/images/help-ladder.jpg)
+
+**The parent's dashboard.** Three questions answered up front: is the child
+practising, is it working, and what should I do about it.
+
+![The parent's dashboard](docs/images/dashboard.jpg)
 
 *(Screenshots show the built-in demo child, not a real one.)*
 
