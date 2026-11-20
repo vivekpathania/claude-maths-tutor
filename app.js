@@ -493,8 +493,14 @@ app.get('/api/sessions/next', async (req, res) => {
       const group = topic && child?.curriculum?.groups?.find(g => g.id === topic.group);
       const topicGroup = group && group.name ? group.name : null;
       const { streak, week } = await computeStreak(db, childId);
+      // In the public demo the session's clips are committed static files, so
+      // they come off the CDN rather than costing one function call each. At 58
+      // clips a visitor that was 125,000 free monthly invocations gone in about
+      // 2,000 visits - and when they run out the whole API stops, so the demo
+      // would go blank exactly when the traffic arrived.
+      const audio = (DEMO && rest.audio) ? { ...rest.audio, base: '/demo-audio/' } : rest.audio;
       return res.json({
-        id: String(_id), ...rest, feedback, topicDescription, topicGroup,
+        id: String(_id), ...rest, audio, feedback, topicDescription, topicGroup,
         childName: child?.name || null, childAge: child?.age || null, childStage: child?.stage || null,
         sessionMinutes: child?.settings?.sessionMinutes || null,
         streak, week,

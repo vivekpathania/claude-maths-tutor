@@ -517,7 +517,13 @@ const TOPIC_STATUS = {
 // ~500 MB text-to-speech toolchain. Nobody is going to install that to look
 // around, and a demo where the coach goes quiet exactly when she starts
 // teaching misrepresents the thing. So the pending session's clips are
-// committed in scripts/demo-audio/ and loaded straight in.
+// committed in public/demo-audio/ and loaded straight in.
+//
+// They sit under public/ so the hosted demo can serve them as ordinary static
+// files off the CDN. Through /api/audio/:key they were one serverless function
+// call each: 58 a visitor, which exhausts Netlify's free monthly quota in about
+// 2,000 visits. They are the demo child's lines, so nothing personal is served
+// openly - the same reasoning that already puts the bank in public/audio/.
 //
 // They are content-addressed on the words, so editing a hint or an Ollie line
 // above orphans its clip and that line would go quiet. Seeding warns when that
@@ -528,7 +534,7 @@ const TOPIC_STATUS = {
 //
 // manifest.json next to the clips says what each one says, so 58 opaque audio
 // files in a public repo can be read without playing them.
-const AUDIO_DIR = path.join(__dirname, 'demo-audio');
+const AUDIO_DIR = path.join(__dirname, '..', 'public', 'demo-audio');
 const AUDIO_MANIFEST = path.join(AUDIO_DIR, 'manifest.json');
 const PENDING = 'demo-5';
 
@@ -582,7 +588,7 @@ async function loadAudio(db, session) {
 }
 
 // Maintainers only: render the pending session's lines and write them back
-// into scripts/demo-audio/ to be committed.
+// into public/demo-audio/ to be committed.
 async function saveAudio(db) {
   const s = await db.collection('sessions').findOne({ _id: PENDING });
   if (!s) fail(`${PENDING} is not in database "${db.databaseName}" — run --force first.`);
@@ -610,7 +616,7 @@ async function saveAudio(db) {
   }
   fs.writeFileSync(AUDIO_MANIFEST,
     JSON.stringify({ voice: bankVoice(), version: Speech.VERSION, clips }, null, 1));
-  console.log(`\n✓ ${docs.length} clip(s), ${(bytes / 1048576).toFixed(1)} MB, written to scripts/demo-audio/ — commit them.`);
+  console.log(`\n✓ ${docs.length} clip(s), ${(bytes / 1048576).toFixed(1)} MB, written to public/demo-audio/ — commit them.`);
 }
 
 /* ── write ──────────────────────────────────────────────────────────────── */

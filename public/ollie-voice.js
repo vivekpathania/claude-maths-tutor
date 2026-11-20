@@ -18,6 +18,7 @@
 (function () {
   var manifest = null;              // the bank: { voice, version, clips: { key: text } }
   var sess = null;                  // this session's own clips: { voice, set: { key: true } }
+  var sessBase = null;              // static URL prefix for them (the public demo), else via the API
   var blobs = {}, inflight = {};
   var api = null;
   var dock = null, Lines = null, register = 'practice', name = '', question = null;
@@ -71,11 +72,17 @@
   }
 
   /* ── 1. recordings ────────────────────────────────────────────────── */
+  // A session's clips normally need the child's key, so they go through the API.
+  // The public demo sets `base` instead: its clips are committed static files,
+  // served off the CDN, which keeps a busy day from spending one serverless
+  // call per clip per visitor.
   function fetchClip(key, bank) {
     if (blobs[key]) return Promise.resolve(blobs[key]);
     if (inflight[key]) return inflight[key];
-    if (!bank && !api) return Promise.reject(new Error('no api'));
-    inflight[key] = (bank ? fetch('/audio/bank/' + key + '.m4a') : api('/api/audio/' + key))
+    if (!bank && !sessBase && !api) return Promise.reject(new Error('no api'));
+    inflight[key] = (bank ? fetch('/audio/bank/' + key + '.m4a')
+                          : sessBase ? fetch(sessBase + key + '.m4a')
+                          : api('/api/audio/' + key))
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.blob(); })
       .then(function (b) { blobs[key] = URL.createObjectURL(b); delete inflight[key]; return blobs[key]; })
       .catch(function (e) { delete inflight[key]; throw e; });
@@ -136,7 +143,9 @@
     setSession: function (audio, apiFetch) {
       api = apiFetch || api;
       sess = null;
+      sessBase = null;
       if (!audio || !audio.clips || !audio.voice || typeof Speech === 'undefined' || audio.version !== Speech.VERSION) return;
+      sessBase = audio.base || null;
       var set = {};
       audio.clips.forEach(function (k) { set[k] = true; });
       sess = { voice: audio.voice, set: set };

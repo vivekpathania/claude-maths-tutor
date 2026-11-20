@@ -377,9 +377,10 @@ scripts/
   verify-session.js         structural checks before a session is saved
   check-db.js               plain-English database connection check
   seed-demo.js              demo child with history, for a first look
-  demo-audio/               the demo session's voice clips, so it talks unaided
 public/
   index.html                the child's daily session page
+  demo-audio/               the demo session's voice clips — static, so a busy
+                            demo costs no serverless calls
   dashboard.html            the parent's dashboard
   dashboard-classic.html    the previous dashboard, kept as a fallback
   ollie-kit/                Coach Ollie: character, dock, clues, line bank
