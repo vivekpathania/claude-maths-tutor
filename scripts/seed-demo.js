@@ -3,22 +3,30 @@
 // open the dashboard and the child's page and see them working before setting
 // up a real child.
 //
-//   node scripts/seed-demo.js            # show what it would write, write nothing
-//   node scripts/seed-demo.js --force    # write it
-//   node scripts/seed-demo.js --remove   # delete it again
+//   node scripts/seed-demo.js              # show what it would write, write nothing
+//   node scripts/seed-demo.js --force      # write it
+//   node scripts/seed-demo.js --remove     # delete it again
+//   node scripts/seed-demo.js --save-audio # re-record Ollie's lines (maintainers)
 //
 // This is demo data, not a template for real content. Sessions here were not
 // written by the teacher/author agents and never went through verify-session.js
 // — they exist to give the dashboard something to draw. A real child's first
 // session comes from /setup-child then /next-session.
 //
-// The demo has no rendered audio, so Coach Ollie shows her speech bubble
-// without sound. That is the same fallback a real session gets before
-// `node tools/voice/render.js` has run (docs/voice.md).
+// Coach Ollie speaks her bank lines here with no extra setup, because
+// public/audio/bank/ is committed. The pending session's own lines (her
+// per-question asides and the clues) are recorded separately — see
+// "demo audio" below.
 
 'use strict';
 
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
+const { execFileSync } = require('child_process');
+const { Binary } = require('mongodb');
+const Speech = require('../public/speech.js');
+const { sessionLines } = require('../tools/voice/lines.js');
 const { getDoc, setDoc, connect, close, assertReachable } = require('./db');
 
 const ID = 'demo-child';
@@ -216,6 +224,147 @@ const POOLS = {
   ],
 };
 
+/* ── diagrams ───────────────────────────────────────────────────────────── */
+// Kept out of POOLS above so the question table stays readable. Keyed
+// "pool:index". Everything here is optional enrichment the child's page already
+// knows how to draw (docs/visuals.md) — nothing new was added to render it.
+//
+// Where each kind goes, and why:
+//   visual         the stimulus, when the picture IS the question (a triangle to
+//                  classify). Never on a question whose point is the word itself:
+//                  drawing a hexagon turns "how many sides does a hexagon have?"
+//                  from vocabulary into counting.
+//   hintVisuals    a scaffold, shown only once the child asks for a clue. The
+//                  EMPTY place-value columns, never the filled ones — a picture
+//                  of the finished working on rung 1 is a giveaway (docs/hints.md).
+//   correctVisual  the why, shown after a right answer: the digit lit up in the
+//                  column that earned it.
+
+const PV_WHOLE = ['ones', 'tens', 'hundreds', 'thousands', 'ten-thousands', 'hundred-thousands'];
+const PV_DEC = ['tenths', 'hundredths', 'thousandths'];
+
+// Place-value columns for a number written as digits ("472,310", "3.47"), in
+// display order left to right.
+function pvCols(numStr) {
+  const [whole, dec] = String(numStr).replace(/,/g, '').split('.');
+  const cols = [];
+  for (let i = 0; i < whole.length; i++) cols.push([PV_WHOLE[whole.length - 1 - i], whole[i]]);
+  for (let i = 0; i < (dec || '').length; i++) cols.push([PV_DEC[i], dec[i]]);
+  return cols;
+}
+// The number as a place-value figure, lighting the named columns. With digits in
+// it the page also offers "Show place value chart" under the question.
+function pv(numStr, ...litLabels) {
+  const cols = pvCols(numStr);
+  return { type: 'placeValue', cols,
+           lit: litLabels.map((l) => cols.findIndex((c) => c[0] === l)).filter((i) => i >= 0) };
+}
+// The same columns with no digits in them — the page draws just the column
+// names, which is the blank grid a clue wants.
+function pvBlank(numStr) {
+  return { type: 'placeValue', cols: pvCols(numStr).map((c) => [c[0], '']), lit: [] };
+}
+
+// A triangle the child reads. The side lengths stay in the question text and
+// `show.sides` is off on purpose: the macro works the matching tick marks out
+// from the numbers, and three side labels plus vertex letters collide
+// (docs/visuals.md). `mustNotShow` keeps the picture from printing the answer.
+function triSides(sides, hide) {
+  return { type: 'scene',
+    request: 'A triangle the child can classify from its side lengths',
+    facts: [{ measure: 'sides', of: 'T', equals: sides },
+            { mustNotShow: hide || ['equilateral', 'isosceles', 'scalene'] }],
+    items: [{ m: 'triangle', id: 'T', sides, show: { sides: false } }] };
+}
+
+const EXTRAS = {
+  // ── place value ──
+  'big-numbers:0': { visual: pv('472,310'),
+                     hintVisuals: [pvBlank('472,310'), null],
+                     correctVisual: pv('472,310', 'ten-thousands') },
+  'big-numbers:2': { visual: pv('306,004'),
+                     correctVisual: pv('316,004', 'ten-thousands') },
+  'big-numbers:3': { visual: pv('52,800'),
+                     correctVisual: pv('52,800', 'ten-thousands', 'thousands') },
+  'big-numbers:4': { visual: pv('249,500'),
+                     correctVisual: pv('250,500', 'thousands') },
+  'big-numbers:5': { visual: pv('638,200'),
+                     correctVisual: pv('600,000', 'hundred-thousands') },
+  'big-numbers:6': { visual: pv('905,130'),
+                     hintVisuals: [pvBlank('905,130'), null],
+                     correctVisual: pv('905,130', 'hundred-thousands') },
+
+  'decimal-place:0': { visual: pv('3.47'),
+                       hintVisuals: [pvBlank('3.47'), null],
+                       correctVisual: pv('3.47', 'tenths'),
+    ollie: { fresh: 'The columns after the point have names too. Which one is the 4 sitting in?',
+             wrong: 'Not that one. Count the places after the point — the first one along is tenths.',
+             right: 'Four tenths. You named the column, and the column is what gives a digit its worth.' } },
+  'decimal-place:1': { hintVisuals: [pvBlank('0.6'), null],
+                       correctVisual: pv('0.6', 'tenths'),
+    ollie: { fresh: 'Tenths have a place of their own. Where does it go?',
+             wrong: 'Have another go. Tenths sit in the first place after the point.',
+             right: '0.6. That zero in front is doing real work — it holds the ones place.' } },
+  'decimal-place:3': { correctVisual: pv('0.7', 'tenths') },
+  'decimal-place:4': { visual: pv('0.25'),
+                       correctVisual: pv('0.25', 'tenths', 'hundredths') },
+  'decimal-place:5': { visual: pv('2.5'),
+                       correctVisual: pv('2.6', 'tenths') },
+  'decimal-place:6': { visual: pv('0.08'),
+                       correctVisual: pv('0.08', 'hundredths') },
+
+  'decimal-place:2': {
+    ollie: { fresh: 'Careful with this one. More digits does not mean more.',
+             wrong: 'Look at the tenths first — 7 against 6. Whatever comes after that cannot change it.',
+             right: '0.7. Seven tenths beats six tenths, however many digits follow.' } },
+
+  // ── triangles ──
+  // These four are the pending session, so they are what a stranger sees first.
+  '2d-shapes-a:0': { visual: triSides([5, 5, 5]),
+    ollie: { fresh: 'Have a proper look at those three side lengths before you pick a word.',
+             wrong: 'Not that one. Count how many of the three sides are the same length — that count is what picks the name.',
+             right: 'Yes. All three the same, so equilateral.' } },
+  '2d-shapes-a:1': {
+    ollie: { fresh: 'This one is about the word itself, not the picture.',
+             wrong: 'Have another go. The start of the word is a number word in disguise.',
+             right: 'Six it is. Hex was telling you all along.' } },
+  '2d-shapes-a:2': { visual: triSides([6, 6, 9]),
+    ollie: { fresh: 'Two of these match and one does not. See which.',
+             wrong: 'Go back to the side lengths and count the matching pair, then pick the word that means exactly that many.',
+             right: 'That is it. Exactly two matching sides.' } },
+  '2d-shapes-a:3': { visual: { type: 'scene',
+      request: 'A right-angled triangle, so the child sees the square corner the question names',
+      facts: [{ measure: 'angle', of: 'T@A', equals: 90 }, { mustNotShow: ['90'] }],
+      items: [{ m: 'triangle', id: 'T', angles: [90, 45, 45], show: { angles: false } }] },
+    ollie: { fresh: 'That square corner in the picture is the one I am asking about.',
+             wrong: 'Think about a whole turn all the way round, then take a quarter of it.',
+             right: 'Ninety degrees. You will spot that corner everywhere now.' } },
+  '2d-shapes-a:4': { visual: triSides([4, 5, 7]),
+    ollie: { fresh: 'Check the sides against each other. Do any two match?',
+             wrong: 'Back to the lengths. If no two of them match at all, there is a word for exactly that.',
+             right: 'Right — nothing matches, so scalene.' } },
+  '2d-shapes-a:5': {
+    ollie: { fresh: 'Another word one. Listen to how it starts.',
+             wrong: 'Try again. Quad is the number word hiding at the front.',
+             right: 'Four. Quad always means four.' } },
+  '2d-shapes-a:6': {
+    ollie: { fresh: 'Two corners are given, and all three always add to the same total.',
+             wrong: 'Adding the two is only half of it. Something still has to come off 180.',
+             right: 'Fifty. Add the pair, take it off 180 — that is the whole method.' } },
+  '2d-shapes-a:7': {
+    ollie: { fresh: 'Picture tearing the three corners off and lining them up.',
+             wrong: 'They line up into a straight line. How many degrees is a straight line?',
+             right: '180, for every triangle there is.' } },
+
+  '2d-shapes-b:0': { visual: triSides([8, 8, 5]) },
+  '2d-shapes-b:2': { visual: triSides([3, 4, 5]) },
+  '2d-shapes-b:4': { visual: { type: 'scene',
+      request: 'An equilateral triangle for the child to count folding lines on',
+      facts: [{ measure: 'sides', of: 'T', equals: [6, 6, 6] }, { mustNotShow: ['3'] }],
+      items: [{ m: 'triangle', id: 'T', sides: [6, 6, 6], show: { sides: false } }] } },
+  '2d-shapes-b:5': { visual: triSides([7, 7, 7]) },
+};
+
 function question(pool, i, prefix) {
   const [ask, answer, hints, slips] = POOLS[pool][i];
   return {
@@ -226,6 +375,7 @@ function question(pool, i, prefix) {
     hints: hints || ['Read it once more, slowly. What is the question actually asking for?',
                      'Work out the one step you are sure of first, then look again.'],
     slips: slips || {},
+    ...(EXTRAS[pool + ':' + i] || {}),
   };
 }
 
@@ -234,12 +384,16 @@ function question(pool, i, prefix) {
 // completion. Both are normally computed by save-grading.js from attempts[],
 // so they are built from the same spec here rather than written by hand.
 function buildSession(spec) {
-  const { id, topicId, topicName, kind, pool, dayOffset, clean, shown, minutes, parentSummary, status } = spec;
+  const { id, topicId, topicName, kind, pool, warmupPool, warmupFrom, blurb, dayOffset, clean, shown, minutes, parentSummary, status } = spec;
   const total = 8;
   const when = daysAgo(dayOffset);
 
+  // The first three are the warm-up. A session may warm up on the PREVIOUS
+  // topic rather than its own (CLAUDE.md: warmup.from "previous topic"), which
+  // is why the pool is separable — the ids stay unique either way, w_ vs p_.
   const items = [];
-  for (let i = 0; i < total; i++) items.push(question(pool, i, i < 3 ? 'w' : 'p'));
+  for (let i = 0; i < 3; i++) items.push(question(warmupPool || pool, i, 'w'));
+  for (let i = 3; i < total; i++) items.push(question(pool, i, 'p'));
 
   const quality = [], marks = [], attempts = [];
   for (let i = 0; i < total; i++) {
@@ -270,9 +424,11 @@ function buildSession(spec) {
       : { hintsMax: 2, allowReveal: true, retryPolicy: 'multi', showScore: true },
     status, date: dmy(when), createdAt: daysAgo(dayOffset + 1).toISOString(),
     greeting: `Ready when you are, ${NAME}.`,
-    blurb: 'A few warm-ups, then some practice.',
+    // The page does not badge warm-up questions, so when they come from another
+    // topic the start screen is the only place that says so.
+    blurb: blurb || 'A few warm-ups, then some practice.',
     goal: TOPICS.find((t) => t.id === topicId).description,
-    warmup: { from: 'last time', items: items.slice(0, 3) },
+    warmup: { from: warmupFrom || 'last time', items: items.slice(0, 3) },
     practice: items.slice(3),
     close: { line: 'Good work today.', next: 'More on this next time.' },
     attempts: status === 'pending' ? [] : attempts,
@@ -302,8 +458,12 @@ const SESSIONS = [
   { id: 'demo-4', topicId: '2d-shapes', topicName: '2D shapes and triangles', kind: 'practice',
     pool: '2d-shapes-b', dayOffset: 2, clean: 7, shown: 0, minutes: 8, status: 'graded',
     parentSummary: 'A much better session. He used the 180 degree rule on his own three times and only slipped once, on the triangle where the right angle was not listed first.' },
+  // The pending one — what the child's page opens on. It warms up on decimal
+  // place value, the topic still marked weak, before its own practice.
   { id: 'demo-5', topicId: '2d-shapes', topicName: '2D shapes and triangles', kind: 'practice',
-    pool: '2d-shapes-a', dayOffset: -1, clean: 8, shown: 0, minutes: 0, status: 'pending' },
+    pool: '2d-shapes-a', warmupPool: 'decimal-place', warmupFrom: 'Decimal place value',
+    blurb: 'Three decimal warm-ups to keep them fresh, then back to triangles.',
+    dayOffset: -1, clean: 8, shown: 0, minutes: 0, status: 'pending' },
 ];
 
 /* ── topicStatus ────────────────────────────────────────────────────────── */
@@ -349,6 +509,110 @@ const TOPIC_STATUS = {
   },
 };
 
+/* ── demo audio ─────────────────────────────────────────────────────────── */
+// Coach Ollie speaks her BANK lines (public/audio/bank/) with no setup at all,
+// because those are committed static files. A session's OWN lines are
+// different: the clues she reads aloud, her per-question asides and the
+// goodbye are rendered per session into Mongo by tools/voice, which pulls in a
+// ~500 MB text-to-speech toolchain. Nobody is going to install that to look
+// around, and a demo where the coach goes quiet exactly when she starts
+// teaching misrepresents the thing. So the pending session's clips are
+// committed in scripts/demo-audio/ and loaded straight in.
+//
+// They are content-addressed on the words, so editing a hint or an Ollie line
+// above orphans its clip and that line would go quiet. Seeding warns when that
+// has happened; re-record with:
+//
+//     cd tools/voice && npm install        # once, ~400 MB, gitignored
+//     node scripts/seed-demo.js --save-audio
+//
+// manifest.json next to the clips says what each one says, so 58 opaque audio
+// files in a public repo can be read without playing them.
+const AUDIO_DIR = path.join(__dirname, 'demo-audio');
+const AUDIO_MANIFEST = path.join(AUDIO_DIR, 'manifest.json');
+const PENDING = 'demo-5';
+
+// The bank's voice, so a session clip can never be rendered in a different one
+// than the reactions it is chained with.
+function bankVoice() {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'public', 'audio', 'manifest.json'), 'utf8')).voice;
+  } catch (e) { return 'af_heart'; }
+}
+
+// Load the committed clips into the `audio` collection and link them to the
+// pending session — the same two writes tools/voice/render.js makes.
+async function loadAudio(db, session) {
+  let files = [];
+  try { files = fs.readdirSync(AUDIO_DIR).filter((f) => f.endsWith('.m4a')); } catch (e) { /* none committed */ }
+  if (!files.length) {
+    console.log('  no demo audio committed — Ollie speaks her bank lines only');
+    return;
+  }
+  let said = {};
+  try { said = JSON.parse(fs.readFileSync(AUDIO_MANIFEST, 'utf8')).clips || {}; } catch (e) { /* older checkout */ }
+
+  const voice = bankVoice();
+  const audio = db.collection('audio');
+  // Only the pending session's clips are kept, exactly as render.js does it,
+  // so seeding twice does not pile up storage.
+  await audio.deleteMany({ sessionId: PENDING });
+  const keys = files.map((f) => f.slice(0, -4)).sort();
+  for (const f of files) {
+    const key = f.slice(0, -4);
+    await audio.replaceOne({ _id: key }, {
+      _id: key, bytes: new Binary(fs.readFileSync(path.join(AUDIO_DIR, f))),
+      text: said[key], voice, sessionId: PENDING, createdAt: new Date().toISOString(),
+    }, { upsert: true });
+  }
+  // The page ignores the lot if `version` does not match its own speech.js, so
+  // it is read from there rather than written down.
+  await db.collection('sessions').updateOne({ _id: PENDING },
+    { $set: { audio: { voice, version: Speech.VERSION, clips: keys } } });
+
+  // A clip is named on its words, so an edited line above quietly loses its
+  // recording and Ollie goes silent on it. Say so rather than ship it mute.
+  const have = new Set(keys);
+  const missing = sessionLines(session)
+    .filter((l) => { const k = Speech.clipKey(l.text, voice); return k && !have.has(k); });
+  console.log(`  ${keys.length} voice clip(s) loaded for ${PENDING}`);
+  if (missing.length)
+    console.log(`  ⚠ ${missing.length} line(s) have no recording (${missing[0].where}, ...) — ` +
+                're-record with: node scripts/seed-demo.js --save-audio');
+}
+
+// Maintainers only: render the pending session's lines and write them back
+// into scripts/demo-audio/ to be committed.
+async function saveAudio(db) {
+  const s = await db.collection('sessions').findOne({ _id: PENDING });
+  if (!s) fail(`${PENDING} is not in database "${db.databaseName}" — run --force first.`);
+  const renderer = path.join(__dirname, '..', 'tools', 'voice', 'render.js');
+  if (!fs.existsSync(path.join(__dirname, '..', 'tools', 'voice', 'node_modules')))
+    fail('tools/voice is not installed. Run: cd tools/voice && npm install');
+
+  const tmp = path.join(require('os').tmpdir(), `${PENDING}-${Date.now()}.json`);
+  fs.writeFileSync(tmp, JSON.stringify({ ...s, id: PENDING }));
+  try {
+    execFileSync('node', [renderer, 'session', tmp], { stdio: 'inherit', cwd: path.dirname(renderer) });
+  } finally { fs.unlinkSync(tmp); }
+
+  const docs = await db.collection('audio').find({ sessionId: PENDING }).toArray();
+  if (!docs.length) fail('the renderer stored no clips.');
+  fs.mkdirSync(AUDIO_DIR, { recursive: true });
+  for (const f of fs.readdirSync(AUDIO_DIR)) if (f.endsWith('.m4a')) fs.unlinkSync(path.join(AUDIO_DIR, f));
+  let bytes = 0;
+  const clips = {};
+  for (const d of docs) {
+    const buf = Buffer.from(d.bytes.buffer || d.bytes);
+    bytes += buf.length;
+    clips[d._id] = d.text;
+    fs.writeFileSync(path.join(AUDIO_DIR, d._id + '.m4a'), buf);
+  }
+  fs.writeFileSync(AUDIO_MANIFEST,
+    JSON.stringify({ voice: bankVoice(), version: Speech.VERSION, clips }, null, 1));
+  console.log(`\n✓ ${docs.length} clip(s), ${(bytes / 1048576).toFixed(1)} MB, written to scripts/demo-audio/ — commit them.`);
+}
+
 /* ── write ──────────────────────────────────────────────────────────────── */
 async function remove() {
   const db = await connect();
@@ -359,13 +623,14 @@ async function remove() {
 
 async function main() {
   const args = process.argv.slice(2);
-  if (args.some((a) => !['--force', '--remove'].includes(a)))
-    fail('Usage: node scripts/seed-demo.js [--force] [--remove]');
+  if (args.some((a) => !['--force', '--remove', '--save-audio'].includes(a)))
+    fail('Usage: node scripts/seed-demo.js [--force] [--remove] [--save-audio]');
 
   await assertReachable();
   const db = await connect();
 
   if (args.includes('--remove')) return remove();
+  if (args.includes('--save-audio')) return saveAudio(db);
 
   // The API resolves "me" with findOne({}), so a second child makes the
   // dashboard show an arbitrary one. Refuse rather than quietly break it.
@@ -407,6 +672,7 @@ async function main() {
   });
   await setDoc(`topicStatus/${ID}`, { childId: ID, lastUpdated: new Date().toISOString(), topics: TOPIC_STATUS });
   for (const spec of SESSIONS) await setDoc(`sessions/${spec.id}`, buildSession(spec));
+  await loadAudio(db, buildSession(SESSIONS.find((x) => x.id === PENDING)));
 
   console.log('\n✓ written. Start the server (npm start) and open:');
   console.log('    http://localhost:3000/dashboard.html   the parent dashboard');

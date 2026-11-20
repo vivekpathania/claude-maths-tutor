@@ -1,9 +1,17 @@
 # AI Maths Tutor
 
-A personalised maths tutoring system where an AI (Claude) acts as the tutor.
-A child answers daily questions on a web page; Claude grades every answer,
-writes age-appropriate feedback, and designs the next session — adapting
-difficulty, tips, and focus based on what the child actually got wrong.
+**A daily maths programme for one child, run end to end by Claude Code agents.**
+
+The child answers questions on a plain web page. Afterwards the parent runs one
+command, and a pipeline of agents marks every answer by working the maths
+itself, works out *why* each wrong one was wrong, and builds tomorrow's session
+— the lesson, the diagrams, the clue ladder and the coach's narration. Nothing
+is generated while the child waits.
+
+There is no model in the browser, no API key on the server, and no prompt the
+child can reach. What the pedagogy should be is written down as agent
+instructions in `CLAUDE.md` and `.claude/agents/`, and two independent checks
+run over every session before a child sees it.
 
 It is built for **one child at a time**, run by their parent, on their own
 database. There is no multi-tenant mode and no hosted service.
@@ -32,6 +40,67 @@ practising, is it working, and what should I do about it.
 
 ---
 
+## Coach Ollie, the talking tutor
+
+Everything the child reads is said by one character. That is not a style
+choice but a rule the code enforces: there is no second narrator, so the page
+never speaks over the tutor, and `verify-session.js` **rejects** a session that
+refers to Ollie in the third person. The child meets one person, not an app
+with a mascot stuck on it.
+
+**She talks.** Her lines are recorded ahead of time on the parent's Mac with
+[Kokoro](https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX), an
+82M-parameter text-to-speech model, and played back from static files. Nothing is synthesised in the browser
+and nothing is generated while the child waits. The model never reaches the
+deploy or the child's device — it lives in `tools/voice/`, its own package,
+deliberately outside the app's dependency tree.
+
+Every clip is named by a hash of the words it says. So the same sentence is
+never recorded twice, an edited line gets new audio by itself, and the test
+suite fails if a line exists with no recording — silent dead air in the middle
+of a lesson is a bug, not a degradation.
+
+**What she says aloud is exactly what is on the screen**, which is what keeps
+an assessment honest: a check session has no clues and no coaching messages, so
+there is nothing for the voice to leak. She reads her own words and the clues.
+She does not read the slip message that names a mistake, the revealed answer,
+or the feedback card — those are shown, so that her reaction to a wrong try is
+never talked over.
+
+**Lines with the child's name are never recorded to the open CDN.** About
+sixteen of her lines are templates (`Hi {name}!`). `public/audio/` is served to
+anyone without a key, and a recording of a child's first name does not belong
+there, so those are voiced per child into a key-protected store instead. A test
+fails if one ever leaks into the public bank.
+
+Sound is on by default for age 11 and under and captions-only from 12, with a
+mute button on her dock. Any audio failure is silent — the lesson never blocks
+on it.
+
+Full pipeline in [docs/voice.md](docs/voice.md); what she says and in what
+register in [docs/mascot.md](docs/mascot.md).
+
+---
+
+## Diagrams the child can trust
+
+A question or a teaching step can carry a diagram, and **no agent ever writes
+SVG**. A visual is declarative data — a triangle with these side lengths, a
+place-value grid with this column lit — which the page draws and
+`verify-session.js` *measures back*. State that a triangle has sides 6, 6 and 9
+and draw one that does not, and the session is blocked, exactly as a wrong
+answer key would be. A wrong picture teaches the error just as directly.
+
+The same mechanism keeps a picture from giving its own answer away: a question
+can declare words the diagram must not print, and the checker reads the drawn
+labels back to enforce it. It also refuses a diagram whose labels would land on
+top of each other — a stimulus the child cannot read is as broken as one drawn
+wrongly, and nobody reviewing the JSON would otherwise notice.
+
+See [docs/visuals.md](docs/visuals.md).
+
+---
+
 ## See it working first
 
 You do not need a child, a curriculum or an API key to look around — but you do
@@ -50,6 +119,11 @@ npm start                            # http://localhost:3000
 `/dashboard.html` is the parent's view, `/` is the child's session page. Remove
 it again with `node scripts/seed-demo.js --remove`.
 
+The demo is the real thing, not a mock-up: the questions carry diagrams the
+checker has measured, the clues escalate as they would for a child, and **Coach
+Ollie talks** — her recordings are committed, so nothing needs installing for
+her to speak. Get one wrong on purpose; that is where most of the system is.
+
 The demo refuses to run if the database already holds a real child, because the
 app resolves "the child" as whichever one it finds first. To preview alongside
 real data, point it at a throwaway database:
@@ -65,7 +139,7 @@ real data, point it at a throwaway database:
 | **Node 18+** | Four runtime dependencies: `express`, `mongodb`, `dotenv`, `serverless-http`. |
 | **MongoDB** | Atlas's free tier is enough — permanently free, no card. Two collections. [Setup walkthrough](docs/database.md) if you have not done this before. |
 | **Netlify** (optional) | Only if you want the child to use it on their own device. Local-only works fine. |
-| **~500 MB disk** (optional) | Only for Coach Ollie's recorded voice. Measured: `tools/voice/node_modules` is 496 MB installed. Nothing of it reaches the deploy or the child's device. |
+| **~400 MB disk** (optional) | Only to record *new* voice lines for your own child's sessions. Ollie's built-in lines are already committed as audio, so the demo talks without this. Measured: `tools/voice/node_modules` is 408 MB installed, gitignored, and none of it reaches the deploy or the child's device. |
 
 The scripts must run on your real machine. Claude's cloud sandboxes and VMs are
 firewalled off from your database.
@@ -155,8 +229,10 @@ npm start        # http://localhost:3000
 
 ### 6. Coach Ollie's voice (optional)
 
-The child's page works without it — Ollie shows her speech bubble silently.
-To give her a recorded voice:
+Ollie already speaks her built-in lines — those recordings ship with the repo.
+What this step adds is her voice on **your child's own sessions**: the clues
+she reads out, her per-question asides, the teaching narration. Without it she
+shows those in her speech bubble silently.
 
 ```bash
 cd tools/voice && npm install
@@ -282,6 +358,7 @@ scripts/
   verify-session.js         structural checks before a session is saved
   check-db.js               plain-English database connection check
   seed-demo.js              demo child with history, for a first look
+  demo-audio/               the demo session's voice clips, so it talks unaided
 public/
   index.html                the child's daily session page
   dashboard.html            the parent's dashboard
