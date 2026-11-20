@@ -113,6 +113,7 @@ body{min-height:100svh;min-height:var(--vvh,100svh)}
     <section id="stage-action" class="stage-col"></section>
   </div>
 </main>
+<script src="/answer.js"></script>
 <script src="/session-shape.js"></script>
 <script src="/ollie-lines.js"></script>
 <script src="/scene.js"></script>
@@ -139,20 +140,12 @@ body{min-height:100svh;min-height:var(--vvh,100svh)}
   var SESSION = null;
 
   /* ── answer normalisation + marking ──────────────────────────────── */
-  function normalise(s){
-    var v = String(s).trim().toLowerCase()
-      .replace(/\s+/g,'').replace(/[·•]/g,'.').replace(/,/g,'').replace(/^\+/,'')
-      .replace(/(?!^)-/g,'');
-    if(v === '') return null;
-    if(/^\.\d+$/.test(v)) v = '0' + v;
-    if(!/^-?\d*\.?\d+$/.test(v)) return v.replace(/^the/,'').replace(/column$/,'').replace(/s$/,'');
-    var n = parseFloat(v);
-    if(isNaN(n)) return v;
-    return String(parseFloat(n.toFixed(6)));
-  }
-  function correct(given, expected){
-    return normalise(given) !== null && normalise(given) === normalise(expected);
-  }
+  // public/answer.js holds the one definition, shared with
+  // scripts/test-answer-matching.js. Read its header for why a word answer is
+  // marked on the maths and not the spelling — it is the reason a real session
+  // was abandoned three questions in.
+  var normalise = Answer.normalise;
+  var correct   = Answer.correct;
 
   /* ── DOM helpers ─────────────────────────────────────────────────── */
   function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
@@ -1423,7 +1416,10 @@ body{min-height:100svh;min-height:var(--vvh,100svh)}
         '<div class="ol-yousaid">'+
           '<span class="ol-yousaid-mark">'+icon('check','ol-icon')+'</span>'+
           '<div><div class="ol-header__eyebrow">You said</div>'+
-          '<p class="ol-yousaid-line">'+esc(q.answer)+'. That\'s right!</p></div></div>'));
+          (state.correctedFrom
+            ? '<p class="ol-yousaid-line">'+esc(state.correctedFrom)+'. That\'s right \u2014 it\'s spelled '+esc(q.answer)+'.</p>'
+            : '<p class="ol-yousaid-line">'+esc(q.answer)+'. That\'s right!</p>')+
+          '</div></div>'));
       // An authored visual reinforcing WHY the answer is right. Enrichment
       // only — it never changes the mark.
       if(q.correctVisual){
@@ -1556,13 +1552,20 @@ body{min-height:100svh;min-height:var(--vvh,100svh)}
       if(normalise(v)===null){ inp.focus(); return; }
       var ms=Date.now()-qStart;
       state.tries++;
-      var isCorrect=correct(v, q.answer);
+      var slipKeys = Object.keys(slips);
+      var isCorrect=correct(v, q.answer, slipKeys);
+      // Right answer, wrong spelling. Kept on the attempt rather than quietly
+      // smoothed away: a child who cannot spell the word is not the same as one
+      // who can, and nothing else would record the difference.
+      var spellingFixed = isCorrect && normalise(v) !== normalise(q.answer);
+      state.correctedFrom = spellingFixed ? v : null;
       var matched=slips[normalise(v)] || null;
       var hf = helpFields();
       postAttempt({
         questionId: qid, secondAngleShown: !!state.angleSeen[qid],
         given: v,
         correct: isCorrect,
+        spellingFixed: spellingFixed || undefined,
         tries: state.tries,
         hintsUsed: hf.hintsUsed, usedHelp: hf.usedHelp, cluesUsed: hf.cluesUsed, showedMe: hf.showedMe,
         slipCode: matched ? matched.code : null,
@@ -1695,7 +1698,7 @@ body{min-height:100svh;min-height:var(--vvh,100svh)}
       var submit=function(){
         var given=(inp.value||'').trim();
         if(!given) return;
-        var ok = normalise(given)===normalise(q.answer);
+        var ok = correct(given, q.answer, Object.keys(q.slips||{}));
         postAttempt({ questionId: qid, given: given, correct: ok, tries: atts.length+1,
                       hintsUsed:0, slipCode: null, msTaken: 0 });
         render();

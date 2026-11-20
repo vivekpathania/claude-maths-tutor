@@ -289,7 +289,7 @@ can review what they will get before they see it.
 
 ```bash
 npm run check                                        # is the database connected? (start here)
-npm test                                             # the five test suites
+npm test                                             # the six test suites
 npm run fetch                                        # show the newest ungraded session
 node scripts/seed-demo.js --force                    # demo child with history
 node scripts/save-curriculum.js profiles/<id>.json   # save an approved curriculum

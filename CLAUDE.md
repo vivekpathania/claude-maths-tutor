@@ -295,6 +295,16 @@ states are in `docs/child-page.md`; what grading and authoring depend on is here
 `usedHelp`, `cluesUsed`, `showedMe`. One row per *try*, so `attempts[]` is the full record — not a final
 snapshot. This is what you grade from.
 
+**A word answer is marked on the maths, not the spelling** (`public/answer.js`).
+A near-miss on a long word counts as correct and the page shows the right
+spelling back ("That's right — it's spelled *isosceles*"); the attempt carries
+`spellingFixed: true` and keeps what the child actually typed in `given`, so a
+shaky speller is still visible to you. Numbers are never "nearly right", short
+words must be exact, and a predicted wrong answer in `slips` always wins over a
+near-miss — a different valid option must never be rewritten into the right one.
+This exists because a child who typed "iscoseles" was marked wrong three times
+and abandoned the session.
+
 **The help ladder** (any session with `uiMode.retryPolicy: "multi"`). A wrong
 answer escalates — the child is never left stuck:
 
