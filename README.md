@@ -249,6 +249,13 @@ device. `docs/voice.md` explains the whole pipeline.
 Netlify environment variables, the Atlas network access rule, and the key
 handling a first deploy always needs.
 
+To publish the **demo** rather than your own child's sessions, deploy a second
+Netlify site from the same branch with `TUTOR_DEMO=on` and `MONGODB_DB` pointed
+at a demo database. Demo mode needs no keys and writes nothing, so it cannot be
+worn out or vandalised — and it refuses to serve at all if `MONGODB_DB` is
+missing, rather than falling back to the database with a real child in it. See
+["A second site: the public demo"](docs/deploy.md#a-second-site-the-public-demo).
+
 ---
 
 ## Daily routine
@@ -282,7 +289,7 @@ can review what they will get before they see it.
 
 ```bash
 npm run check                                        # is the database connected? (start here)
-npm test                                             # the four test suites
+npm test                                             # the five test suites
 npm run fetch                                        # show the newest ungraded session
 node scripts/seed-demo.js --force                    # demo child with history
 node scripts/save-curriculum.js profiles/<id>.json   # save an approved curriculum

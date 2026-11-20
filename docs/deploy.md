@@ -157,6 +157,57 @@ Check at minimum:
 curl -s "http://localhost:8888/api/sessions/next?childId=sam" | head -c 200
 ```
 
+## A second site: the public demo
+
+`TUTOR_DEMO=on` serves a demo anyone can play without a key, writing nothing.
+It is how you put a live link in the README without handing strangers a key or
+letting them wear the demo out.
+
+Set it up as a **second Netlify site on the same repository and branch** — the
+demo is a difference in configuration, not in code, so it needs no demo branch
+to maintain and cannot drift from what people clone.
+
+| Variable | Demo site |
+|---|---|
+| `TUTOR_DEMO` | `on` |
+| `MONGODB_URI` | the same Atlas connection string |
+| `MONGODB_DB` | **a demo database** — `demo-tutor`, seeded by `scripts/seed-demo.js` |
+| `TUTOR_CHILD_KEY` / `TUTOR_ADMIN_KEY` | not needed; demo mode never consults them |
+| `TUTOR_TZ` | optional — only affects the demo's streak display |
+
+What the mode does:
+
+- **No key is required**, so a visitor lands straight in the session rather
+  than on the key prompt.
+- **Only the child's routes and the dashboard read are reachable.** Deleting a
+  session, editing the curriculum or changing the child all return 403 with
+  *"This is a read-only demo."*, which the dashboard already surfaces as a
+  toast and reverts.
+- **Answers and "finish" are accepted and discarded.** The visitor plays a
+  whole session and Ollie reacts normally, but nothing reaches the database —
+  so the pending session stays pending for the next person, the demo cannot be
+  worn out or vandalised, and there is nothing to reseed on a schedule.
+
+It also means the demo dashboard shows the seeded history rather than the
+session the visitor just played. That is deliberate: their play was never
+stored.
+
+### Why it refuses to start without `MONGODB_DB`
+
+`scripts/db.js` falls back to `maths-tutor` when `MONGODB_DB` is unset. Without
+a guard, a demo site with a forgotten or misspelled variable would serve **a
+real child's sessions to the open internet with no key**, and would look
+perfectly healthy doing it — the pages would load, the dashboard would fill in,
+and nothing would be obviously wrong.
+
+So demo mode fails closed on the database name: with `MONGODB_DB` unset, or set
+to `maths-tutor`, every `/api` route returns 503 and the log says why. If the
+demo site comes up blank, that is the first thing to check.
+
+`scripts/test-demo-mode.js` covers all of this, including the guard.
+
+---
+
 ## Things that behave differently once deployed
 
 - **Static files** are served by the CDN, not by Express. `app.js` still has

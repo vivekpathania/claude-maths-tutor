@@ -14,7 +14,7 @@
     "seed": "node scripts/seed-demo.js",
     "save": "node scripts/save-grading.js grading/latest.json",
     "curriculum:check": "node scripts/save-curriculum.js profiles/example.json --dry",
-    "test": "node scripts/verify-ollie-lines.js && node scripts/test-scene.js && node scripts/test-voice.js && node scripts/test-pipeline.js"
+    "test": "node scripts/verify-ollie-lines.js && node scripts/test-scene.js && node scripts/test-voice.js && node scripts/test-pipeline.js && node scripts/test-demo-mode.js"
   },
   "dependencies": {
     "dotenv": "^16.0.0",

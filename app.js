@@ -53,12 +53,52 @@ const CHILD_ROUTES = [
   { method: 'GET',  re: /^\/audio\/[0-9a-f]{14}\/?$/ },      // Ollie's recorded lines for this session
 ];
 
+// ── Demo mode ────────────────────────────────────────────────────────────────
+// TUTOR_DEMO=on serves a PUBLIC demo: no key is needed, and nothing is ever
+// written. It exists so a stranger can play a whole session on a deployed URL
+// without being handed a key, and without their play reaching any database.
+//
+// Reads come from the database; writes are accepted and discarded (see the
+// attempts and finish routes). So the demo cannot be worn out by visitors,
+// cannot be vandalised, and never needs reseeding — the pending session stays
+// pending however many people play it.
+//
+// It fails CLOSED on the database name, and that is the whole point of the
+// check below. scripts/db.js falls back to "maths-tutor" when MONGODB_DB is
+// unset, so a demo deployment with a forgotten or misspelled variable would
+// otherwise serve a real child's sessions to the open internet, with no key,
+// looking perfectly healthy while it did. A 503 is the better failure.
+const DEMO = process.env.TUTOR_DEMO === 'on';
+const DEMO_DB_FALLBACK = 'maths-tutor';          // db.js's default — never a demo database
+const DEMO_DB = process.env.MONGODB_DB;
+const DEMO_DB_OK = !!DEMO_DB && DEMO_DB !== DEMO_DB_FALLBACK;
+
+// What the demo may reach: the child's own routes, plus the parent dashboard,
+// which is half of what there is to show. Everything else — deleting sessions,
+// editing the curriculum or the child — is refused outright, so the demo needs
+// no protection beyond this list.
+const DEMO_ROUTES = CHILD_ROUTES.concat([
+  { method: 'GET', re: /^\/dashboard\/[^/]+\/?$/ },
+]);
+
+if (DEMO && DEMO_DB_OK) console.warn(`▸ DEMO MODE — no key required, nothing is written, database "${DEMO_DB}".`);
+if (DEMO && !DEMO_DB_OK) console.error(`✗ TUTOR_DEMO=on but MONGODB_DB is ${DEMO_DB ? `"${DEMO_DB}"` : 'unset'} — refusing every request rather than risk publishing a real child's data. Set MONGODB_DB to a demo database.`);
+
 // Authentication is ON. TUTOR_AUTH=off is an explicit, noisy escape hatch for local work
 // only; leave it unset everywhere else.
 const AUTH_ON = process.env.TUTOR_AUTH !== 'off';
-if (!AUTH_ON) console.warn('⚠ API authentication is OFF (TUTOR_AUTH=off) — anyone who can reach this server can read and write everything.');
+// Not in demo mode: there the demo contract is what applies, and this line
+// would claim writes are open when they are refused.
+if (!AUTH_ON && !DEMO) console.warn('⚠ API authentication is OFF (TUTOR_AUTH=off) — anyone who can reach this server can read and write everything.');
 
 app.use('/api', (req, res, next) => {
+  // Demo mode outranks both the key check and TUTOR_AUTH: it is its own, far
+  // narrower, contract.
+  if (DEMO) {
+    if (!DEMO_DB_OK) return res.status(503).json({ error: 'Demo is not configured: MONGODB_DB must name a demo database.' });
+    if (DEMO_ROUTES.some((r) => r.method === req.method && r.re.test(req.path))) return next();
+    return res.status(403).json({ error: 'This is a read-only demo.' });
+  }
   if (!AUTH_ON) return next();
   const adminKey = process.env.TUTOR_ADMIN_KEY;
   const childKey = process.env.TUTOR_CHILD_KEY;
@@ -488,6 +528,10 @@ async function sessionStatus(db, id) {
 // heard back, so the same attempt can arrive twice. `clientId` makes that
 // harmless — a second copy is acknowledged and not stored again.
 app.post('/api/sessions/:id/attempts', async (req, res) => {
+  // In the demo the answer is accepted and thrown away: the page's retry queue
+  // is satisfied, the visitor's play stays in their own browser, and the
+  // session they are playing stays pending for the next person.
+  if (DEMO) return res.json({ ok: true, demo: true });
   try {
     const db = await connect();
     const id = req.params.id, body = req.body || {};
@@ -512,6 +556,9 @@ app.post('/api/sessions/:id/attempts', async (req, res) => {
 // "waiting to be graded". A finish that already landed is acknowledged, not an
 // error, so the page can safely retry one whose reply it never saw.
 app.post('/api/sessions/:id/finish', async (req, res) => {
+  // Never flip the demo session to "submitted" — the first visitor to finish
+  // would otherwise leave every later one staring at the empty state.
+  if (DEMO) return res.json({ ok: true, demo: true });
   try {
     const db = await connect();
     const id = req.params.id;
