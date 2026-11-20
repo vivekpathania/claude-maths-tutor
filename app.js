@@ -497,14 +497,18 @@ app.get('/api/sessions/next', async (req, res) => {
         id: String(_id), ...rest, feedback, topicDescription, topicGroup,
         childName: child?.name || null, childAge: child?.age || null, childStage: child?.stage || null,
         sessionMinutes: child?.settings?.sessionMinutes || null,
-        streak, week
+        streak, week,
+        // Lets the page say "this is a demo" and offer a way back to the
+        // project. Distinct from `demo` below, which means something else
+        // entirely: no child profile exists yet on a local install.
+        publicDemo: DEMO || undefined,
       });
     }
 
     // No session waiting. If the child exists, say so honestly rather than
     // serving fake work.
     const child = await db.collection('children').findOne({ _id: childId });
-    if (child) return res.json({ nothingQueued: true, childName: child.name || null });
+    if (child) return res.json({ nothingQueued: true, childName: child.name || null, publicDemo: DEMO || undefined });
 
     // No child profile at all — demo mode, never persisted.
     const session = buildDemoSession(childId);

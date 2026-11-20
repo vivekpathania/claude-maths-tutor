@@ -2,6 +2,12 @@
 
 **A daily maths programme for one child, run end to end by Claude Code agents.**
 
+### ▶ [Try a session](https://demo-math-tutor.netlify.app/)
+
+A real one, in the browser: the diagrams, the clue ladder, and Coach Ollie
+reading the hints aloud. Nothing to install and nothing is saved. **Get one
+wrong on purpose** — that is where most of the system lives.
+
 The child answers questions on a plain web page. Afterwards the parent runs one
 command, and a pipeline of agents marks every answer by working the maths
 itself, works out *why* each wrong one was wrong, and builds tomorrow's session
@@ -14,7 +20,8 @@ instructions in `CLAUDE.md` and `.claude/agents/`, and two independent checks
 run over every session before a child sees it.
 
 It is built for **one child at a time**, run by their parent, on their own
-database. There is no multi-tenant mode and no hosted service.
+database. There is no multi-tenant mode, and no hosted service to sign your own
+child up to — the demo above is a read-only showcase, not an account.
 
 ---
 
@@ -36,7 +43,8 @@ practising, is it working, and what should I do about it.
 
 ![The parent's dashboard](docs/images/dashboard.jpg)
 
-*(Screenshots show the built-in demo child, not a real one.)*
+*(Screenshots show the built-in demo child, not a real one — the same one you
+can play with in [the demo](https://demo-math-tutor.netlify.app/).)*
 
 ---
 
@@ -50,10 +58,10 @@ with a mascot stuck on it.
 
 **She talks.** Her lines are recorded ahead of time on the parent's Mac with
 [Kokoro](https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX), an
-82M-parameter text-to-speech model, and played back from static files. Nothing is synthesised in the browser
-and nothing is generated while the child waits. The model never reaches the
-deploy or the child's device — it lives in `tools/voice/`, its own package,
-deliberately outside the app's dependency tree.
+82M-parameter text-to-speech model, and played back from static files. Nothing
+is synthesised in the browser and nothing is generated while the child waits.
+The model never reaches the deploy or the child's device — it lives in
+`tools/voice/`, its own package, deliberately outside the app's dependency tree.
 
 Every clip is named by a hash of the words it says. So the same sentence is
 never recorded twice, an edited line gets new audio by itself, and the test
@@ -103,9 +111,13 @@ See [docs/visuals.md](docs/visuals.md).
 
 ## See it working first
 
-You do not need a child, a curriculum or an API key to look around — but you do
-need the database connected, because that is where everything lives. So do
-[step 1](#1-connect-a-database) first, then come back here.
+The quickest look is **[the hosted demo](https://demo-math-tutor.netlify.app/)**
+— this same code, serving a seeded demo child. It needs nothing from you and
+writes nothing back, so play with it freely; reload and it is fresh again.
+
+To run it on your own machine you need the database connected, because that is
+where everything lives. So do [step 1](#1-connect-a-database) first, then come
+back here.
 
 Once `npm run check` passes, seed a demo child with a few weeks of invented
 history:

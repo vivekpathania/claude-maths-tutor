@@ -97,6 +97,16 @@ body{min-height:100svh;min-height:var(--vvh,100svh)}
     <span aria-hidden="true">🧪</span>
     <span><b>Demo session</b> — no child profile is set up yet. Your answers won't be saved. <a href="/dashboard.html" class="underline">Set up a profile →</a></span>
   </div>
+  <!-- The PUBLIC demo (TUTOR_DEMO=on), which is a different thing from the
+       banner above: there is a child here, they are just made up. A stranger
+       who plays a session and likes it has nowhere to go otherwise, so this is
+       the only way back to the project from the demo. -->
+  <div id="public-demo-banner" class="session-banner" hidden>
+    <span aria-hidden="true">👋</span>
+    <span><b>This is a demo.</b> The child is made up and nothing you type is saved — reload for a fresh go.
+      <a href="/dashboard.html" class="underline">The parent's view&nbsp;→</a> &nbsp;·&nbsp;
+      <a href="https://github.com/vivekpathania/claude-maths-tutor" class="underline" target="_blank" rel="noopener">Code on GitHub&nbsp;→</a></span>
+  </div>
 
   <!-- Single-column screens: loading, error, feedback, start, close, lesson, review. -->
   <div id="stage-single"></div>
@@ -1844,8 +1854,11 @@ body{min-height:100svh;min-height:var(--vvh,100svh)}
       OllieVoice.setSession(session.audio, apiFetch);
       if(!session.nothingQueued){ SESSION = session; REGISTER = computeRegister(SESSION); }
       mountOllie(session);
+      // Before the nothingQueued return: a demo with nothing queued still wants
+      // its way back to the project.
+      if(session.publicDemo) document.getElementById('public-demo-banner').hidden = false;
       if(session.nothingQueued){ renderNothingQueued(session); return; }
-      if(SESSION.demo){
+      if(!session.publicDemo && SESSION.demo){
         document.getElementById('demo-banner').hidden = false;
       }
       buildSteps(SESSION);
