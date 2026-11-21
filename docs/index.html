@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Maths Tutor — system architecture</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: dark;
+  --ink:#eef1f7; --sub:#a4aec0; --faint:#6e7a8d; --page:#06080e; --card:#111420;
+  --line:#232838; --line-soft:#191d28;
+  --claude:#8f90fa;  --claude-soft:#181a36;
+  --child:#4ed2e6;   --child-soft:#092630;
+  --db:#e8b075;      --db-soft:#2b1f11;
+  --gate:#f5948c;    --gate-soft:#30171a;
+  --ok:#5bd79a;      --ok-soft:#0d2a1c;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:var(--page);color:var(--ink);font-family:'Inter',system-ui,sans-serif;
+  padding:calc(32px + env(safe-area-inset-top,0px)) 24px calc(72px + env(safe-area-inset-bottom,0px));
+  -webkit-font-smoothing:antialiased;line-height:1.5;}
+.wrap{max-width:1180px;margin:0 auto;}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:30px;}
+.topbar .mark{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:13px;color:var(--faint);letter-spacing:.04em;text-transform:uppercase;}
+.tag{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);
+  border:1px solid var(--line);padding:5px 12px;border-radius:4px;}
+h1{font-family:'Space Grotesk',sans-serif;font-size:33px;font-weight:600;margin:0 0 10px;letter-spacing:-.02em;line-height:1.2;}
+.tagline{color:var(--sub);font-size:15px;line-height:1.65;margin:0 0 34px;max-width:800px;}
+.tagline a{color:var(--claude);}
+
+h2.sec{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:600;margin:46px 0 6px;letter-spacing:-.01em;
+  display:flex;align-items:baseline;gap:11px;}
+h2.sec .n{font-size:11px;font-weight:600;color:var(--faint);letter-spacing:.1em;font-family:'Inter',sans-serif;}
+p.seclead{color:var(--sub);font-size:13px;line-height:1.7;margin:0 0 20px;max-width:860px;}
+
+.glance{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:6px;}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;box-shadow:var(--shadow);}
+.stat .k{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:600;letter-spacing:-.01em;margin-bottom:5px;}
+.stat .l{font-size:12px;color:var(--sub);line-height:1.55;}
+
+/* swimlanes */
+.lanes{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;}
+.lane{display:grid;grid-template-columns:166px 1fr;border-bottom:1px solid var(--line-soft);}
+.lane:last-child{border-bottom:none;}
+.lane-label{padding:18px 16px;border-right:1px solid var(--line-soft);display:flex;flex-direction:column;gap:4px;justify-content:center;}
+.lane-label .tool{font-size:10px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;}
+.lane-label .who{font-size:13.5px;font-weight:600;letter-spacing:-.01em;}
+.lane-label .note{font-size:11px;color:var(--faint);line-height:1.45;}
+.lane-body{padding:16px;display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;}
+.step{border:1px solid var(--line);border-radius:7px;padding:9px 12px;min-width:106px;background:var(--card);}
+.step .t{font-size:12px;font-weight:600;line-height:1.3;}
+.step .s{font-size:10.5px;color:var(--faint);margin-top:3px;line-height:1.4;}
+.sep{color:var(--faint);font-size:12px;align-self:center;}
+.gatepill{border:1px dashed var(--gate);color:var(--gate);background:var(--gate-soft);align-self:center;
+  padding:7px 12px;font-size:10.5px;font-weight:600;white-space:nowrap;border-radius:6px;letter-spacing:.02em;}
+.lane.claude{--accent:var(--claude);} .lane.claude .lane-label{background:var(--claude-soft);} .lane.claude .tool{color:var(--claude);}
+.lane.child{--accent:var(--child);} .lane.child .lane-label{background:var(--child-soft);} .lane.child .tool{color:var(--child);}
+.lane.db{--accent:var(--db);} .lane.db .lane-label{background:var(--db-soft);} .lane.db .tool{color:var(--db);}
+.flowcap{font-size:11.5px;color:var(--faint);margin:12px 0 0;}
+
+.grid{display:grid;gap:14px;}
+.g2{grid-template-columns:repeat(2,1fr);} .g3{grid-template-columns:repeat(3,1fr);} .g4{grid-template-columns:repeat(4,1fr);}
+
+.block{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;box-shadow:var(--shadow);}
+.block-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  padding-bottom:16px;margin-bottom:18px;border-bottom:1px solid var(--line-soft);}
+.block-head .pt{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;letter-spacing:-.01em;}
+.block-head .ps{font-size:12px;color:var(--sub);margin-top:3px;max-width:620px;line-height:1.55;}
+.owner{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:5px 11px;border-radius:5px;white-space:nowrap;}
+.owner.claude{color:var(--claude);background:var(--claude-soft);}
+.owner.child{color:var(--child);background:var(--child-soft);}
+.owner.db{color:var(--db);background:var(--db-soft);}
+.owner.ok{color:var(--ok);background:var(--ok-soft);}
+
+.card{border:1px solid var(--line);border-radius:9px;padding:14px 15px;background:var(--card);}
+.card.flat{border-color:var(--line-soft);background:transparent;}
+.card .ch{display:flex;align-items:flex-start;justify-content:space-between;gap:9px;margin-bottom:6px;}
+.card .cn{font-size:12.5px;font-weight:600;line-height:1.35;letter-spacing:-.005em;}
+.kind{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;padding:3px 7px;border-radius:4px;
+  color:var(--faint);background:var(--line-soft);white-space:nowrap;}
+.kind.cond{color:var(--db);background:var(--db-soft);}
+.kind.script{color:var(--child);background:var(--child-soft);}
+.kind.human{color:var(--gate);background:var(--gate-soft);}
+.card .d{font-size:11.5px;color:var(--sub);line-height:1.6;margin:0 0 8px;}
+.card ul{margin:0;padding-left:16px;font-size:11.5px;line-height:1.7;color:var(--sub);}
+.card li{margin-bottom:1px;} .card li b{color:var(--ink);font-weight:600;}
+.io{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;padding-top:9px;border-top:1px solid var(--line-soft);font-size:10.5px;color:var(--faint);}
+.io b{font-weight:600;} .io .r b{color:var(--child);} .io .w b{color:var(--ok);}
+
+.gateband{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;border-left:2px solid var(--gate);
+  background:var(--gate-soft);border-radius:0 7px 7px 0;padding:11px 15px;margin:16px 0;}
+.gateband.green{border-left-color:var(--ok);background:var(--ok-soft);}
+.gateband .gn{font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--gate);white-space:nowrap;}
+.gateband.green .gn{color:var(--ok);}
+.gateband .gt{font-size:12px;font-weight:600;}
+.gateband .gd{font-size:11.5px;color:var(--sub);}
+
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:11.5px;background:var(--card);
+  border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);}
+th,td{padding:10px 13px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line-soft);}
+tr:last-child td{border-bottom:none;}
+th{background:var(--page);font-weight:600;font-size:9.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--faint);}
+.w-y{color:var(--ok);font-weight:600;} .r-y{color:var(--child);} .nn{color:var(--faint);}
+.pillmini{font-size:9.5px;font-weight:600;padding:3px 8px;border-radius:4px;white-space:nowrap;}
+.pillmini.c{color:var(--claude);background:var(--claude-soft);}
+.pillmini.u{color:var(--child);background:var(--child-soft);}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;background:var(--line-soft);
+  padding:1px 5px;border-radius:4px;}
+
+.note{font-size:12px;color:var(--sub);line-height:1.7;margin:14px 0 0;}
+.note b{color:var(--ink);font-weight:600;}
+.takeaway{background:var(--card);border:1px solid var(--line);border-radius:10px;
+  padding:20px 22px;margin-top:18px;box-shadow:var(--shadow);}
+.takeaway h3{color:var(--ok);font-family:'Space Grotesk',sans-serif;font-size:15px;margin:0 0 12px;font-weight:600;}
+.takeaway ol{margin:0;padding-left:19px;font-size:12.5px;line-height:1.85;color:var(--sub);}
+.takeaway li b{color:var(--ink);font-weight:600;}
+.foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-size:11px;color:var(--faint);line-height:1.7;}
+.foot a{color:var(--claude);}
+@media (max-width:1000px){.g4{grid-template-columns:repeat(2,1fr);} .glance{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:760px){
+  .g2,.g3,.g4,.glance{grid-template-columns:1fr;}
+  .lane{grid-template-columns:1fr;} .lane-label{border-right:none;border-bottom:1px solid var(--line-soft);}
+}
+
+/* ?only=N renders section N alone, for capturing one figure at a time */
+body.only > .wrap > *:not(.shown){display:none;}
+body.only{padding:30px;}
+body.only > .wrap{max-width:1400px;}
+body.only h2.sec{margin-top:0;}
+
+@media print{
+  body{padding:28px 26px;}
+  h2.sec{break-before:page;}
+  h2.sec:first-of-type{break-before:avoid;}
+  .block,.lanes,table,.takeaway,.card,.stat{break-inside:avoid;}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+
+/* ?poster reflows the sections into two columns, so the page is not a tall strip */
+body.poster{padding:34px 36px;}
+body.poster > .wrap{max-width:2280px;display:grid;grid-template-columns:1fr 1fr;
+  gap:30px 34px;align-items:start;}
+body.poster > .wrap > .topbar,
+body.poster > .wrap > h1,
+body.poster > .wrap > .tagline,
+body.poster > .wrap > .glance,
+body.poster > .wrap > .takeaway,
+body.poster > .wrap > .foot,
+body.poster .sec-group.wide{grid-column:1 / -1;}
+body.poster h2.sec{margin-top:0;}
+body.poster .tagline{margin-bottom:4px;}
+body.poster .foot{margin-top:8px;}
+body.poster .lane-body .step{flex:1;}
+
+/* ── live view only: flow animation, hover, scroll progress ──────────────
+   Everything here is switched off for ?only / ?poster captures, for print,
+   and for prefers-reduced-motion, so the exported figures stay identical. */
+#scroll-progress{position:fixed;top:0;left:0;height:2px;width:0;z-index:50;
+  background:linear-gradient(90deg,var(--child),var(--claude));transition:width .12s linear;}
+body::before{content:"";position:fixed;inset:0 0 auto 0;height:440px;z-index:0;pointer-events:none;
+  background:radial-gradient(900px 320px at 16% -80px, rgba(140,144,245,.13), transparent 70%);}
+.wrap{position:relative;z-index:1;}
+h2.sec .n{border:1px solid var(--line);border-radius:999px;padding:3px 9px;}
+
+.reveal{opacity:0;transform:translateY(12px);
+  transition:opacity .5s ease, transform .5s cubic-bezier(.2,.7,.3,1);}
+.reveal.in{opacity:1;transform:none;}
+
+/* the steps walk left to right as the flow scrolls into view */
+.lanes.in .step{animation:stepIn .5s both cubic-bezier(.2,.7,.3,1);}
+@keyframes stepIn{from{opacity:0;transform:translateX(-12px);}to{opacity:1;transform:none;}}
+.lane-body .sep{animation:sepPulse 2.8s ease-in-out infinite;}
+@keyframes sepPulse{0%,100%{opacity:.4;}50%{opacity:1;}}
+.gatepill{animation:gateGlow 2.8s ease-in-out infinite;}
+@keyframes gateGlow{0%,100%{box-shadow:0 0 0 0 rgba(229,147,141,0);}50%{box-shadow:0 0 0 3px rgba(229,147,141,.10);}}
+
+.card,.stat,.step{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;}
+.card:hover,.stat:hover,.step:hover{transform:translateY(-2px);border-color:var(--faint);}
+tbody tr{transition:background .15s ease;}
+tbody tr:hover{background:var(--line-soft);}
+
+body.capture .reveal{opacity:1;transform:none;transition:none;}
+body.capture .step,body.capture .sep,body.capture .gatepill{animation:none !important;}
+body.capture #scroll-progress{display:none;}
+body.capture:not(.poster)::before{display:none;}
+@media print{
+  .reveal{opacity:1 !important;transform:none !important;}
+  .step,.sep,.gatepill{animation:none !important;}
+  #scroll-progress,body::before{display:none !important;}
+}
+@media (prefers-reduced-motion: reduce){
+  .reveal{opacity:1;transform:none;transition:none;}
+  .step,.sep,.gatepill{animation:none !important;}
+}
+
+
+/* section nav, right edge */
+#sec-nav{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:40;
+  display:flex;flex-direction:column;gap:14px;}
+#sec-nav a{display:flex;align-items:center;gap:10px;justify-content:flex-end;
+  text-decoration:none;color:var(--faint);font-size:10.5px;font-weight:600;letter-spacing:.04em;}
+#sec-nav .dot{width:8px;height:8px;border-radius:50%;border:1px solid var(--line);
+  background:transparent;transition:all .22s ease;flex:none;}
+#sec-nav .lbl{opacity:0;transform:translateX(6px);transition:all .22s ease;white-space:nowrap;}
+#sec-nav a:hover .lbl{opacity:1;transform:none;}
+#sec-nav a:hover .dot{border-color:var(--faint);}
+#sec-nav a.active .dot{background:var(--claude);border-color:var(--claude);
+  box-shadow:0 0 0 4px rgba(140,144,245,.14);}
+#sec-nav a.active .lbl{opacity:1;transform:none;color:var(--ink);}
+@media (max-width:1400px){#sec-nav{display:none;}}
+html{scroll-behavior:smooth;}
+h2.sec{scroll-margin-top:26px;}
+
+body.capture .lane-body::after{display:none;}
+body.capture #sec-nav{display:none;}
+
+/* a highlight in the lane's own colour travels step by step along the row */
+.step{position:relative;}
+.step::before{content:"";position:absolute;inset:-1px;border-radius:8px;pointer-events:none;
+  border:1px solid transparent;animation:edgeWave 5s ease-in-out infinite;animation-delay:var(--d,0s);}
+@keyframes edgeWave{
+  0%,66%,100%{border-color:transparent;box-shadow:none;}
+  10%{border-color:var(--accent,var(--faint));box-shadow:0 0 18px -5px var(--accent,var(--faint));}
+}
+.lane-body .sep{animation:sepWave 5s ease-in-out infinite;animation-delay:var(--d,0s);}
+@keyframes sepWave{
+  0%,66%,100%{opacity:.3;color:var(--faint);transform:translateX(0);}
+  10%{opacity:1;color:var(--accent,var(--faint));transform:translateX(3px);}
+}
+body.capture .step::before{animation:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="topbar">
+  <span class="mark">AI Maths Tutor</span>
+  <span class="tag">System architecture</span>
+</div>
+
+<h1>One child, one agent pipeline, one day at a time</h1>
+<p class="tagline">A daily maths programme for a single child, where the teaching decisions are made by Claude Code agents on the parent's own machine. The child sees a plain web page with no model behind it. Every session is written, measured and independently re-solved <em>before</em> they open it — and the number that decides whether they move on is not the number they are shown. <a href="https://demo-math-tutor.netlify.app/">Try a session →</a></p>
+
+<div class="glance">
+  <div class="stat"><div class="k" style="color:var(--child);">The page · asks</div><div class="l">Plain HTML on the child's device. One question at a time, every try posted as it happens.</div></div>
+  <div class="stat"><div class="k" style="color:var(--claude);">The agents · decide</div><div class="l">Eight of them. Mark, diagnose, decide what the topic needs, write tomorrow, re-solve it cold.</div></div>
+  <div class="stat"><div class="k" style="color:var(--db);">MongoDB · remembers</div><div class="l">Two collections. Every attempt, every error pattern, every explanation and whether it landed.</div></div>
+  <div class="stat"><div class="k" style="color:var(--ok);">The checks · gate</div><div class="l">A deterministic script, then an agent that never saw how the questions were written.</div></div>
+</div>
+
+<h2 class="sec"><span class="n">01</span>The daily loop, end to end</h2>
+<p class="seclead">Read each lane left to right. The top lane is the child, on their own device, with no AI in it. The bottom lane is the parent's machine, where one command runs the whole pipeline. The middle lane is the record both halves depend on. Dashed markers are the two points where the pipeline stops and waits for a person.</p>
+
+<div class="lanes">
+  <div class="lane child">
+    <div class="lane-label">
+      <span class="tool">Browser</span>
+      <span class="who">The session</span>
+      <span class="note">The child, on their iPad</span>
+    </div>
+    <div class="lane-body">
+      <div class="step"><div class="t">Opens the page</div><div class="s">one session, pre-written</div></div>
+      <span class="sep">→</span>
+      <div class="step"><div class="t">Answers</div><div class="s">one question at a time</div></div>
+      <span class="sep">→</span>
+      <div class="step"><div class="t">Gets it wrong</div><div class="s">clue ladder, never stuck</div></div>
+      <span class="sep">→</span>
+      <div class="step"><div class="t">Every try posts</div><div class="s">as it happens, not at the end</div></div>
+      <span class="sep">→</span>
+      <div class="step"><div class="t">Finishes</div><div class="s">marked <code>submitted</code></div></div>
+    </div>
+  </div>
+
+  <div class="lane db">
+    <div class="lane-label">
+      <span class="tool">MongoDB</span>
+      <span class="who">The record</span>
+      <span class="note">Two collections</span>
+    </div>
+    <div class="lane-body">
+      <div class="step"><div class="t">curriculum</div><div class="s">topics, prerequisites, the parent's queue</div></div>
+      <div class="step"><div class="t">topicStatus</div><div class="s">verdict, every past session, error profile</div></div>
+      <div class="step"><div class="t">teachingProfile</div><div class="s">how this child learns</div></div>
+      <div class="step"><div class="t">brief</div><div class="s">grader → builder handoff</div></div>
+      <div class="step"><div class="t">sessions</div><div class="s">the attempt record, question by question</div></div>
+    </div>
+  </div>
+
+  <div class="lane claude">
+    <div class="lane-label">
+      <span class="tool">Claude Code</span>
+      <span class="who">The tutor</span>
+      <span class="note">Parent runs <code>/grade</code></span>
+    </div>
+    <div class="lane-body">
+      <div class="step"><div class="t">Fetch</div><div class="s">newest ungraded</div></div>
+      <span class="sep">→</span>
+      <div class="step"><div class="t">Grade &amp; decide</div><div class="s">grader agent</div></div>
+      <span class="sep">→</span>
+      <div class="step"><div class="t">Feedback card</div><div class="s">only if needed</div></div>
+      <span class="sep">→</span>
+      <div class="step"><div class="t">Build tomorrow</div><div class="s">teacher or author</div></div>
+      <span class="sep">→</span>
+      <div class="step"><div class="t">Draw</div><div class="s">illustrator</div></div>
+      <span class="sep">→</span>
+      <div class="step"><div class="t">Verify twice</div><div class="s">script, then cold re-solve</div></div>
+      <span class="sep">→</span>
+      <span class="gatepill">Gate · parent</span>
+      <span class="sep">→</span>
+      <div class="step"><div class="t">Queue it</div><div class="s">one pending, no more</div></div>
+    </div>
+  </div>
+</div>
+<p class="flowcap">The gate is conditional, not ceremonial: an independent re-solve that passes saves by itself. The pipeline stops for a person only when that re-solve <em>fails</em>, or when a second failed check forces a backtrack to a prerequisite — the two cases where a human must actually decide something.</p>
+
+<h2 class="sec"><span class="n">02</span>The two numbers</h2>
+<p class="seclead">The single most consequential design decision here, and the one that took a bug to find. A score that counts help as success is the exact number you must not use to decide what comes next.</p>
+
+<div class="grid g3">
+  <div class="card">
+    <div class="ch"><span class="cn">Completion</span><span class="kind">shown to the child</span></div>
+    <p class="d">How many questions ended correct, with any amount of help — a wrong try, three clues, a revealed answer. This is the morale number, large on their own page.</p>
+    <div class="io"><span class="r"><b>Decides</b> nothing</span></div>
+  </div>
+  <div class="card">
+    <div class="ch"><span class="cn">Clean / unaided</span><span class="kind script">computed, never authored</span></div>
+    <p class="d">Right on the <b>first</b> try with <b>zero</b> clues and no reveal. This is the mastery number, and the only one progression reads.</p>
+    <div class="io"><span class="w"><b>Decides</b> advance, hold or drop</span></div>
+  </div>
+  <div class="card">
+    <div class="ch"><span class="cn">Teaching</span><span class="kind">per explanation</span></div>
+    <p class="d">Each lesson is split into cycles — teach a bit, then one guided question on <em>that bit</em>, with full support up. It measures the explanation, not the child.</p>
+    <div class="io"><span class="w"><b>Decides</b> how to re-teach</span></div>
+  </div>
+</div>
+<div class="gateband"><span class="gn">The trap</span><span class="gt">A 10-out-of-10 session can be a 6-out-of-10 hold.</span><span class="gd">Both numbers are derived from the attempt record by a script, so no agent can round either one in its own favour.</span></div>
+<p class="note"><b>Why a guided question is excluded from the score entirely.</b> It sits immediately after the explanation that taught it, with every clue available. Counting a heavily scaffolded answer toward mastery would inflate precisely the number that decides whether the child moves on. So it gets its own record — concept slug, outcome, whether a second angle was needed — and that record moves the <em>teaching</em>, never the verdict.</p>
+
+<h2 class="sec"><span class="n">03</span>The eight agents</h2>
+<p class="seclead">Each is a separate agent definition with its own instructions and its own tool access. Read-only agents are read-only by configuration, not by being asked nicely — which is the whole point of the ones that judge.</p>
+
+<div class="block">
+  <div class="block-head">
+    <div><div class="pt">Decide, then build, then check</div><div class="ps">The agent that judges a session cannot edit it. The agent that wrote it never sees the judgement.</div></div>
+    <span class="owner claude">Claude Code · the parent's machine</span>
+  </div>
+  <div class="grid g4">
+    <div class="card">
+      <div class="ch"><span class="cn">grader</span><span class="kind">every run</span></div>
+      <p class="d">Marks by working each answer itself, diagnoses <em>why</em> each wrong one was wrong, and decides the verdict and next stage.</p>
+      <ul><li>Reads the whole topic history, not one session</li><li>Sizes tomorrow against the parent's time budget</li><li>Writes the brief the builder follows</li></ul>
+      <div class="io"><span class="r"><b>Reads</b> session, history</span><span class="w"><b>Writes</b> grading file</span></div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="cn">feedback</span><span class="kind cond">only if needed</span></div>
+      <p class="d">Writes the child-facing card from the grader's diagnosis — steps first, then the rule.</p>
+      <ul><li>Skipped when a lesson comes next</li><li>Never shames a skipped question</li></ul>
+      <div class="io"><span class="r"><b>Reads</b> diagnosis</span><span class="w"><b>Writes</b> the card</span></div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="cn">teacher</span><span class="kind cond">lesson days</span></div>
+      <p class="d">Writes the lesson as cycles, each with a guided question and a pre-written <em>second angle</em> for a wrong answer.</p>
+      <ul><li>Must define the idea in words before any example</li><li>Must say <b>why</b> the rule is true</li><li>A concept that keeps failing gets a different representation, not a reword</li></ul>
+      <div class="io"><span class="r"><b>Reads</b> brief, teaching profile</span><span class="w"><b>Writes</b> the session</span></div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="cn">author</span><span class="kind cond">other days</span></div>
+      <p class="d">Writes the questions: the ask, the answer, the clue ladder, and the wrong answers it expects.</p>
+      <ul><li>Predicted wrong answers carry their own message</li><li>A predicted answer may never equal the right one</li></ul>
+      <div class="io"><span class="r"><b>Reads</b> brief</span><span class="w"><b>Writes</b> the session</span></div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="cn">illustrator</span><span class="kind cond">when asked for</span></div>
+      <p class="d">Draws the diagrams the session requested, from a fixed vocabulary of shapes — never free SVG, never raw coordinates.</p>
+      <div class="io"><span class="r"><b>Reads</b> the request</span><span class="w"><b>Writes</b> the drawing</span></div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="cn">verifier</span><span class="kind">every build</span></div>
+      <p class="d">Re-solves every question cold, with no sight of how it was written. Fails on any disagreement — or any ambiguity.</p>
+      <ul><li><b>Read-only by configuration</b>, so it cannot quietly fix what it finds</li></ul>
+      <div class="io"><span class="r"><b>Reads</b> the session</span><span>Writes nothing</span></div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="cn">curriculum</span><span class="kind cond">setup only</span></div>
+      <p class="d">Researches the published framework for a board and stage, and proposes topics in prerequisite order.</p>
+      <div class="io"><span class="r"><b>Reads</b> the web</span><span class="w"><b>Writes</b> a draft for approval</span></div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="cn">curriculum-reviewer</span><span class="kind cond">setup only</span></div>
+      <p class="d">Reviews that draft blind, with no sight of how it was derived, for false and missing prerequisites.</p>
+      <div class="io"><span class="r"><b>Reads</b> the draft</span><span>Writes nothing</span></div>
+    </div>
+  </div>
+  <div class="gateband green"><span class="gn">The pattern</span><span class="gt">Everything that judges is read-only; everything that writes gets judged.</span><span class="gd">It applies twice: the verifier over a session, the reviewer over a curriculum.</span></div>
+</div>
+
+<h2 class="sec"><span class="n">04</span>What happens when the child is wrong</h2>
+<p class="seclead">There is no skip button, because every rung of this ladder ends in an answer. The cost is that someone has to predict the wrong answers in advance — which is work the authoring agent does, question by question.</p>
+<table>
+  <thead><tr><th style="width:21%;">Wrong try</th><th>What the child gets</th><th style="width:27%;">What the record gets</th></tr></thead>
+  <tbody>
+    <tr><td><b>First</b></td><td>The coach names <em>that specific mistake</em>, if it was one of the predicted ones. The clues unlock; none opens yet.</td><td>The slip code</td></tr>
+    <tr><td><b>Asks for a hand</b></td><td>The next unseen clue opens and is read aloud.</td><td>Clues used</td></tr>
+    <tr><td><b>Second and after</b></td><td>The next clue opens <em>by itself</em> — the child never has to ask to stop being stuck.</td><td>Clues used</td></tr>
+    <tr><td><b>Clues exhausted</b></td><td><b>Show me how</b> — the answer, with the last clue as the method, and "good on you for keeping at it".</td><td class="w-y">revealed</td></tr>
+    <tr><td><b>On a check</b></td><td>No clues at all, and no answer ever shown. After four tries, a <b>Move on</b> button, and nothing else.</td><td class="w-y">exhausted</td></tr>
+  </tbody>
+</table>
+<p class="note"><b>Those last two rows are different diagnoses, and the system treats them that way.</b> <code>revealed</code> means the clues were not enough. <code>exhausted</code> means the child could not get there with no help available and no pressure to perform — the strongest possible signal to re-teach, and two of them on one topic forces a backtrack to its prerequisite. Both outrank a plain wrong answer. Neither is ever described to the child as failure.</p>
+
+<h2 class="sec"><span class="n">05</span>Diagrams as data, not pictures</h2>
+<p class="seclead">No agent writes SVG. A diagram is a claim about what must be true, drawn by one agent and <em>measured back</em> by a script — because a wrong picture teaches the error exactly as directly as a wrong answer key does.</p>
+<div class="grid g4">
+  <div class="card flat"><div class="cn">1 · Declare</div><p class="d" style="margin:6px 0 0;">The writing agent states the facts: a triangle with sides 6, 6 and 9. It does not draw anything.</p></div>
+  <div class="card flat"><div class="cn">2 · Draw</div><p class="d" style="margin:6px 0 0;">A separate agent builds the drawing from a fixed vocabulary of shapes — no coordinates invented by hand.</p></div>
+  <div class="card flat"><div class="cn">3 · Measure back</div><p class="d" style="margin:6px 0 0;">The checker re-measures the drawing. Sides that are not 6, 6 and 9 block the session from saving.</p></div>
+  <div class="card flat"><div class="cn">4 · Keep the secret</div><p class="d" style="margin:6px 0 0;">A question can declare words the picture must not print, and the checker reads the labels back to enforce it.</p></div>
+</div>
+<p class="note"><b>It also refuses a diagram whose labels overlap.</b> A stimulus the child cannot read is as broken as one drawn wrongly — and nobody reviewing the JSON would ever have noticed.</p>
+
+<h2 class="sec"><span class="n">06</span>Who can write what</h2>
+<p class="seclead">The governance question in one table. The child's device holds a key that can do two things; the agents that judge can do nothing at all.</p>
+<table>
+  <thead>
+    <tr><th style="width:24%;">Component</th><th style="width:13%;">Runs where</th><th>Session record</th><th>Child's progress</th><th>The web</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><b>The child's page</b></td><td><span class="pillmini u">Their device</span></td><td class="w-y">Post answers only</td><td class="nn">No access</td><td class="nn">No model, no key</td></tr>
+    <tr><td><b>grader</b></td><td><span class="pillmini c">Parent's Mac</span></td><td class="r-y">Read</td><td class="w-y">Write, via one script</td><td class="nn">No access</td></tr>
+    <tr><td><b>feedback</b></td><td><span class="pillmini c">Parent's Mac</span></td><td class="r-y">Read</td><td class="nn">No access</td><td class="nn">No access</td></tr>
+    <tr><td><b>teacher</b> and <b>author</b></td><td><span class="pillmini c">Parent's Mac</span></td><td class="w-y">Write a draft file</td><td class="r-y">Read</td><td class="nn">No access</td></tr>
+    <tr><td><b>illustrator</b></td><td><span class="pillmini c">Parent's Mac</span></td><td class="w-y">Write drawings only</td><td class="nn">No access</td><td class="nn">No access</td></tr>
+    <tr><td><b>verifier</b></td><td><span class="pillmini c">Parent's Mac</span></td><td class="r-y">Read</td><td class="nn">No access</td><td class="nn">No access</td></tr>
+    <tr><td><b>curriculum</b></td><td><span class="pillmini c">Parent's Mac</span></td><td class="nn">No access</td><td class="w-y">Draft, on approval</td><td class="r-y">Research</td></tr>
+    <tr><td><b>The checker script</b></td><td><span class="pillmini c">Parent's Mac</span></td><td class="r-y">Read</td><td class="nn">No access</td><td class="nn">No access</td></tr>
+    <tr><td><b>The parent</b></td><td>—</td><td class="w-y">Write</td><td class="w-y">Write · owns the topic queue</td><td class="w-y">—</td></tr>
+  </tbody>
+</table>
+<p class="note"><b>Three things to notice.</b> Nothing reaches the database except through a script that enforces the rules a prose instruction cannot — a passed check always sets mastered, a failed one never does, and a second failed check refuses to save at all without a named prerequisite to fall back to. No agent can queue a second session while one is pending. And the parent owns the topic queue outright: a topic they pause leaves the queue and keeps its entire history, and no agent may silently put it back.</p>
+
+<h2 class="sec"><span class="n">07</span>Setting it up</h2>
+<p class="seclead">About half an hour, most of it the database. The only paid part is Claude Code — the grading and lesson writing is the piece no script replaces.</p>
+<div class="block">
+  <div class="block-head">
+    <div><div class="pt">From clone to first session</div><div class="ps">Nothing reaches the database until you approve it, twice: once for the curriculum, once at the gate.</div></div>
+    <span class="owner ok">Node 18 · MongoDB free tier · Claude Code</span>
+  </div>
+  <div class="grid g4">
+    <div class="card flat"><div class="cn">1 · Connect a database</div><p class="d" style="margin:6px 0 0;">Atlas's free tier, no card. <code>npm run check</code> tells you in plain English which of the four usual mistakes it is.</p></div>
+    <div class="card flat"><div class="cn">2 · Two access keys</div><p class="d" style="margin:6px 0 0;">One for the child's device, which can only fetch and answer. One for the dashboard. Local dev skips both.</p></div>
+    <div class="card flat"><div class="cn">3 · Approve a curriculum</div><p class="d" style="margin:6px 0 0;"><code>/setup-child</code> researches the board's published framework and proposes topics in prerequisite order.</p></div>
+    <div class="card flat"><div class="cn">4 · Build session one</div><p class="d" style="margin:6px 0 0;"><code>/next-session</code>. There is nothing to grade yet, so this builds the opening session directly.</p></div>
+    <div class="card flat"><div class="cn">5 · Run it</div><p class="d" style="margin:6px 0 0;"><code>npm start</code>. The child's page at <code>/</code>, yours at <code>/dashboard.html</code>.</p></div>
+    <div class="card flat"><div class="cn">6 · Give the coach a voice</div><p class="d" style="margin:6px 0 0;">Optional. Her built-in lines already ship as audio; this records her on your child's own sessions.</p></div>
+    <div class="card flat"><div class="cn">7 · Deploy</div><p class="d" style="margin:6px 0 0;">Optional, and only if the child needs it on their own device. Local-only works completely.</p></div>
+    <div class="card flat"><div class="cn">Then, each day</div><p class="d" style="margin:6px 0 0;">They do the session. You run <code>/grade</code>. That is the whole routine.</p></div>
+  </div>
+  <p class="note"><b>The scripts must run on your real machine.</b> Cloud sandboxes are firewalled off from your database, which is the correct outcome: the one copy of a child's record lives somewhere you control.</p>
+</div>
+
+<div class="takeaway">
+  <h3>What the architecture buys</h3>
+  <ol>
+    <li><b>The child waits for nothing.</b> Every session is written ahead of time, so there is no model in the browser, no API key on the server, and no prompt a child can reach.</li>
+    <li><b>Help never counts as mastery.</b> Two scores, both computed from the attempt record rather than authored, so the number that decides progression cannot be flattered.</li>
+    <li><b>Being wrong is a diagnosis, not a dead end.</b> The ladder means every question ends in an answer, and each rung the child used is a different signal about what to do next.</li>
+    <li><b>Judgement is independent of authorship.</b> The agent that re-solves a session never saw it written, and cannot edit what it finds. The same pattern reviews the curriculum.</li>
+    <li><b>The teaching is measured too.</b> Each explanation has its own guided question, so a concept that keeps needing a second angle is visible across topics — and gets a different representation next time, not a reword.</li>
+  </ol>
+</div>
+
+<div class="foot">
+  Built for one child at a time, by their parent, on their own database. There is no multi-tenant mode and no hosted service to sign a child up to.<br>
+  <a href="https://github.com/vivekpathania/claude-maths-tutor">Code on GitHub</a> · <a href="https://demo-math-tutor.netlify.app/">Try a session</a> — a seeded demo child, nothing saved. Get one wrong on purpose; that is where most of the system lives.
+</div>
+
+</div>
+<script>
+// ?only=NN shows that numbered section (its h2 and everything up to the next h2)
+var only = new URLSearchParams(location.search).get('only');
+if (only) {
+  var kids = [].slice.call(document.querySelector('.wrap').children), on = false;
+  kids.forEach(function (el) {
+    var h2 = el.matches('h2.sec');
+    if (h2) on = el.querySelector('.n').textContent.trim() === only;
+    if (on) el.classList.add('shown');
+  });
+  document.body.classList.add('only');
+}
+document.title = 'H' + Math.ceil(document.documentElement.scrollHeight);
+</script>
+<script>
+// ?poster groups each section into one block, then lays the blocks out in two columns
+if (new URLSearchParams(location.search).has('poster')) {
+  var wrap = document.querySelector('.wrap'), g = null;
+  [].slice.call(wrap.children).forEach(function (el) {
+    if (el.matches('h2.sec')) {
+      g = document.createElement('section');
+      g.className = 'sec-group';
+      // the swimlanes and the agent grid are too wide for one column
+      if (['01', '03'].indexOf(el.querySelector('.n').textContent.trim()) > -1) g.classList.add('wide');
+      wrap.insertBefore(g, el);
+    }
+    if (!g) return;
+    if (el.matches('.takeaway, .foot')) g = null; else g.appendChild(el);
+  });
+  document.body.classList.add('poster');
+  document.title = 'H' + Math.ceil(document.documentElement.scrollHeight);
+}
+</script>
+<script>
+// Live view only. A capture (?only / ?poster) or a print must render the
+// finished state, so none of this runs there.
+(function () {
+  var capture = /[?&](only|poster)\b/.test(location.search);
+  if (capture) { document.body.classList.add('capture'); return; }
+
+  var bar = document.createElement('div');
+  bar.id = 'scroll-progress';
+  document.body.appendChild(bar);
+  addEventListener('scroll', function () {
+    var h = document.documentElement.scrollHeight - innerHeight;
+    bar.style.width = (h > 0 ? (pageYOffset / h) * 100 : 0) + '%';
+  }, { passive: true });
+
+  var targets = document.querySelectorAll('.lanes, .block, table, .takeaway, .stat, h2.sec, p.seclead');
+  [].forEach.call(targets, function (el) { el.classList.add('reveal'); });
+
+  if (!window.IntersectionObserver) {
+    [].forEach.call(targets, function (el) { el.classList.add('in'); });
+    return;
+  }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      // delays must be set before .in, or the animation starts then jumps
+      [].forEach.call(e.target.querySelectorAll('.step'), function (step, i) {
+        step.style.animationDelay = (i * 0.06) + 's';
+      });
+      e.target.classList.add('in');
+      io.unobserve(e.target);
+    });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+  [].forEach.call(targets, function (el) { io.observe(el); });
+})();
+</script>
+<script>
+// Section nav. Live view only; a capture or print renders without it.
+(function () {
+  if (document.body.classList.contains('capture')) return;
+  var secs = [].slice.call(document.querySelectorAll('h2.sec'));
+  if (!secs.length) return;
+
+  var nav = document.createElement('nav');
+  nav.id = 'sec-nav';
+  var links = secs.map(function (h, i) {
+    var id = 'sec-' + h.querySelector('.n').textContent.trim();
+    h.id = id;
+    var a = document.createElement('a');
+    a.href = '#' + id;
+    a.innerHTML = '<span class="lbl"></span><span class="dot"></span>';
+    a.querySelector('.lbl').textContent = h.textContent.replace(/^\d+/, '').trim();
+    nav.appendChild(a);
+    return a;
+  });
+  document.body.appendChild(nav);
+
+  // the section whose heading last passed the top third of the screen is current
+  function sync() {
+    var mark = innerHeight / 3, current = 0;
+    secs.forEach(function (h, i) { if (h.getBoundingClientRect().top <= mark) current = i; });
+    links.forEach(function (a, i) { a.classList.toggle('active', i === current); });
+  }
+  addEventListener('scroll', sync, { passive: true });
+  sync();
+})();
+</script>
+<script>
+// Stagger the wave so the highlight reads as travelling along each lane.
+(function () {
+  if (document.body.classList.contains('capture')) return;
+  [].forEach.call(document.querySelectorAll('.lane-body'), function (body) {
+    var i = 0;
+    [].forEach.call(body.querySelectorAll('.step, .sep'), function (el) {
+      el.style.setProperty('--d', (i * 0.16).toFixed(2) + 's');
+      i++;
+    });
+  });
+})();
+</script>
+</body>
+</html>
