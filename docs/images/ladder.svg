@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 250" width="1000" height="250" role="img"
+     aria-label="The help ladder. A wrong answer is named specifically, then clues unlock, then the next clue opens by itself, and finally the answer is shown with encouragement. Every question ends in an answer, so there is no skip button.">
+<style>
+  .bg   { fill:#0d1016; }
+  .card { fill:#151926; stroke:#262c3a; stroke-width:1; }
+  .t    { font:600 13.5px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; fill:#eef1f7; }
+  .s    { font:400 11.5px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; fill:#8e99a9; }
+  .hd   { font:600 10.5px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; letter-spacing:.1em; fill:#6e7a8d; }
+  .cap  { font:400 11.5px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; fill:#6e7a8d; }
+  .capb { font:600 11.5px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; fill:#a4aec0; }
+
+  /* each rung arrives in turn, and the help bar under it grows */
+  .rung { opacity:.55; animation:show 9s ease-in-out infinite; }
+  @keyframes show { 0%,4% { opacity:.55 } 10%,78% { opacity:1 } 92%,100% { opacity:.55 } }
+  .r1 { animation-delay:0s } .r2 { animation-delay:.85s } .r3 { animation-delay:1.7s }
+  .r4 { animation-delay:2.55s } .r5 { animation-delay:3.4s }
+
+  .bar { transform-origin:left center; transform:scaleX(.14); animation:grow 9s ease-in-out infinite; }
+  @keyframes grow { 0%,4% { transform:scaleX(.14) } 12%,78% { transform:scaleX(1) } 92%,100% { transform:scaleX(.14) } }
+  .r1 .bar { animation-delay:0s } .r2 .bar { animation-delay:.85s } .r3 .bar { animation-delay:1.7s }
+  .r4 .bar { animation-delay:2.55s } .r5 .bar { animation-delay:3.4s }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rung { animation:none; opacity:1 }
+    .bar  { animation:none; transform:none }
+  }
+</style>
+
+<rect class="bg" width="1000" height="250" rx="14"/>
+<text class="hd" x="32" y="34">WHEN A CHILD GETS ONE WRONG</text>
+
+<g class="rung r1">
+  <rect class="card" x="32" y="48" width="178" height="96" rx="9"/>
+  <text class="t" x="50" y="76">Wrong answer</text>
+  <text class="s" x="50" y="97">Ollie names</text>
+  <text class="s" x="50" y="114">that exact mistake</text>
+  <rect class="bar" x="50" y="126" width="142" height="3" rx="1.5" fill="#f5948c"/>
+</g>
+
+<g class="rung r2">
+  <rect class="card" x="228" y="48" width="178" height="96" rx="9"/>
+  <text class="t" x="246" y="76">Clues unlock</text>
+  <text class="s" x="246" y="97">none opens yet —</text>
+  <text class="s" x="246" y="114">their call</text>
+  <rect class="bar" x="246" y="126" width="142" height="3" rx="1.5" fill="#e8b075"/>
+</g>
+
+<g class="rung r3">
+  <rect class="card" x="424" y="48" width="178" height="96" rx="9"/>
+  <text class="t" x="442" y="76">Still stuck</text>
+  <text class="s" x="442" y="97">the next clue opens</text>
+  <text class="s" x="442" y="114">by itself</text>
+  <rect class="bar" x="442" y="126" width="142" height="3" rx="1.5" fill="#e8b075"/>
+</g>
+
+<g class="rung r4">
+  <rect class="card" x="620" y="48" width="178" height="96" rx="9"/>
+  <text class="t" x="638" y="76">Clues run out</text>
+  <text class="s" x="638" y="97">“Show me how” —</text>
+  <text class="s" x="638" y="114">the answer, the method</text>
+  <rect class="bar" x="638" y="126" width="142" height="3" rx="1.5" fill="#8f90fa"/>
+</g>
+
+<g class="rung r5">
+  <rect class="card" x="816" y="48" width="152" height="96" rx="9"/>
+  <text class="t" x="834" y="76">They move on</text>
+  <text class="s" x="834" y="97">“good on you for</text>
+  <text class="s" x="834" y="114">keeping at it”</text>
+  <rect class="bar" x="834" y="126" width="116" height="3" rx="1.5" fill="#5bd79a"/>
+</g>
+
+<text class="capb" x="32" y="180">Every question ends in an answer — their own, or a shown one.</text>
+<text class="cap"  x="32" y="202">So there is no skip button, and which rung they needed is recorded. That is the diagnosis the</text>
+<text class="cap"  x="32" y="222">next session is built from, not the score.</text>
+</svg>

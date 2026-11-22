@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 250" width="1000" height="250" role="img"
+     aria-label="The daily loop: the child answers on their own device, every try is stored, the parent runs one command, the agents mark the session and build tomorrow's, and it is queued for the next day.">
+<style>
+  .bg    { fill:#0d1016; }
+  .card  { fill:#151926; stroke:#262c3a; stroke-width:1; }
+  .t     { font:600 14px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; fill:#eef1f7; }
+  .s     { font:400 11.5px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; fill:#8e99a9; }
+  .cap   { font:400 11.5px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; fill:#6e7a8d; }
+  .hd    { font:600 11px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; letter-spacing:.11em; }
+  .chev  { stroke:#4a5465; stroke-width:1.6; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* each node lights up in turn, one pass every 7.5s */
+  .glow  { fill:none; stroke-width:1.6; opacity:0; animation:lite 7.5s ease-in-out infinite; }
+  @keyframes lite { 0%,16%,100% { opacity:0 } 4%,10% { opacity:1 } }
+  .n1 .glow { animation-delay:0s;    stroke:#4ed2e6 }
+  .n2 .glow { animation-delay:1.05s; stroke:#e8b075 }
+  .n3 .glow { animation-delay:2.1s;  stroke:#8f90fa }
+  .n4 .glow { animation-delay:3.15s; stroke:#8f90fa }
+  .n5 .glow { animation-delay:4.2s;  stroke:#5bd79a }
+
+  .chev { opacity:.45; animation:ping 7.5s ease-in-out infinite; }
+  @keyframes ping { 0%,16%,100% { opacity:.3 } 6% { opacity:1 } }
+  .c1 { animation-delay:.5s } .c2 { animation-delay:1.55s }
+  .c3 { animation-delay:2.6s } .c4 { animation-delay:3.65s }
+
+  /* the return arc draws itself once the last node has lit */
+  .back { fill:none; stroke:#5bd79a; stroke-width:1.5; stroke-dasharray:6 5; opacity:.5;
+          stroke-dashoffset:0; animation:flow 7.5s linear infinite; }
+  @keyframes flow { to { stroke-dashoffset:-220 } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glow { animation:none; opacity:.55 }
+    .chev { animation:none; opacity:.6 }
+    .back { animation:none }
+  }
+</style>
+
+<rect class="bg" width="1000" height="250" rx="14"/>
+
+<!-- 1 -->
+<g class="n1">
+  <rect class="card" x="32" y="44" width="168" height="88" rx="9"/>
+  <rect class="glow" x="32" y="44" width="168" height="88" rx="9"/>
+  <text class="hd" x="50" y="70" fill="#4ed2e6">THE CHILD</text>
+  <text class="t"  x="50" y="94">Answers</text>
+  <text class="s"  x="50" y="114">one question at a time</text>
+</g>
+<path class="chev c1" d="M214 84 l9 4 -9 4"/>
+<line class="chev c1" x1="206" y1="88" x2="222" y2="88"/>
+
+<!-- 2 -->
+<g class="n2">
+  <rect class="card" x="240" y="44" width="168" height="88" rx="9"/>
+  <rect class="glow" x="240" y="44" width="168" height="88" rx="9"/>
+  <text class="hd" x="258" y="70" fill="#e8b075">THE RECORD</text>
+  <text class="t"  x="258" y="94">Every try is stored</text>
+  <text class="s"  x="258" y="114">not just the score</text>
+</g>
+<path class="chev c2" d="M422 84 l9 4 -9 4"/>
+<line class="chev c2" x1="414" y1="88" x2="430" y2="88"/>
+
+<!-- 3 -->
+<g class="n3">
+  <rect class="card" x="448" y="44" width="168" height="88" rx="9"/>
+  <rect class="glow" x="448" y="44" width="168" height="88" rx="9"/>
+  <text class="hd" x="466" y="70" fill="#8f90fa">YOU</text>
+  <text class="t"  x="466" y="94">Run /grade</text>
+  <text class="s"  x="466" y="114">one command</text>
+</g>
+<path class="chev c3" d="M630 84 l9 4 -9 4"/>
+<line class="chev c3" x1="622" y1="88" x2="638" y2="88"/>
+
+<!-- 4 -->
+<g class="n4">
+  <rect class="card" x="656" y="44" width="168" height="88" rx="9"/>
+  <rect class="glow" x="656" y="44" width="168" height="88" rx="9"/>
+  <text class="hd" x="674" y="70" fill="#8f90fa">THE AGENTS</text>
+  <text class="t"  x="674" y="94">Mark, then build</text>
+  <text class="s"  x="674" y="114">lesson, clues, diagrams</text>
+</g>
+<path class="chev c4" d="M838 84 l9 4 -9 4"/>
+<line class="chev c4" x1="830" y1="88" x2="846" y2="88"/>
+
+<!-- 5 -->
+<g class="n5">
+  <rect class="card" x="864" y="44" width="104" height="88" rx="9"/>
+  <rect class="glow" x="864" y="44" width="104" height="88" rx="9"/>
+  <text class="hd" x="882" y="70" fill="#5bd79a">QUEUED</text>
+  <text class="t"  x="882" y="94">Tomorrow</text>
+  <text class="s"  x="882" y="114">written ahead</text>
+</g>
+
+<!-- back to the child, next day -->
+<path class="back" d="M916 140 C916 186, 820 186, 640 186 L292 186 C150 186, 116 186, 116 140"/>
+<text class="cap" x="500" y="208" text-anchor="middle">the next day — and nothing is ever generated while the child waits</text>
+</svg>

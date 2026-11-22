@@ -2,6 +2,18 @@
 
 **A daily maths programme for one child, run end to end by Claude Code agents.**
 
+<p align="center">
+  <a href="https://demo-math-tutor.netlify.app/"><img src="https://img.shields.io/badge/▶_try_a_session-live_demo-4ed2e6?style=flat" alt="Try a session" height="20"></a>
+  &nbsp;
+  <a href="https://claude.com/claude-code"><img src="https://img.shields.io/badge/built_on-Claude_Code-8f90fa?style=flat" alt="Built on Claude Code" height="20"></a>
+  &nbsp;
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-5bd79a?style=flat" alt="MIT license" height="20"></a>
+</p>
+
+<p align="center">
+  <img src="docs/images/loop.svg" alt="The daily loop: the child answers on their own device, every try is stored, the parent runs one command, the agents mark the session and build tomorrow's, and it is queued for the next day." width="100%">
+</p>
+
 ### ▶ [Try a session](https://demo-math-tutor.netlify.app/)
 
 A real one, in the browser: the diagrams, the clue ladder, and Coach Ollie
@@ -23,6 +35,18 @@ It is built for **one child at a time**, run by their parent, on their own
 database. There is no multi-tenant mode, and no hosted service to sign your own
 child up to — the demo above is a read-only showcase, not an account.
 
+<p align="center">
+  <a href="#see-it-working-first"><b>See it working</b></a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="#getting-started"><b>Getting started</b></a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="#daily-routine"><b>Daily routine</b></a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="#slash-commands"><b>Commands</b></a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://vivekpathania.github.io/claude-maths-tutor/"><b>Architecture</b></a>
+</p>
+
 ---
 
 ## What it looks like
@@ -38,6 +62,8 @@ stuck — so every question ends in an answer rather than a dead end.
 
 ![Coach Ollie opening a clue after a wrong answer](docs/images/help-ladder.jpg)
 
+![The help ladder: a wrong answer is named specifically, then clues unlock, then the next clue opens by itself, and finally the answer is shown with encouragement](docs/images/ladder.svg)
+
 **The parent's dashboard.** Three questions answered up front: is the child
 practising, is it working, and what should I do about it.
 
@@ -45,67 +71,6 @@ practising, is it working, and what should I do about it.
 
 *(Screenshots show the built-in demo child, not a real one — the same one you
 can play with in [the demo](https://demo-math-tutor.netlify.app/).)*
-
----
-
-## Coach Ollie, the talking tutor
-
-Everything the child reads is said by one character. That is not a style
-choice but a rule the code enforces: there is no second narrator, so the page
-never speaks over the tutor, and `verify-session.js` **rejects** a session that
-refers to Ollie in the third person. The child meets one person, not an app
-with a mascot stuck on it.
-
-**She talks.** Her lines are recorded ahead of time on the parent's Mac with
-[Kokoro](https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX), an
-82M-parameter text-to-speech model, and played back from static files. Nothing
-is synthesised in the browser and nothing is generated while the child waits.
-The model never reaches the deploy or the child's device — it lives in
-`tools/voice/`, its own package, deliberately outside the app's dependency tree.
-
-Every clip is named by a hash of the words it says. So the same sentence is
-never recorded twice, an edited line gets new audio by itself, and the test
-suite fails if a line exists with no recording — silent dead air in the middle
-of a lesson is a bug, not a degradation.
-
-**What she says aloud is exactly what is on the screen**, which is what keeps
-an assessment honest: a check session has no clues and no coaching messages, so
-there is nothing for the voice to leak. She reads her own words and the clues.
-She does not read the slip message that names a mistake, the revealed answer,
-or the feedback card — those are shown, so that her reaction to a wrong try is
-never talked over.
-
-**Lines with the child's name are never recorded to the open CDN.** About
-sixteen of her lines are templates (`Hi {name}!`). `public/audio/` is served to
-anyone without a key, and a recording of a child's first name does not belong
-there, so those are voiced per child into a key-protected store instead. A test
-fails if one ever leaks into the public bank.
-
-Sound is on by default for age 11 and under and captions-only from 12, with a
-mute button on her dock. Any audio failure is silent — the lesson never blocks
-on it.
-
-Full pipeline in [docs/voice.md](docs/voice.md); what she says and in what
-register in [docs/mascot.md](docs/mascot.md).
-
----
-
-## Diagrams the child can trust
-
-A question or a teaching step can carry a diagram, and **no agent ever writes
-SVG**. A visual is declarative data — a triangle with these side lengths, a
-place-value grid with this column lit — which the page draws and
-`verify-session.js` *measures back*. State that a triangle has sides 6, 6 and 9
-and draw one that does not, and the session is blocked, exactly as a wrong
-answer key would be. A wrong picture teaches the error just as directly.
-
-The same mechanism keeps a picture from giving its own answer away: a question
-can declare words the diagram must not print, and the checker reads the drawn
-labels back to enforce it. It also refuses a diagram whose labels would land on
-top of each other — a stimulus the child cannot read is as broken as one drawn
-wrongly, and nobody reviewing the JSON would otherwise notice.
-
-See [docs/visuals.md](docs/visuals.md).
 
 ---
 
@@ -297,23 +262,78 @@ can review what they will get before they see it.
 
 ---
 
-## Scripts
+## Coach Ollie, the talking tutor
+Everything the child reads is said by one character. That is not a style
+choice but a rule the code enforces: there is no second narrator, so the page
+never speaks over the tutor, and `verify-session.js` **rejects** a session that
+refers to Ollie in the third person. The child meets one person, not an app
+with a mascot stuck on it.
 
-```bash
-npm run check                                        # is the database connected? (start here)
-npm test                                             # the six test suites
-npm run fetch                                        # show the newest ungraded session
-node scripts/seed-demo.js --force                    # demo child with history
-node scripts/save-curriculum.js profiles/<id>.json   # save an approved curriculum
-node scripts/verify-session.js <file>                # structural checks on a session
-```
+<details>
+<summary><b>How her voice is built, and why none of it runs in the browser</b></summary>
 
-All of them talk to MongoDB directly through `scripts/db.js` and read
-`MONGODB_URI` from `.env`.
+**She talks.** Her lines are recorded ahead of time on the parent's Mac with
+[Kokoro](https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX), an
+82M-parameter text-to-speech model, and played back from static files. Nothing
+is synthesised in the browser and nothing is generated while the child waits.
+The model never reaches the deploy or the child's device — it lives in
+`tools/voice/`, its own package, deliberately outside the app's dependency tree.
+
+Every clip is named by a hash of the words it says. So the same sentence is
+never recorded twice, an edited line gets new audio by itself, and the test
+suite fails if a line exists with no recording — silent dead air in the middle
+of a lesson is a bug, not a degradation.
+
+**What she says aloud is exactly what is on the screen**, which is what keeps
+an assessment honest: a check session has no clues and no coaching messages, so
+there is nothing for the voice to leak. She reads her own words and the clues.
+She does not read the slip message that names a mistake, the revealed answer,
+or the feedback card — those are shown, so that her reaction to a wrong try is
+never talked over.
+
+**Lines with the child's name are never recorded to the open CDN.** About
+sixteen of her lines are templates (`Hi {name}!`). `public/audio/` is served to
+anyone without a key, and a recording of a child's first name does not belong
+there, so those are voiced per child into a key-protected store instead. A test
+fails if one ever leaks into the public bank.
+
+Sound is on by default for age 11 and under and captions-only from 12, with a
+mute button on her dock. Any audio failure is silent — the lesson never blocks
+on it.
+
+Full pipeline in [docs/voice.md](docs/voice.md); what she says and in what
+register in [docs/mascot.md](docs/mascot.md).
 
 ---
 
+</details>
+
+## Diagrams the child can trust
+A question or a teaching step can carry a diagram, and **no agent ever writes
+SVG**. A visual is declarative data — a triangle with these side lengths, a
+place-value grid with this column lit — which the page draws and
+`verify-session.js` *measures back*. State that a triangle has sides 6, 6 and 9
+and draw one that does not, and the session is blocked, exactly as a wrong
+answer key would be. A wrong picture teaches the error just as directly.
+
+<details>
+<summary><b>How a diagram is declared, drawn and measured back</b></summary>
+
+The same mechanism keeps a picture from giving its own answer away: a question
+can declare words the diagram must not print, and the checker reads the drawn
+labels back to enforce it. It also refuses a diagram whose labels would land on
+top of each other — a stimulus the child cannot read is as broken as one drawn
+wrongly, and nobody reviewing the JSON would otherwise notice.
+
+See [docs/visuals.md](docs/visuals.md).
+
+---
+
+</details>
+
 ## The AI's role
+<details>
+<summary><b>What the AI actually decides</b></summary>
 
 Claude does the work a human tutor would do:
 
@@ -334,7 +354,11 @@ agent that never saw how the questions were written.
 
 ---
 
+</details>
+
 ## Phases
+<details>
+<summary><b>The four phases, from setup to review</b></summary>
 
 | Phase | What happens |
 |---|---|
@@ -345,7 +369,31 @@ agent that never saw how the questions were written.
 
 ---
 
+</details>
+
+## Scripts
+<details>
+<summary><b>Scripts — what each one is for</b></summary>
+
+```bash
+npm run check                                        # is the database connected? (start here)
+npm test                                             # the six test suites
+npm run fetch                                        # show the newest ungraded session
+node scripts/seed-demo.js --force                    # demo child with history
+node scripts/save-curriculum.js profiles/<id>.json   # save an approved curriculum
+node scripts/verify-session.js <file>                # structural checks on a session
+```
+
+All of them talk to MongoDB directly through `scripts/db.js` and read
+`MONGODB_URI` from `.env`.
+
+---
+
+</details>
+
 ## Stack
+<details>
+<summary><b>Stack</b></summary>
 
 - **MongoDB** — children and sessions, two collections (`scripts/db.js`)
 - **Express** — the API in `app.js`; no `listen` of its own, so the same app
@@ -357,7 +405,11 @@ The child's page has no build step — plain HTML with Tailwind from a CDN.
 
 ---
 
+</details>
+
 ## Repository layout
+<details>
+<summary><b>Repository layout</b></summary>
 
 ```
 CLAUDE.md                   operating manual Claude Code follows
@@ -393,7 +445,11 @@ the `example.json` placeholders are tracked.
 
 ---
 
+</details>
+
 ## Supported curricula
+<details>
+<summary><b>Supported curricula</b></summary>
 
 Profiles store the board and stage; Claude researches the published framework
 and proposes topics in prerequisite order. Verified against **Cambridge Primary
@@ -403,7 +459,11 @@ This project is not affiliated with or endorsed by any examination board.
 
 ---
 
+</details>
+
 ## How to extend
+<details>
+<summary><b>How to extend it</b></summary>
 
 The grading step is the only part that requires Claude Code. To make it fully
 automatic, trigger the fetch and save logic on session submit and replace the
@@ -411,6 +471,8 @@ grading step with a Claude API call using `CLAUDE.md` as the system prompt. The
 data layer in `scripts/db.js` ports across unchanged.
 
 ---
+
+</details>
 
 ## License
 
